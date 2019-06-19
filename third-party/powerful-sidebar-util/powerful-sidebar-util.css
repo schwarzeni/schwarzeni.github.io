@@ -1,0 +1,272 @@
+.custom-image {
+  width: 100%;
+}
+
+.powerful-plugin-container {
+  top: 30px;
+  left: 30px;
+  position: fixed;
+  box-sizing: content-box;
+  z-index: 10;
+  transition: left 0.5s ease 0s;
+}
+
+
+.ssp-self-opt-btn {
+  width: 30px;
+  height: 30px;
+  background-color: rgba(85, 85, 85, .7);
+  z-index: 10;
+  margin-top: 10px;
+  border-radius: 20px;
+  background-size: 24px;
+  background-repeat: no-repeat;
+  background-position: center center;
+  box-shadow: 7px 8px 20px #ddd;
+  -webkit-box-shadow: 7px 8px 20px #ddd;
+}
+
+/* 目录的container */
+.ssp-article-menu-container {
+  max-height: 85vh;
+  position: fixed;
+  top: 30px;
+  background: rgba(249, 249, 249, .8);
+  border: 1px solid rgba(240, 240, 240, .5);
+  border-radius: 30px;
+  padding: 30px;
+  box-sizing: content-box;
+  z-index: 10;
+  box-shadow: 7px 8px 20px #ddd;
+  -webkit-box-shadow: 7px 8px 20px #ddd;
+  overflow: scroll;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+}
+
+.ssp-article-menu-container::-webkit-scrollbar {
+  width: 0 !important
+}
+
+
+.ssp-article-menu-container-show {
+  left: 80px;
+  transition: all .4s ease-out;
+}
+
+.ssp-article-menu-container-hide {
+  left: -400px;
+  transition: all .4s ease-in;
+
+}
+
+.spp-h-common {
+  display: block;
+  padding: 5px;
+  color: #848484;
+  text-decoration: none;
+  max-width: 300px;
+  overflow-y: scroll;
+  white-space: nowrap;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+
+}
+
+.spp-h-common::-webkit-scrollbar {
+  width: 0 !important
+}
+
+.spp-h-1 {
+  font-size: 20px;
+}
+
+.spp-h-2 {
+  font-size: 18px;
+  margin-left: 30px;
+}
+
+.spp-h-3 {
+  font-size: 16px;
+  margin-left: 60px;
+}
+
+
+
+#ssp_opt_to_top_btn {
+  background-image: url("/third-party/powerful-sidebar-util/icon/totop.png");
+}
+
+#ssp_opt_article_btn {
+  background-image: url("/third-party/powerful-sidebar-util/icon/fullscreen.png");
+}
+
+#ssp_article_menu_btn {
+  background-image: url("/third-party/powerful-sidebar-util/icon/article_menu_show.png");
+}
+
+#ssp_search_open_btn {
+  background-image: url("/third-party/powerful-sidebar-util/icon/search.png")
+}
+
+/*****************    搜索区域部分  *******************/
+
+/* 总区域 */
+.ssp-search-area {
+  top: 0;
+  left: 0;
+  background: rgba(240, 240, 240, .9);
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 11;
+  transition: width 0.5s ease;
+  overflow: hidden;
+}
+
+/* 关闭按钮 */
+.ssp-search-close-btn {
+  position: absolute;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  background-color: rgba(85, 85, 85, .7);
+  background-image: url("/third-party/powerful-sidebar-util/icon/close.png");
+  border-radius: 20px;
+  background-size: 24px;
+  background-repeat: no-repeat;
+  background-position: center center;
+  box-shadow: 7px 8px 20px #ddd;
+  -webkit-box-shadow: 7px 8px 20px #ddd;
+}
+
+/*搜索容器样式*/
+.ssp-search-container {
+  position: relative;
+  width: 800px;
+  margin: 20px auto 0;
+  box-sizing: content-box;
+  transition: height 0.5s ease;
+  /*max-height: 80vh;*/
+}
+
+@media screen and (max-width: 980px) {
+  .ssp-search-container {
+    width: 100%;
+  }
+}
+
+.ssp-search-sort {
+  display: block;
+  float: left;
+  margin: 0 0 5px 5px;
+  width: 80px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 15px;
+  transition: background-color .3s ease-in;
+}
+
+.ssp-search-sort:hover {
+  background: #d3d3d3;
+  transition: background-color .3s ease-out;
+}
+
+.ssp-search-sort-select {
+  background: #555;
+  color: #f0f0f0;
+  transition: background-color .3s ease-in;
+}
+
+.ssp-search-sort-select:hover {
+  background: #9b9b9b;
+  transition: background-color .3s ease-out;
+}
+
+
+/*搜索框样式*/
+.ssp-search-input-area {
+  display: block;
+  width: 100%;
+  height: 60px;
+  outline: none;
+  font-size: 30px;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  border-radius: 15px;
+  border: none;
+  -webkit-box-shadow: 7px 8px 20px #ddd;
+  box-shadow: 7px 8px 20px #ddd;
+}
+
+/* 存放搜索结果容器样式 */
+.ssp-search-result-container {
+  margin-top: 20px;
+  max-height: 80vh;
+  overflow: scroll;
+}
+
+/* 单个搜索结果的容器样式 */
+.ssp-search-result-item {
+  display: block;
+  text-decoration: none;
+  height: 35px;
+  line-height: 20px;
+  overflow: hidden;
+  margin-top: 10px;
+  padding: 10px 30px;
+  box-sizing: border-box;
+  font-size: 20px;
+  color: #555;
+  transition: 0.3s height ease-out;
+}
+
+.ssp-search-result-item:hover {
+  height: 88px;
+  transition: 0.3s height ease-in;
+}
+
+.ssp-search-result-item-title {
+  margin-bottom: 10px;
+  overflow-y: scroll;
+  white-space: nowrap;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+}
+
+.ssp-search-result-item-title::-webkit-scrollbar {
+  width: 0 !important
+}
+
+
+.ssp-search-result-item-tag {
+  float: left;
+  font-size: 16px;
+  margin-right: 15px;
+  display: block;
+  box-sizing: content-box;
+  padding: 6px;
+  border-radius: 15px;
+  background: rgba(176, 152, 128, .3);
+  color: #555;
+}
+
+.ssp-search-result-item-category {
+  float: right;
+  font-size: 16px;
+  margin-right: 15px;
+  display: block;
+  box-sizing: content-box;
+  padding: 6px;
+  border-radius: 15px;
+  background: rgba(176, 152, 128, .3);
+  color: #555;
+
+}
+
+.ssp-search-result-item:hover {
+  background: #dedbdb;
+  border-radius: 15px;
+}
