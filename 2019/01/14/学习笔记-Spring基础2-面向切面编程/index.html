@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>学习笔记: Spring基础2 相关术语概念 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="学习来源：SSM主流框架入门与综合项目实战 贴一些术语定义之类的，主要的还是代码，就不贴了">
+<meta name="keywords" content="总结,java,Spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习笔记: Spring基础2 相关术语概念">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="学习来源：SSM主流框架入门与综合项目实战 贴一些术语定义之类的，主要的还是代码，就不贴了">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image4.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image5.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image6.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image7.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image8.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:40.620Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习笔记: Spring基础2 相关术语概念">
+<meta name="twitter:description" content="学习来源：SSM主流框架入门与综合项目实战 贴一些术语定义之类的，主要的还是代码，就不贴了">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-学习笔记-Spring基础2-面向切面编程" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/14/学习笔记-Spring基础2-面向切面编程/" class="article-date">
+  <time class="post-time" datetime="2019-01-14T02:57:32.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">14</span>
+  </time>
+</a>
+   
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      学习笔记: Spring基础2 相关术语概念
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>学习来源：<a href="https://class.imooc.com/sc/43" target="_blank" rel="noopener">SSM主流框架入门与综合项目实战</a></p>
+<p>贴一些术语定义之类的，主要的还是代码，就不贴了</p>
+<a id="more"></a>
+<hr>
+<h2 id="AOP术语"><a href="#AOP术语" class="headerlink" title="AOP术语"></a>AOP术语</h2><ul>
+<li><code>JoinPoint</code> 被拦截到的点，Spring中这些点指的是方法</li>
+<li><code>PointCut</code>  对哪些JoinPoint进行拦截的定义</li>
+<li><code>Advice</code> 拦截到 <code>JoinPoint</code>之后所要做的事情</li>
+<li><p><code>Introduction</code> 在不修改类的代码的前提下在运行期间动态添加一些 Method 或 Field</p>
+</li>
+<li><p><code>Target</code> 代理的目标对象</p>
+</li>
+<li><code>Weaving</code> 创建代理对象的过程</li>
+<li><code>Proxy</code> 产生的代理类</li>
+<li><code>Aspect</code> JoinPoint 和 Introduction 的结合</li>
+</ul>
+<hr>
+<h2 id="使用aspectj"><a href="#使用aspectj" class="headerlink" title="使用aspectj"></a>使用aspectj</h2><ul>
+<li><code>@Before</code> 前置通知 BeforeAdvice 权限验证</li>
+<li><code>@AfterReturning</code> 后置通知 AfterReturningAdvice 日志记录</li>
+<li><code>@Around</code> 环绕通知 MethodInterceptor</li>
+<li><code>@AfterThrowing</code> 异常抛出通知 ThrowAdvice</li>
+<li><code>@After</code> 最终通知 final 不管是否异常都会执行</li>
+</ul>
+<hr>
+<h2 id="使用execution函数"><a href="#使用execution函数" class="headerlink" title="使用execution函数"></a>使用execution函数</h2><p><code>execution(&lt;访问修饰符&gt;?&lt;返回类型&gt;&lt;方法名&gt;(&lt;参数&gt;)&lt;异常&gt;)</code></p>
+<ul>
+<li>所有public方法<ul>
+<li><code>execution(public * * (..))</code></li>
+</ul>
+</li>
+<li>指定包下的方法<ul>
+<li><code>execution(* com.example.dao.*(..))</code> 不包含子包</li>
+<li><code>execution(* com.example.dao..*(..))</code> 包含子包</li>
+</ul>
+</li>
+<li>指定包所有方法<ul>
+<li><code>execution(* com.example.dao.AAA.*(..))</code></li>
+</ul>
+</li>
+<li>实现特定接口<ul>
+<li><code>execution(* com.example.dao.AAA+.*(..))</code></li>
+</ul>
+</li>
+<li>所有以save开头的方法<ul>
+<li><code>execution(* save*(..))</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="使用jdbc-template"><a href="#使用jdbc-template" class="headerlink" title="使用jdbc template"></a>使用jdbc template</h2><p>对原始 JDBC 的简单封装</p>
+<p>相关配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"datasource"</span> <span class="attr">class</span>=<span class="string">"org.springframework.jdbc.datasource.DriverManagerDataSource"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"driverClassName"</span> <span class="attr">value</span>=<span class="string">"com.mysql.jdbc.Driver"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"url"</span> <span class="attr">value</span>=<span class="string">"jdbc:mysql://localhost:3306/imooc_chat_robot"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"username"</span> <span class="attr">value</span>=<span class="string">"root"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"password"</span> <span class="attr">value</span>=<span class="string">"root"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"jdbcTemplate"</span> <span class="attr">class</span>=<span class="string">"org.springframework.jdbc.core.JdbcTemplate"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"dataSource"</span> <span class="attr">ref</span>=<span class="string">"datasource"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="image1.png" alt="增 改"><br><img src="image2.png" alt="查"><br><img src="image3.png" alt="查"><br><img src="image4.png" alt="查"></p>
+<hr>
+<h2 id="数据库事务相关术语"><a href="#数据库事务相关术语" class="headerlink" title="数据库事务相关术语"></a>数据库事务相关术语</h2><ul>
+<li><code>事务</code> 要么完全执行，要么完全不执行</li>
+<li><code>原子性</code> 不可分割 结构上</li>
+<li><code>一致性</code> 必须使从一个一致性状态变为另一个一致性状态 业务规则上</li>
+<li><code>隔离性</code> 一个事务的执行不能被另一个所干扰</li>
+<li><p><code>持久性</code></p>
+</li>
+<li><p><code>脏读</code>：读取未commit的数据</p>
+</li>
+<li><code>不可重复读</code> 读两次，结果不一样 在这个事务中有别的事务插入</li>
+<li><p><code>幻读</code> 置零，另一个事务介入置10，再次读不为0</p>
+</li>
+<li><p>Mysql事务隔离级别</p>
+</li>
+</ul>
+<p><img src="image5.png" alt=""></p>
+<ul>
+<li>JDBC事务隔离级别</li>
+</ul>
+<p><img src="image6.png" alt=""></p>
+<ul>
+<li>Spring事务处理api</li>
+</ul>
+<p><img src="image7.png" alt=""></p>
+<ul>
+<li>Spring事务传播行为</li>
+</ul>
+<p><img src="image8.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/01/14/学习笔记-Spring基础2-面向切面编程/" data-id="cjx382iv4002iazvg6d6pc4y5" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/14/补番日记：献给某飞行员的恋歌/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          补番日记：献给某飞行员的恋歌
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/01/12/学习笔记-Spring基础1-Bean/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">学习笔记: Spring基础1 Bean</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">再见，昨天</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="Schwarzeni">
+          Schwarzeni
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

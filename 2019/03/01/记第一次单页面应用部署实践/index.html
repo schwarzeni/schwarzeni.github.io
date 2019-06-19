@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>记第一次单页面应用部署实践 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前面没有过单页面前后端分离的应用部署的经验；尝试着自己部署了一下，遇到了不少的问题，这里记录一下">
+<meta name="keywords" content="总结,Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记第一次单页面应用部署实践">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/03/01/记第一次单页面应用部署实践/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="前面没有过单页面前后端分离的应用部署的经验；尝试着自己部署了一下，遇到了不少的问题，这里记录一下">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/03/01/记第一次单页面应用部署实践/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/03/01/记第一次单页面应用部署实践/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/03/01/记第一次单页面应用部署实践/image3.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:41.355Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="记第一次单页面应用部署实践">
+<meta name="twitter:description" content="前面没有过单页面前后端分离的应用部署的经验；尝试着自己部署了一下，遇到了不少的问题，这里记录一下">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/03/01/记第一次单页面应用部署实践/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-记第一次单页面应用部署实践" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/03/01/记第一次单页面应用部署实践/" class="article-date">
+  <time class="post-time" datetime="2019-03-01T00:28:25.000Z" itemprop="datePublished">
+    <span class="post-month">3月</span><br/>
+    <span class="post-day">01</span>
+  </time>
+</a>
+   
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      记第一次单页面应用部署实践
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>前面没有过单页面前后端分离的应用部署的经验；尝试着自己部署了一下，遇到了不少的问题，这里记录一下</p>
+<a id="more"></a>
+<p>自己yy的架构图</p>
+<p><img src="image1.png" alt=""></p>
+<hr>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>前端技术栈：Angular v6.0.3，Angular Material v6.3.2</li>
+<li>NodeJS技术栈：NodeJS v9.5.0，Express v4.16.4，pm2 v3.3.1</li>
+<li>Go技术栈：Go v1.9，gin v1.2</li>
+<li>服务器：CentOS7，Nginx v1.12.2</li>
+</ul>
+<hr>
+<h2 id="搭建Nodejs中转服务器"><a href="#搭建Nodejs中转服务器" class="headerlink" title="搭建Nodejs中转服务器"></a>搭建Nodejs中转服务器</h2><p>对Express比较熟悉，且其生态圈非常好，所以就使用Express中转服务器，功能有三</p>
+<ul>
+<li>处理前端单页面应用路由History模式</li>
+<li>处理静态资源：html，css，js文件</li>
+<li>对所有api请求进行转发</li>
+</ul>
+<p>部署要服务器上后使用<a href="http://pm2.keymetrics.io/" target="_blank" rel="noopener">pm2</a>启动就行</p>
+<p>关于NodeJS版本切换的问题，使用<a href="https://github.com/creationix/nvm" target="_blank" rel="noopener">nvm</a>就好，官方的教程是靠谱的，千万不要用<code>yum</code>来安装</p>
+<p>大体的目录结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">middle_server</span><br><span class="line">├── config              // 存放一些配置</span><br><span class="line">│   └── config.json</span><br><span class="line">├── package.json</span><br><span class="line">├── server.js           // 服务器主逻辑</span><br><span class="line">└── static              // 此处存放所有静态资源</span><br><span class="line">    ├── assets</span><br><span class="line">    │   └── image</span><br><span class="line">    │       └── image.png</span><br><span class="line">    ├── index.html</span><br><span class="line">    └── main.86479c8b865775dc42fc.js</span><br></pre></td></tr></table></figure>
+<p>完成需求一，需要安装 <a href="https://github.com/bripkens/connect-history-api-fallback" target="_blank" rel="noopener">connect-history-api-fallback</a></p>
+<p>完成需求二，使用<a href="https://expressjs.com/en/starter/static-files.html" target="_blank" rel="noopener">Express提供的api</a>就可以了，当然，由于使用单页面应用，js，css文件会比较大，如下：</p>
+<p><img src="image2.png" alt=""></p>
+<p>所有记得设置客户端缓存，<a href="https://wdd.js.org/express-static-file-cache-setting-and-cleaning.html" target="_blank" rel="noopener">可以参考这个链接</a>，去直接看<a href="https://expressjs.com/en/resources/middleware/serve-static.html" target="_blank" rel="noopener">官方文档</a>也行。</p>
+<p>当然，设置了缓存的话就别忘了给静态资源文件名或请求的url打时间戳，不过这个应该是前端做的，比如我使用的Angular在打包的时候已经为文件打上时间戳了，虽然漏了html和图片文件….</p>
+<p>完成需求三，需要安装<a href="https://github.com/villadora/express-http-proxy" target="_blank" rel="noopener">express-http-proxy</a>，当然，自己实现也可以，可以<a href="https://stackoverflow.com/questions/10435407/proxy-with-express-js" target="_blank" rel="noopener">参看这篇问答</a>，</p>
+<p>所有最后server.js是这样的，记得最后把所有可更改的数值存放到json文件中方便更改，比如监听的端口</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)</span><br><span class="line"><span class="keyword">const</span> proxy = <span class="built_in">require</span>(<span class="string">'express-http-proxy'</span>)</span><br><span class="line"><span class="keyword">const</span> history = <span class="built_in">require</span>(<span class="string">'connect-history-api-fallback'</span>);</span><br><span class="line"><span class="keyword">const</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>);</span><br><span class="line"><span class="keyword">const</span> app = express()</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> port = <span class="string">'4200'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 为前端路由history模式而配置</span></span><br><span class="line">app.use(history(&#123;</span><br><span class="line">  htmlAcceptHeaders: [<span class="string">'text/html'</span>]</span><br><span class="line">&#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置静态文件路径，并设置浏览器缓存时间为30天</span></span><br><span class="line">app.use(<span class="string">'/'</span>, express.static(<span class="string">'static'</span>, &#123;<span class="attr">maxAge</span>: <span class="number">2592000000</span>&#125;))</span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置api代理，proxy到api服务器上</span></span><br><span class="line">app.use(<span class="string">'/'</span>, proxy(<span class="string">'/'</span>,  &#123;</span><br><span class="line">  <span class="comment">// 配置一些过滤器 .....</span></span><br><span class="line">  filter: <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 启动nodejs服务器</span></span><br><span class="line">http.createServer(app)</span><br><span class="line">  .listen(port, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`font-end server is listening at port <span class="subst">$&#123;port&#125;</span>`</span>)</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="编译Golang"><a href="#编译Golang" class="headerlink" title="编译Golang"></a>编译Golang</h2><p>本地环境是MacOS，我不想把整个工程外加依赖都打包放到服务器上，然后在服务器上编译；可喜的是Golang是<a href="https://www.digitalocean.com/community/tutorials/how-to-build-go-executables-for-multiple-platforms-on-ubuntu-16-04" target="_blank" rel="noopener">支持多平台编译的</a></p>
+<p>我的服务器环境是 CentOS，所以就一句命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GOOS=linux GOARCH=amd64 go build -v /path/to/target/package</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="关于Mysql"><a href="#关于Mysql" class="headerlink" title="关于Mysql"></a>关于Mysql</h2><h3 id="安装Mysql"><a href="#安装Mysql" class="headerlink" title="安装Mysql"></a>安装Mysql</h3><p>跟着这个<a href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-centos-7" target="_blank" rel="noopener">教程</a>一步一步来就可以了</p>
+<hr>
+<h3 id="重置密码"><a href="#重置密码" class="headerlink" title="重置密码"></a>重置密码</h3><p>唯一要注意的是，关于安装完毕后更改密码，大部分结果方案都是查看Mysql的输出日志找它生成的随机密码，也就是输入如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo grep <span class="string">'temporary password'</span> /var/<span class="built_in">log</span>/mysqld.log</span><br></pre></td></tr></table></figure>
+<p>这里提供另一种方案，来自<a href="https://stackoverflow.com/questions/33510184/change-mysql-root-password-on-centos7" target="_blank" rel="noopener">Change mysql root password on Centos7</a>，我就直接copy过来了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. Stop mysql:</span></span><br><span class="line">systemctl stop mysqld</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. Set the mySQL environment option</span></span><br><span class="line">systemctl <span class="built_in">set</span>-environment MYSQLD_OPTS=<span class="string">"--skip-grant-tables"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. Start mysql usig the options you just set</span></span><br><span class="line">systemctl start mysqld</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. Login as root</span></span><br><span class="line">mysql -u root</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. Update the root user password with these mysql commands</span></span><br><span class="line"><span class="comment"># 如果Mysql版本大于5.7.6请请使用下一条语句</span></span><br><span class="line">mysql&gt; UPDATE mysql.user SET authentication_string = PASSWORD(<span class="string">'MyNewPassword'</span>)</span><br><span class="line">    -&gt; WHERE User = <span class="string">'root'</span> AND Host = <span class="string">'localhost'</span>;</span><br><span class="line">mysql&gt; FLUSH PRIVILEGES;</span><br><span class="line">mysql&gt; quit</span><br><span class="line"></span><br><span class="line"><span class="comment"># As mentioned my shokulei in the comments, for 5.7.6 and later, you should use</span></span><br><span class="line">mysql&gt; ALTER USER <span class="string">'root'</span>@<span class="string">'localhost'</span> IDENTIFIED BY <span class="string">'MyNewPass'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. Stop mysql</span></span><br><span class="line">systemctl stop mysqld</span><br><span class="line"></span><br><span class="line"><span class="comment"># 7. Unset the mySQL envitroment option so it starts normally next time</span></span><br><span class="line">systemctl <span class="built_in">unset</span>-environment MYSQLD_OPTS</span><br><span class="line"></span><br><span class="line"><span class="comment"># 8. Start mysql normally:</span></span><br><span class="line">systemctl start mysqld</span><br><span class="line"></span><br><span class="line"><span class="comment"># Try to login using your new password:</span></span><br><span class="line">7. mysql -u root -p</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="修改默认编码"><a href="#修改默认编码" class="headerlink" title="修改默认编码"></a>修改默认编码</h3><p>参考这个<a href="https://stackoverflow.com/questions/3513773/change-mysql-default-character-set-to-utf-8-in-my-cnf" target="_blank" rel="noopener">链接</a>就ok了，大体的我就直接copy过来了</p>
+<p>在my.cnf中添加如下内容，这个文件不出意外的话应该是在 <code>/etc/my.cnf</code> 路径下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[client]</span><br><span class="line">default-character-set=utf8</span><br><span class="line"></span><br><span class="line">[mysql]</span><br><span class="line">default-character-set=utf8</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line">collation-server = utf8_unicode_ci</span><br><span class="line">init-connect=&apos;SET NAMES utf8&apos;</span><br><span class="line">character-set-server = utf8</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="关于Nginx"><a href="#关于Nginx" class="headerlink" title="关于Nginx"></a>关于Nginx</h2><h3 id="安装Nginx"><a href="#安装Nginx" class="headerlink" title="安装Nginx"></a>安装Nginx</h3><p>参考这个<a href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-centos-7" target="_blank" rel="noopener">链接</a>就可以了，非常靠谱</p>
+<hr>
+<h3 id="打开端口"><a href="#打开端口" class="headerlink" title="打开端口"></a>打开端口</h3><p>我希望查看运行在4200的NodeJS服务器，8080的Go服务器是否已经运行成功，就希望访问这些端口，但是CentOS默认都是关闭的，需要使用如下命令打开，<a href="https://stackoverflow.com/questions/24729024/open-firewall-port-on-centos-7" target="_blank" rel="noopener">参考来源</a></p>
+<p>因为http/https的传输层用的是tcp，所以就直接写tcp了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=4200/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=8080/tcp --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>输入如下命令查看是否开放</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">firewall-cmd --list-ports</span><br></pre></td></tr></table></figure>
+<p>同时，可以使用如下命令查看那些端口有程序监听</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ltnp</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>重头戏就是Nginx配置了，其实也很简单，在配置文件 <code>/etc/nginx/nginx/conf</code>中加这么一段就行了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    server_name empmanage.schwarzeni.com;</span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://localhost:4200;</span><br><span class="line">        proxy_set_header Host $host:80;</span><br><span class="line">        proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">        proxy_cookie_path / /;</span><br><span class="line">    &#125;</span><br><span class="line">    listen 80;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>server_name 就是你的域名，这里我设了一个二级域名</p>
+<p>关于参数 <code>proxy_set_header</code>，<code>proxy_set_header</code>，<code>proxy_set_header</code>，参考这篇文章：<a href="https://www.jianshu.com/p/9f21d24c0c4e" target="_blank" rel="noopener">nginx 反向代理 端口 重定向问题</a></p>
+<p>至于 <code>proxy_cookie_path</code>，是为了防止 <code>location</code> 和 <code>proxy_pass</code> 的路径不一导致cookie丢失的问题</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">proxy_cookie_path off;</span><br><span class="line">proxy_cookie_path path replacement;</span><br></pre></td></tr></table></figure>
+<p>详细使用请<a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cookie_path" target="_blank" rel="noopener">参考官网</a>，这篇<a href="https://blog.csdn.net/isyoungboy/article/details/81382193" target="_blank" rel="noopener">博文：解决nginx proxy_pass反向代理cookie,session丢失的问题</a> 写的也不错</p>
+<hr>
+<h3 id="Nginx502"><a href="#Nginx502" class="headerlink" title="Nginx502"></a>Nginx502</h3><p>这个多半是SELinux的问题，参考博客<a href="http://blog.codingplayboy.com/2017/05/22/nginx-502-bad-gateway/" target="_blank" rel="noopener">nginx反向代理502-Bad Gateway问题解决</a>的内容输入如下命令查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/sbin/getsebool -a |grep httpd_can_network_connect</span><br></pre></td></tr></table></figure>
+<p>如果如下输入为 <code>off</code> 则就是它的问题</p>
+<p><img src="image3.png" alt=""></p>
+<p>输入如下命令就可以解决问题</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setsebool -P httpd_can_network_connect 1</span><br></pre></td></tr></table></figure>
+<p>或者<a href="https://blog.csdn.net/only_yu_yy/article/details/78825151" target="_blank" rel="noopener">直接关闭SELinux</a></p>
+<hr>
+<h2 id="关于Redis"><a href="#关于Redis" class="headerlink" title="关于Redis"></a>关于Redis</h2><p>直接跟着<a href="https://www.linode.com/docs/databases/redis/install-and-configure-redis-on-centos-7/" target="_blank" rel="noopener">教程1</a>或<a href="https://www.digitalocean.com/community/tutorials/how-to-install-secure-redis-centos-7" target="_blank" rel="noopener">教程2</a>来就可以了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/03/01/记第一次单页面应用部署实践/" data-id="cjx382ixh0083azvgf3por9bi" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/04/正则表达式处理html标签/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          正则表达式处理html标签
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/02/27/Javascript中的this🏹/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Javascript中的this🏹</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">再见，昨天</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="Schwarzeni">
+          Schwarzeni
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

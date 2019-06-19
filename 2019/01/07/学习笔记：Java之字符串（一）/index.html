@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>学习笔记：Java之字符串（一） | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="看了一篇讲Java面试里提到的关于字符串的文章， 每周10道Java面试题：String, String Pool, StringBuilder，同时看了一些JDK源码，学到了不少知识">
+<meta name="keywords" content="总结,java,java基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习笔记：Java之字符串（一）">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/01/07/学习笔记：Java之字符串（一）/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="看了一篇讲Java面试里提到的关于字符串的文章， 每周10道Java面试题：String, String Pool, StringBuilder，同时看了一些JDK源码，学到了不少知识">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/07/学习笔记：Java之字符串（一）/image1.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:40.616Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习笔记：Java之字符串（一）">
+<meta name="twitter:description" content="看了一篇讲Java面试里提到的关于字符串的文章， 每周10道Java面试题：String, String Pool, StringBuilder，同时看了一些JDK源码，学到了不少知识">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/01/07/学习笔记：Java之字符串（一）/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-学习笔记：Java之字符串（一）" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/07/学习笔记：Java之字符串（一）/" class="article-date">
+  <time class="post-time" datetime="2019-01-07T01:00:15.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+   
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      学习笔记：Java之字符串（一）
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>看了一篇讲Java面试里提到的关于字符串的文章， <a href="http://www.importnew.com/31022.html" target="_blank" rel="noopener">每周10道Java面试题：String, String Pool, StringBuilder</a>，同时看了一些JDK源码，学到了不少知识</p>
+<a id="more"></a>
+<p>JDK版本：1.8</p>
+<hr>
+<h2 id="常量池"><a href="#常量池" class="headerlink" title="常量池"></a>常量池</h2><p>对于像是 <code>String a = &quot;123&quot;</code> 式子中的 <code>123</code>，在编译的时候就可以确定的值，就会被存放在JVM的常量池中，那么，如果之后进行如下操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String str1 = <span class="string">"123"</span>;</span><br><span class="line">String str2 = <span class="string">"123"</span>;</span><br><span class="line">System.out.println(str1 == str2);</span><br></pre></td></tr></table></figure>
+<p>那么，输出的结果就应该是 <code>true</code>，因为str1和str2都指向常量池中的同一地址，但是如果是下面的式子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String str1 = <span class="string">"123"</span>;</span><br><span class="line">String str2 = <span class="keyword">new</span> String(<span class="string">"123"</span>);</span><br><span class="line">System.out.println(str1 == str2);</span><br></pre></td></tr></table></figure>
+<p>那么结果就是 <code>false</code>了，因为对于str2，在编译阶段它指向的值是不确定的，所有它指向的应该是堆中的某个数值。</p>
+<p>但是如果单单就看这个语句</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String str2 = <span class="keyword">new</span> String(<span class="string">"123"</span>);</span><br></pre></td></tr></table></figure>
+<p>问这个语句总共<strong>创建</strong>了几个String对象，那么答案是1或2，因为如果之前未使用过常量 <code>123</code>，那么就会创建2个对象，一个是你的<code>Class</code>被<code>ClassLoader</code>加载时，你的”123”被作为常量读入，在常量池里创建了一个共享的”123”，然后，当调用到<code>new String(&quot;123&quot;)</code>的时候，会在<code>heap</code>里创建这个new   String(“abc”); 而如果之前使用过<code>123</code>，那么就会直接从常量池中返回对象123，只用创建对象str2。</p>
+<p>那么，有没有什么方法可以将heap中的字符串强制放回到常量池中呢，当然是有的，String的<code>intern</code>可以将字符串的值放入常量池中，如果常量池中已存在相同的值，则返回常量池中原有值的引用，否则就返回放入之后的值的地址引用，举个例子吧</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">stringTest</span><span class="params">(String inputstr)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 从外部传入的</span></span><br><span class="line">    String str1 = <span class="keyword">new</span> StringBuilder().append(inputstr).toString();</span><br><span class="line">    <span class="comment">// 引用存放至常量池中</span></span><br><span class="line">    String str2 = <span class="string">"bb"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 进行重新赋值</span></span><br><span class="line">    String newstr1 = str1.intern();</span><br><span class="line">    String newStr2 = str2.intern();</span><br><span class="line">    System.out.println();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果如下，通过使用 <code>System.identityHashCode()</code> 查看他们内存地址，注意，这里不能使用String自带的hashCode，因为这个方法以及被他重写了,是根据当前字符串的值生成的</p>
+<p><img src="image1.png" alt=""></p>
+<p>可以看到，str2和newStr2的地址是相同的，因为语句 <code>String str2 = &quot;bb&quot;;</code> 首先在常量池中创建了 “bb” 对象，而newStr2只是单纯地接收了常量池中指向它的引用而已。但是str1与newStr1就不同了，str1的值是在运行时动态生成的，所所以是存放在堆中的，而调用了 <code>intern</code> 方法之后，系统为它创建了一个新对象，并存放在常量池中，最后返回常量池中的引用，赋给newStr1。</p>
+<p>同时，注意到 <code>StringBuilder</code> 的 <code>toString()</code> 方法，源码是这样的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Create a copy, don't share the array</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> String(value, <span class="number">0</span>, count);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每次toString都创建了一个新的 <code>String</code> 对象，所有想使用它来生成对象锁的不行的，必须在后面加上 <code>intern</code> 方法才能保证指向的对象一致，否则就会向<a href="https://www.cnblogs.com/xrq730/p/6662232.html" target="_blank" rel="noopener">这位博主一样采坑</a></p>
+<hr>
+<h2 id="重载”-”"><a href="#重载”-”" class="headerlink" title="重载”+”"></a>重载”+”</h2><p>有没有想过Java是如何处理比如下面这段程序的？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">String a = <span class="string">"12"</span> + <span class="string">"21"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看看字节码吧，先使用 <code>javac</code> 生成 .class 文件，再使用 <code>javap</code> 查看字节码，相关内容如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> ......</span><br><span class="line"> Constant pool:</span><br><span class="line">#1 = Methodref          #4.#13         // java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">#2 = String             #14            // 2233</span><br><span class="line"> ......</span><br><span class="line">#14 = Utf8               2233</span><br><span class="line"> Code:</span><br><span class="line">   stack=1, locals=2, args_size=1</span><br><span class="line">      0: ldc           #2                  // String 1221</span><br><span class="line">      2: astore_1</span><br><span class="line">      3: return</span><br></pre></td></tr></table></figure>
+<p>what??，常量池中直接就有了…..，好吧，那再换一个</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StringBuffertest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        String a = <span class="string">"22"</span>;</span><br><span class="line">        String b = a + <span class="string">"33"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相关内容如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">....</span><br><span class="line">Constant pool:</span><br><span class="line">#2 = String             #19            // 22</span><br><span class="line">#3 = Class              #20            // java/lang/StringBuilder</span><br><span class="line">#6 = String             #22            // 33</span><br><span class="line">#19 = Utf8               22</span><br><span class="line">#22 = Utf8               33</span><br></pre></td></tr></table></figure>
+<p>打住，这里居然引入了 <code>StringBuilder</code>！接着往下看</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">Code:</span><br><span class="line">  7: invokespecial  #4                  // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:()V</span><br><span class="line">  10: aload_1</span><br><span class="line">  11: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span><br><span class="line">  14: ldc           #6                  // String 33</span><br><span class="line">  16: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span><br><span class="line">  19: invokevirtual #7                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;</span><br><span class="line">  22: astore_2</span><br></pre></td></tr></table></figure>
+<p>清楚了，其实就是相当于是调用了 <code>StringBuilder</code> 进行拼接字符串的操作，在瞧一眼append的源码：(由于它是直接使用它父类 <code>AbstractStringBuilder</code> 的同名方法，那就直接看它吧)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> AbstractStringBuilder <span class="title">append</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (str == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">return</span> appendNull();</span><br><span class="line">    <span class="keyword">int</span> len = str.length();</span><br><span class="line">    ensureCapacityInternal(count + len);</span><br><span class="line">    str.getChars(<span class="number">0</span>, len, value, count);</span><br><span class="line">    count += len;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">.....</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> AbstractStringBuilder <span class="title">appendNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> c = count;</span><br><span class="line">    ensureCapacityInternal(c + <span class="number">4</span>);</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">char</span>[] value = <span class="keyword">this</span>.value;</span><br><span class="line">    value[c++] = <span class="string">'n'</span>;</span><br><span class="line">    value[c++] = <span class="string">'u'</span>;</span><br><span class="line">    value[c++] = <span class="string">'l'</span>;</span><br><span class="line">    value[c++] = <span class="string">'l'</span>;</span><br><span class="line">    count = c;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureCapacityInternal</span><span class="params">(<span class="keyword">int</span> minimumCapacity)</span> </span>&#123;</span><br><span class="line"><span class="comment">// overflow-conscious code</span></span><br><span class="line"><span class="keyword">if</span> (minimumCapacity - value.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    value = Arrays.copyOf(value,</span><br><span class="line">            newCapacity(minimumCapacity));</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为了内置数组处理容量不够，特别设立了 <code>ensureCapacityInternal</code> 方法，在不够的时候再生成一个新的数组；为了防止传入的是空对象，特别设立了 <code>appendNull</code>方法，把 <code>null对象</code>存储为 <code>null</code>的字符数组。为开发人员的严谨点赞。下面的程序为什么会输出 “null!” 应该就很清楚了吧</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String str = <span class="keyword">null</span>;</span><br><span class="line">str = str + <span class="string">"!"</span>;</span><br><span class="line">System.out.print(str);</span><br></pre></td></tr></table></figure>
+<p>把 ‘+’ 转变为 <code>StringBuilder</code> 使用append方法，如果是<code>null</code>的话将变成字符数组，内容为 “null”。话说 <code>System.out.print</code> 也有处理 <code>null</code> 的机制，源码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">print</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (s == <span class="keyword">null</span>) &#123;</span><br><span class="line">        s = <span class="string">"null"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    write(s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>真是简单粗暴2333，上述许多内容都参考了这篇文章：<a href="http://www.importnew.com/27601.html" target="_blank" rel="noopener">Java String 对 null 对象的容错处理</a></p>
+<hr>
+<h2 id="字符串比较"><a href="#字符串比较" class="headerlink" title="字符串比较"></a>字符串比较</h2><p>对于字符串之间的比较应该都十分清楚了的，用 <code>==</code> 比较引用十分相同，使用 <code>equals</code> 比较数值是否相同，而一切的对象的祖先都是Object，那Object中的的<code>equals</code>是什么样子的呢</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">this</span> == obj);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个方法的作用就等价于 <code>==</code>,那String一定重写了这个方法，去看看String的方法吧</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object anObject)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span> == anObject) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (anObject <span class="keyword">instanceof</span> String) &#123;</span><br><span class="line">        String anotherString = (String)anObject;</span><br><span class="line">        <span class="keyword">int</span> n = value.length;</span><br><span class="line">        <span class="keyword">if</span> (n == anotherString.value.length) &#123;</span><br><span class="line">            <span class="keyword">char</span> v1[] = value;</span><br><span class="line">            <span class="keyword">char</span> v2[] = anotherString.value;</span><br><span class="line">            <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span> (n-- != <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (v1[i] != v2[i])</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">                i++;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>思路也是比较清楚的，先比较引用是否相同，再比较是否是String的实例，之后比较数值的长度是否相等，最后再比较值是否相同，但是其中比较数组中值是否相同的循环看起来觉得有些奇怪，为什么既要操作变量<code>n</code>又要操作变量<code>i</code>，而不是像普通写的那样i++，然后和<code>n</code>比较是否完成了遍历。在网上找了一圈，找到一个感觉比较靠谱的解答：</p>
+<blockquote>
+<p>i– 操作本身会影响CPSR(当前程序状态寄存器)，CPSR常见的标志有N(结果为负), Z(结果为0)，C（有进位），O（有溢出）。i &gt; 0，可以直接通过Z标志判断出来。<br>i++操作也会影响CPSR(当前程序状态寄存器)，但只影响O（有溢出）标志，这对于i &lt; n的判断没有任何帮助。所以还需要一条额外的比较指令，也就是说每个循环要多执行一条指令。<br>简单来说，跟0比较会少一条指令。所以，循环使用i–，高端大气上档次。</p>
+</blockquote>
+<p>来源于此：<a href="https://segmentfault.com/a/1190000013951261" target="_blank" rel="noopener">JDK源码中的一些“小技巧”</a></p>
+<hr>
+<p>最近在慕课网学习java课程，课程中老师比较字符串是否相等并没有上面的这个方法，而是用 <code>Objects.equals</code>，为什么呢，还是用源码说话的吧</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object a, Object b)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (a == b) || (a != <span class="keyword">null</span> &amp;&amp; a.equals(b));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就是省去了是否为 <code>null</code> 的判断。</p>
+<p>听说自从JDK1.7之后 <code>switch</code> 就支持了String类型了，那么它判断的底层原理是否也是使用equals了呢？看看字节码把</p>
+<p>这个是源代码，注意两个局部变量都使用了final</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> String case1 = <span class="string">"bilbili"</span>;</span><br><span class="line">    <span class="keyword">final</span> String case2 = <span class="string">"2233"</span>;</span><br><span class="line">    <span class="keyword">switch</span> (str) &#123;</span><br><span class="line">        <span class="keyword">case</span> case1:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> case2:</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        `<span class="keyword">default</span>:</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后打开字节码文件，发现生成了好多好多代码，放弃，幸好Intellij IDEA支持反编译，直接打开 <code>.class</code> 文件，发现java编译器之前的代码变成了这个样子</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">(String var1)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">byte</span> var5 = -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">switch</span>(var1.hashCode()) &#123;</span><br><span class="line">    <span class="keyword">case</span> -<span class="number">110127479</span>:</span><br><span class="line">        <span class="keyword">if</span> (var1.equals(<span class="string">"bilbili"</span>)) &#123;</span><br><span class="line">            var5 = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1539232</span>:</span><br><span class="line">        <span class="keyword">if</span> (var1.equals(<span class="string">"2233"</span>)) &#123;</span><br><span class="line">            var5 = <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">switch</span>(var5) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span>:</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这不就是原始的switch语句吗，怪不得如果那两个局部变量比较final会给你报错呢，在编译阶段就调用 <code>hashCode</code> 方法给转成int数了，其实就是一个语法糖吧，但为什么已经验证了<code>hashCode</code>相等，还要再使用 <code>equals</code> 再比一次值呢，那是应为 <code>hashCode</code>使用在哈希表中档key用的，再优秀的生成key的算法都可能会产生冲突，参考这篇文章：<a href="https://www.infoq.cn/article/2018%2F08%2Fjava-stringhashcode-plenty" target="_blank" rel="noopener">Java 中的 String.hashCode() 方法可能有问题？</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/01/07/学习笔记：Java之字符串（一）/" data-id="cjx382ivr0045azvg87vqlgnd" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java基础/">java基础</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/08/学习笔记-javaEE基础-7-SQL/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          学习笔记：javaEE基础7 SQL
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/01/06/学习笔记-javaEE基础-6-Linux/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">学习笔记：javaEE基础6 Linux</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">再见，昨天</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="Schwarzeni">
+          Schwarzeni
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

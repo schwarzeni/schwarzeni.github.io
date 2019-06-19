@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>学习笔记：javaEE基础8 SQL | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="学习来源 Java数据库开发与实战应用 主要是对数据表的插入和查询操作">
+<meta name="keywords" content="总结,数据库">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习笔记：javaEE基础8 SQL">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/01/08/学习笔记-javaEE基础-8-SQL/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="学习来源 Java数据库开发与实战应用 主要是对数据表的插入和查询操作">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/08/学习笔记-javaEE基础-8-SQL/image5.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:40.613Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习笔记：javaEE基础8 SQL">
+<meta name="twitter:description" content="学习来源 Java数据库开发与实战应用 主要是对数据表的插入和查询操作">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/01/08/学习笔记-javaEE基础-8-SQL/image5.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-学习笔记-javaEE基础-8-SQL" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/08/学习笔记-javaEE基础-8-SQL/" class="article-date">
+  <time class="post-time" datetime="2019-01-08T01:44:33.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">08</span>
+  </time>
+</a>
+   
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      学习笔记：javaEE基础8 SQL
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>学习来源 <a href="https://class.imooc.com/sc/39" target="_blank" rel="noopener">Java数据库开发与实战应用</a></p>
+<p>主要是对数据表的插入和查询操作</p>
+<a id="more"></a>
+<h2 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h2><h3 id="基础语法"><a href="#基础语法" class="headerlink" title="基础语法"></a>基础语法</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> ... <span class="keyword">SET</span> <span class="keyword">column</span>=.. ,<span class="keyword">column</span>=.. ;</span><br><span class="line"><span class="keyword">INSERT</span> tbl [(column....)] <span class="keyword">VALUES</span> (...)</span><br><span class="line"><span class="keyword">INSERT</span> tbl (<span class="keyword">column</span>) <span class="keyword">SELECT</span> a <span class="keyword">FROM</span> .. ;</span><br></pre></td></tr></table></figure>
+<h3 id="复制表"><a href="#复制表" class="headerlink" title="复制表"></a>复制表</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> tbl_name1 <span class="keyword">LIKE</span> tbl_name2;</span><br><span class="line"><span class="keyword">INSERT</span> tbl_name1 <span class="keyword">SELECT</span> .. <span class="keyword">FROM</span> tbl_name2;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> ... <span class="keyword">SET</span> <span class="keyword">column</span>=.. <span class="keyword">WHERE</span> ...;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><h3 id="单表查询"><a href="#单表查询" class="headerlink" title="单表查询"></a>单表查询</h3><h4 id="基础语法-1"><a href="#基础语法-1" class="headerlink" title="基础语法"></a>基础语法</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> select_expr, .. <span class="keyword">FROM</span> tbl_name</span><br><span class="line">[<span class="keyword">WHERE</span> 条件]</span><br><span class="line">[<span class="keyword">GROUP</span> <span class="keyword">BY</span> &#123;col_name|<span class="keyword">position</span>&#125; <span class="keyword">HAVING</span> 二次筛选]</span><br><span class="line">[<span class="keyword">ORDER</span> <span class="keyword">BY</span> &#123;col_name|<span class="keyword">position</span>|expr&#125; [<span class="keyword">ASC</span>|<span class="keyword">DESC</span>]]</span><br><span class="line">[<span class="keyword">LIMIT</span> ]</span><br></pre></td></tr></table></figure>
+<h4 id="去重"><a href="#去重" class="headerlink" title="去重"></a>去重</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span>(...) <span class="keyword">FROM</span> tbl_name;</span><br></pre></td></tr></table></figure>
+<h4 id="WHERE中加测NULL值"><a href="#WHERE中加测NULL值" class="headerlink" title="WHERE中加测NULL值"></a>WHERE中加测NULL值</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">WHERE .. &lt;=&gt; NULL</span><br><span class="line">WHERE .. IS NULL</span><br></pre></td></tr></table></figure>
+<h4 id="在一个集合中"><a href="#在一个集合中" class="headerlink" title="在一个集合中"></a>在一个集合中</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WHERE .. IN(.., .., ..)</span><br></pre></td></tr></table></figure>
+<h4 id="模糊查询"><a href="#模糊查询" class="headerlink" title="模糊查询"></a>模糊查询</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LIKE '...'</span><br><span class="line"><span class="comment">-- %任意长度</span></span><br><span class="line"><span class="comment">-- _任意一个</span></span><br></pre></td></tr></table></figure>
+<h4 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h4><p>把值相同的放到一个组中</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GROUP BY</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">GROUP_CONCAT</span>(username), age, sex, <span class="keyword">GROUP_CONCAT</span>(addr)</span><br><span class="line"><span class="keyword">FROM</span> user1</span><br><span class="line"><span class="keyword">GROUP</span> <span class="keyword">By</span> sex</span><br><span class="line">[<span class="keyword">WITH</span> <span class="keyword">ROLLUP</span>];</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>COUNT *</code> 包含NULL值</li>
+<li><code>MAX</code></li>
+<li><code>MIN</code></li>
+<li><code>SUM</code></li>
+<li><code>AVG</code></li>
+</ul>
+<h4 id="二次筛选"><a href="#二次筛选" class="headerlink" title="二次筛选"></a>二次筛选</h4><p><code>HAVING</code> 用HAVING进行分组条件的指定时，一定要保证分组条件要么为聚合函数，要么条件中的字段必须出现在当前的SELECT语句中</p>
+<h4 id="产生随机数"><a href="#产生随机数" class="headerlink" title="产生随机数"></a>产生随机数</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">RAND</span>();</span><br></pre></td></tr></table></figure>
+<h4 id="限制查询结果个数"><a href="#限制查询结果个数" class="headerlink" title="限制查询结果个数"></a>限制查询结果个数</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">... LIMIT</span><br><span class="line">... LIMIT ... <span class="comment">-- 前几个</span></span><br><span class="line">... LIMIT offset, row_count;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h3><h4 id="内连接"><a href="#内连接" class="headerlink" title="内连接"></a>内连接</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段名称, .. <span class="keyword">FROM</span> tbl_name1</span><br><span class="line"><span class="keyword">INNER</span> <span class="keyword">JOIN</span> tbl_name2</span><br><span class="line"><span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+<h4 id="外连接"><a href="#外连接" class="headerlink" title="外连接"></a>外连接</h4><ul>
+<li>左<ul>
+<li>左 左表全部，再右表符合，不符合的用NULL代替</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段名称, ... <span class="keyword">FROM</span> tbl_name1</span><br><span class="line"><span class="keyword">OUTER</span> <span class="keyword">LEFT</span> <span class="keyword">JOIN</span> tbl_name2</span><br><span class="line"><span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>右<ul>
+<li>右右表全部，再左表符合</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> 字段名称, ... <span class="keyword">FROM</span> tbl_name1</span><br><span class="line"><span class="keyword">OUTER</span> <span class="keyword">RIGHT</span> <span class="keyword">JOIN</span> tbl_name2</span><br><span class="line"><span class="keyword">ON</span> 条件;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="外键约束"><a href="#外键约束" class="headerlink" title="外键约束"></a>外键约束</h2><h3 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h3><ul>
+<li>如果外键字段没有添加索引，则会自动创建</li>
+<li>子表必须关联父表主键</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[CONSTRAINT 名称] FOREIGN KEY(字段名称) REFERENCES 主表(字段名称)</span><br></pre></td></tr></table></figure>
+<h3 id="对外键操作"><a href="#对外键操作" class="headerlink" title="对外键操作"></a>对外键操作</h3><h4 id="动态删除外键"><a href="#动态删除外键" class="headerlink" title="动态删除外键"></a>动态删除外键</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> tbl_name <span class="keyword">DROP</span> FOREIGN <span class="keyword">KEY</span> fk_name;</span><br></pre></td></tr></table></figure>
+<h4 id="动态添加外键"><a href="#动态添加外键" class="headerlink" title="动态添加外键"></a>动态添加外键</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> tbl_name <span class="keyword">ADD</span>  FOREIGN <span class="keyword">KEY</span>(外键字段) <span class="keyword">REFERENCES</span> 主表(主键字段);</span><br></pre></td></tr></table></figure>
+<h4 id="参照操作"><a href="#参照操作" class="headerlink" title="参照操作"></a>参照操作</h4><ul>
+<li><code>CASCADE</code> 从父表删除或更新，子表也会</li>
+<li><code>SET NULL</code> 从父表删除，设子表为NULL</li>
+<li><code>NO ACTON</code> | <code>RESCRICT</code> 拒绝对父表做更新或删除操作</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">... ON <span class="keyword">DELETE</span> <span class="keyword">CASCADE</span> <span class="keyword">ON</span> <span class="keyword">UPDATE</span> CASEADE;</span><br></pre></td></tr></table></figure>
+<h3 id="子查询的一些关键词"><a href="#子查询的一些关键词" class="headerlink" title="子查询的一些关键词"></a>子查询的一些关键词</h3><ul>
+<li>any</li>
+<li>some</li>
+<li>all</li>
+</ul>
+<hr>
+<h2 id="常用函数"><a href="#常用函数" class="headerlink" title="常用函数"></a>常用函数</h2><h3 id="数学函数"><a href="#数学函数" class="headerlink" title="数学函数"></a>数学函数</h3><p><img src="image5.png" alt=""></p>
+<h3 id="字符串函数"><a href="#字符串函数" class="headerlink" title="字符串函数"></a>字符串函数</h3><ul>
+<li>字符数       <code>CHAR_LENGTH</code></li>
+<li>字符长度     <code>LENGTH</code></li>
+<li>合并         <code>CONCAT</code></li>
+<li>指定分隔符合并     <code>CONCAT_WS()</code></li>
+<li>大小写转换   <code>UPPER</code>|<code>UCASE</code>   <code>LOWER</code>|<code>LCASE</code></li>
+<li>反转        <code>REVERSE</code></li>
+<li>前后几个字符  <code>LEFT|RIGHT</code>    <code>LEFT(&#39;aaaa&#39;, 2)</code></li>
+<li>用字符串填充  <code>LPAD|RPAD</code>     <code>LPAD(&#39;aaa&#39;, 10, &#39;?&#39;)</code></li>
+<li>重复指定次数  <code>REPEAT</code></li>
+<li>替换         <code>REPLACE</code></li>
+<li>截取字符串    <code>SUBSTRING(&#39;abcs&#39;,1,3)</code>   –&gt;  abc</li>
+<li>比较字符串    <code>STRCMP</code></li>
+</ul>
+<h3 id="日期函数"><a href="#日期函数" class="headerlink" title="日期函数"></a>日期函数</h3><ul>
+<li>当前日期 <code>curdate()</code>, <code>current_date()</code></li>
+<li>当前时间 <code>curtime()</code>, <code>current_time()</code></li>
+<li>完整时间 <code>now()</code>, <code>current_timestamp()</code>, <code>sysdate()</code></li>
+<li>解析日期 <code>month(...)</code>, <code>monthname()</code></li>
+<li>解析星期几 <code>dayname(...)</code>  <code>dayofweek(...)</code></li>
+<li>一年中第几个信息 <code>week(....)</code></li>
+<li>同理 <code>hour()</code> <code>minute()</code> <code>second()</code></li>
+<li>相差时间 <code>datediff()</code></li>
+<li>日期格式化    <code>DATE_FORMAT</code>  <code>DATE_FORMAT(&#39;2016-06-01&#39;,&#39;%Y/%m/%d&#39;);</code> —&gt; 2016-06-01改为2016/06/01</li>
+</ul>
+<h3 id="其他函数"><a href="#其他函数" class="headerlink" title="其他函数"></a>其他函数</h3><ul>
+<li>当前服务器连接数  connection_ID()</li>
+<li>上一次插入操作得到的自增长ID LAST_INSERT_ID()</li>
+<li>加密 MD5()</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/01/08/学习笔记-javaEE基础-8-SQL/" data-id="cjx382ivg003dazvgxzdqtxxo" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库/">数据库</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/08/学习笔记-javaEE基础-9-JDBC/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          学习笔记：javaEE基础9 JDBC
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/01/08/学习笔记-javaEE基础-7-SQL/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">学习笔记：javaEE基础7 SQL</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">再见，昨天</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="Schwarzeni">
+          Schwarzeni
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

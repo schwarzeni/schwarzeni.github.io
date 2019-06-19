@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>学习笔记：Nginx基础（一） | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="安装完Nginx，输入 nginx -V 看看你的Nginx是怎么编译来的 :-P 相关参数请见此">
+<meta name="keywords" content="总结,Nginx">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习笔记：Nginx基础（一）">
+<meta property="og:url" content="http://blog.schwarzeni.com/2018/12/25/”学习笔记：Nginx基础（一）”/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="安装完Nginx，输入 nginx -V 看看你的Nginx是怎么编译来的 :-P 相关参数请见此">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/12/25/”学习笔记：Nginx基础（一）”/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/12/25/”学习笔记：Nginx基础（一）”/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/12/25/”学习笔记：Nginx基础（一）”/image3.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:38.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习笔记：Nginx基础（一）">
+<meta name="twitter:description" content="安装完Nginx，输入 nginx -V 看看你的Nginx是怎么编译来的 :-P 相关参数请见此">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2018/12/25/”学习笔记：Nginx基础（一）”/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-”学习笔记：Nginx基础（一）”" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/12/25/”学习笔记：Nginx基础（一）”/" class="article-date">
+  <time class="post-time" datetime="2018-12-25T13:55:10.000Z" itemprop="datePublished">
+    <span class="post-month">12月</span><br/>
+    <span class="post-day">25</span>
+  </time>
+</a>
+   
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      学习笔记：Nginx基础（一）
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>安装完Nginx，输入 <code>nginx -V</code> 看看你的Nginx是怎么编译来的 :-P</p>
+<p><a href="http://www.ttlsa.com/nginx/nginx-configure-descriptions/" target="_blank" rel="noopener">相关参数请见此</a></p>
+<a id="more"></a>
+<hr>
+<p>环境</p>
+<ul>
+<li>Ubuntu 18.04</li>
+<li>Nginx 1.14.0</li>
+</ul>
+<p>学习来源<a href="https://coding.imooc.com/class/121.html" target="_blank" rel="noopener">Nginx入门到实践－Nginx 中间件</a></p>
+<hr>
+<ul>
+<li><a href="#part1">Nginx的优势</a></li>
+<li><a href="#part2">重要目录</a></li>
+<li><a href="#part3">配置语法</a></li>
+</ul>
+<hr>
+<h1 id="Nginx的优势"><a href="#Nginx的优势" class="headerlink" title=" Nginx的优势"></a><a name="part1"></a> Nginx的优势</h1><blockquote>
+<p>IO多路复用</p>
+</blockquote>
+<p>何为I/O复用见下图</p>
+<p><img src="image1.png" alt=""></p>
+<p>而多路I/O复用是指多个描述I/O的操作能在一个线程内交替完成，复用的是指同一个线程，使用epoll的方式，采用回调函数，最大连接无限制</p>
+<hr>
+<blockquote>
+<p>轻量级</p>
+</blockquote>
+<ul>
+<li>功能模块少</li>
+<li>代码模块化</li>
+</ul>
+<hr>
+<blockquote>
+<p>CPU亲和</p>
+</blockquote>
+<p>把CPU核心和Nginx工作进程绑定，将每个worker进程固定在一个CPU上执行，减少切换CPU的cache miss</p>
+<hr>
+<blockquote>
+<p>sendfile机制</p>
+</blockquote>
+<p>处理静态文件有优势</p>
+<p><img src="image2.png" alt=""></p>
+<p><img src="image3.png" alt=""></p>
+<hr>
+<h1 id="重要目录"><a href="#重要目录" class="headerlink" title=" 重要目录"></a><a name="part2"></a> 重要目录</h1><ul>
+<li>/etc/logrotate.d/nginx 配置日志相关信息，Nginx日志轮转，用于logrotate服务的日志切割</li>
+<li>/etc/nginx 主配置存放目录</li>
+<li>/etc/nginx/nginx.conf 主要配置文件</li>
+<li>/etc/nginx/conf.d 次要配置目录</li>
+<li>/etc/nginx/sites-enabled 次要配置目录</li>
+</ul>
+<p>注意，以上两条路径可以在配置文件/etc/nginx/nginx.conf中查看到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">include /etc/nginx/conf.d/*.conf;</span><br><span class="line">include /etc/nginx/sites-enabled/*;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>/etc/nginx/fastcgi_params</li>
+<li>/etc/nginx/uwsgi_params</li>
+<li>/etc/nginx/scgi_params</li>
+</ul>
+<p>以上三个和cgi相关(Common gateway interface)</p>
+<ul>
+<li>/etc/nginx/koi-utf</li>
+<li>/etc/nginx/koi-win</li>
+<li>/etc/nginx/win-utf</li>
+</ul>
+<p>以上三个为编码转换映射转化文</p>
+<ul>
+<li>/etc/nginx/mime.types 设置Content-Type与扩展名对应关系</li>
+<li>/usr/lib64/nginx/modules 相关模块</li>
+<li>/var/cache/nginx         缓存相关</li>
+<li>/var/log/nginx           日志相关</li>
+</ul>
+<hr>
+<h1 id="配置语法"><a href="#配置语法" class="headerlink" title=" 配置语法"></a><a name="part3"></a> 配置语法</h1><p>以下参数基本都在文件/etc/nginx/nginx.conf中那出现</p>
+<ul>
+<li>user 设置nginx服务系统使用用户</li>
+<li>worker_processes 工作进程数</li>
+<li>error_log 错误日志</li>
+<li>pid nginx启动时的pid</li>
+<li>even<ul>
+<li>worker_connections 每个进程最大允许连接数，重要，需要人工调节，1万左右</li>
+<li>use 工作进程数</li>
+</ul>
+</li>
+<li>include /etc/nginx/conf.d/*.conf;   载入的配置</li>
+<li>include /etc/nginx/sites-enabled/*; 载入的配置</li>
+</ul>
+<p>这里，<code>log_format</code> 可以对日志输出的格式进行配置，这里设置了相应日志（access_log）的输出格式，当然，错误日志（error_log）日志的格式也可以设置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">log_format main  &apos;$http_user_agent&apos; &apos;$remote_addr - $remote_user [$time_local]  &apos; &apos;&quot;$request&quot;</span><br><span class="line">                   $status $body_bytes_sent &apos;</span><br><span class="line">                  &apos;&quot;$http_referer&quot; &quot;$http_user_agent&quot;&apos;;</span><br><span class="line"></span><br><span class="line"> access_log /var/log/nginx/access.log main;</span><br><span class="line"> error_log /var/log/nginx/error.log;</span><br></pre></td></tr></table></figure>
+<p>这里用到了Nginx的变量，都是以 <code>$</code> 开头的，<a href="http://nginx.org/en/docs/http/ngx_http_log_module.html" target="_blank" rel="noopener">参看链接</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2018/12/25/”学习笔记：Nginx基础（一）”/" data-id="cjx382iue001oazvgh1nw4fyf" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Nginx/">Nginx</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/12/26/学习笔记：Java基础查缺补漏（一）/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          学习笔记：Java基础查缺补漏（一）
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/12/25/学习笔记：Java之注解/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">学习笔记：Java之注解基础</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">再见，昨天</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="Schwarzeni">
+          Schwarzeni
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

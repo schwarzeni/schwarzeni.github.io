@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>学习笔记：javaEE基础11 面向接口编程 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="学习来源 通过自动回复机器人学Mybatis—加强版 使用使用接口来规范MyBatis配置文件与调用，减少出错概率">
+<meta name="keywords" content="总结,java,MyBatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习笔记：javaEE基础11 面向接口编程">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-11-面向接口编程/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="学习来源 通过自动回复机器人学Mybatis—加强版 使用使用接口来规范MyBatis配置文件与调用，减少出错概率">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-06-19T00:52:38.341Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习笔记：javaEE基础11 面向接口编程">
+<meta name="twitter:description" content="学习来源 通过自动回复机器人学Mybatis—加强版 使用使用接口来规范MyBatis配置文件与调用，减少出错概率">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-学习笔记：javaEE基础-11-面向接口编程" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/11/学习笔记：javaEE基础-11-面向接口编程/" class="article-date">
+  <time class="post-time" datetime="2019-01-10T23:52:00.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">11</span>
+  </time>
+</a>
+   
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      学习笔记：javaEE基础11 面向接口编程
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>学习来源 <a href="https://www.imooc.com/learn/260" target="_blank" rel="noopener">通过自动回复机器人学Mybatis—加强版</a></p>
+<p>使用使用接口来规范MyBatis配置文件与调用，减少出错概率</p>
+<a id="more"></a>
+<hr>
+<h2 id="对dao层的改进"><a href="#对dao层的改进" class="headerlink" title="对dao层的改进"></a>对dao层的改进</h2><p>MyBatis的配置文件要求命名空间必须唯一，同时命名空间中的所有sql标签的id也必须唯一，但是项目一大并不能保证这点，这里就需要引入接口和动态代理机制，来规范代码书写</p>
+<p>表结构使用前一篇文章的 content 和 tag，使用面向接口的思想对前一篇笔记中的代码进行改造</p>
+<p>首先，建立一个 <code>interface</code>，取名为 <code>IContentDao</code>，专门负责对 <code>content</code> 表的操作，记录 package 名， interface 名以及接口内包含的方法ming</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.microapp.dao;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.microapp.bean.ContentAss;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IContentDao</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据 contentId 查询相关的content</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">List&lt;ContentAss&gt; <span class="title">queryContentList</span><span class="params">(List&lt;Integer&gt; contentId)</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>把之前的MyBatis配置文件 <code>Content.xml</code> 中的命名空间namespace进行修改，改为前面的package名，把接口方法在实现是要调用的sql标签的id改为接口方法名，如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0" encoding="UTF-8" ?&gt;</span><br><span class="line"><span class="meta">&lt;!DOCTYPE mapper</span></span><br><span class="line"><span class="meta">        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"</span></span><br><span class="line"><span class="meta">        "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">"com.example.microapp.dao.IContentDao"</span>&gt;</span></span><br><span class="line">....</span><br><span class="line">  <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryContentList"</span> <span class="attr">parameterType</span>=<span class="string">"java.util.List"</span> <span class="attr">resultMap</span>=<span class="string">"ContentResultAss"</span>&gt;</span></span><br><span class="line">  ....</span><br><span class="line">  <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line">....</span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>再重写 dao 中调用MyBatis的方法，写成如下形式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ContentDaoImpl</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...............</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;ContentAss&gt; <span class="title">queryContentList</span><span class="params">(List&lt;Integer&gt; contentId)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 获取sqlsession</span></span><br><span class="line">        SqlSession sqlSession = ListMessageDb.getInstance().getSqlSession();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用sqlSession的getMapper方法，传入接口类</span></span><br><span class="line">        IContentDao contentDao = sqlSession.getMapper(IContentDao.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 调用接口方法</span></span><br><span class="line">        List&lt;ContentAss&gt; result = contentDao.queryContentList(contentId);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和之前的dao对比一下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> List&lt;ContentAss&gt; <span class="title">queryContentList</span><span class="params">(List&lt;Integer&gt; contentId)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    SqlSession sqlSession = ListMessageDb.getInstance().getSqlSession();</span><br><span class="line"></span><br><span class="line">    List&lt;ContentAss&gt; result = (ArrayList)sqlSession.selectList(<span class="string">"Content.QueryContentList"</span>, contentId);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用之前的测试文件进行测试，效果相同，但是这样写代码就变得十分规范，减少出错率，因为interface接口规范可以在项目设计的时候就订好，MyBatis配置文件和Dao层的实现都可以参照这个规范，所以不太可能出现id名或namespace重复的情况，程序员在实现dao时手贱敲错名称也不会出现</p>
+<hr>
+<h2 id="实现原理：动态代理"><a href="#实现原理：动态代理" class="headerlink" title="实现原理：动态代理"></a>实现原理：动态代理</h2><p>学习动态代理技术要对反射技术有一定的了解</p>
+<h3 id="代码举例"><a href="#代码举例" class="headerlink" title="代码举例"></a>代码举例</h3><p>这里编写一个demo先对动态代理有一个概念，对Interface接口的方法的代理</p>
+<p>和前面的一样，先编写一个interface文件，规定一些方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.demo1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IFunc</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">func1</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">func2</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编写一个类，负责实现需要代理的方法，这个类需要实现 <code>InvocationHandler</code> 接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.demo1;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MProxyHandlar</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="comment">// 实现需要代理的类的名称和方法，这里就单纯地对代理类名和方法名进行打印</span></span><br><span class="line">        System.out.println(<span class="string">"代理启动,被代理的类为 "</span> + method.getDeclaringClass().getName() +<span class="string">" ,代理方法 "</span> + method.getName() +<span class="string">" 执行"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编写一个类，负责注册需要代理的接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.demo1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProxyCreater</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">T <span class="title">getProxy</span><span class="params">(Class&lt;T&gt; type)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 传入三个参数  第一个是需要需要代理的对象实例</span></span><br><span class="line">        <span class="comment">//             第二个是需要实现的接口</span></span><br><span class="line">        <span class="comment">//             第三个是实现代理功能的类实例</span></span><br><span class="line">        <span class="keyword">return</span> (T) Proxy.newProxyInstance(type.getClassLoader(), <span class="keyword">new</span> Class[]&#123;type&#125;, <span class="keyword">new</span> MProxyHandlar());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后编写测试类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.demo1;s</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        IFunc funcs= ProxyCreater.getProxy(IFunc.class);</span><br><span class="line">        funcs.func1();</span><br><span class="line">        funcs.func2();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行此类，打印如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">代理启动,被代理的类为 com.example.demo1.IFunc ,代理方法 func1 执行</span><br><span class="line">代理启动,被代理的类为 com.example.demo1.IFunc ,代理方法 func2 执行</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="过程分析"><a href="#过程分析" class="headerlink" title="过程分析"></a>过程分析</h3><p>关键点就是 <code>Proxy.newProxyInstance</code> 方法，真是它返回了实现了代理功能，同时实现了<code>IFunc</code>接口的对象实例，尝试阅读了源码,其中的关键点是如下的函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ......</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">  * Look up or generate the designated proxy class.</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">Class&lt;?&gt; cl = getProxyClass0(loader, intfs);</span><br></pre></td></tr></table></figure>
+<p>后面就是对这个类进行实例化，并返回实例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> Constructor&lt;?&gt; cons = cl.getConstructor(constructorParams);</span><br><span class="line"><span class="comment">//.....</span></span><br><span class="line"><span class="keyword">return</span> cons.newInstance(<span class="keyword">new</span> Object[]&#123;h&#125;);</span><br></pre></td></tr></table></figure>
+<p>其中 <code>constructorParams</code> 在之前有定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** parameter types of a proxy class constructor */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Class&lt;?&gt;[] constructorParams =</span><br><span class="line">    &#123; InvocationHandler.class &#125;;</span><br></pre></td></tr></table></figure>
+<p>而那个 <code>h</code>就是传入的第三个参数，也就是那个 <code>ProxyHandler</code>的实例</p>
+<p><code>cl</code>正是那个对象实例的类，关键公的关键。本来想尝试去阅读 <code>getProxyClass0</code> 源码的，无奈功力不够，完全看不懂，但是又非常想知道这个类是个啥，幸好，可以配置这么一行JVM参数<code>-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true</code>，可以查看自动生成的代理类</p>
+<p>再次运行程序，就会发现在项目根目录下类似于这样的class</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── com</span><br><span class="line">│   └── sun</span><br><span class="line">│       └── proxy</span><br><span class="line">│           └── $Proxy0.class</span><br></pre></td></tr></table></figure>
+<p>点进去，通过IDE的解码工具，结果蛮惊喜的，这个类大体如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> $<span class="title">Proxy0</span> <span class="keyword">extends</span> <span class="title">Proxy</span> <span class="keyword">implements</span> <span class="title">IFunc</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Method m1;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Method m3;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Method m4;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Method m2;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Method m0;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> $Proxy0(InvocationHandler var1) <span class="keyword">throws</span>  &#123;</span><br><span class="line">        <span class="keyword">super</span>(var1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 以下方法均去掉了 try ... catch ...</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">func1</span><span class="params">()</span> <span class="keyword">throws</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.h.invoke(<span class="keyword">this</span>, m3, (Object[])<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">func2</span><span class="params">()</span> <span class="keyword">throws</span>  </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.h.invoke(<span class="keyword">this</span>, m4, (Object[])<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> String <span class="title">toString</span><span class="params">()</span> <span class="keyword">throws</span>  </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (String)<span class="keyword">super</span>.h.invoke(<span class="keyword">this</span>, m2, (Object[])<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> <span class="keyword">throws</span>  </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Integer)<span class="keyword">super</span>.h.invoke(<span class="keyword">this</span>, m0, (Object[])<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object var1)</span> <span class="keyword">throws</span>  </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Boolean)<span class="keyword">super</span>.h.invoke(<span class="keyword">this</span>, m1, <span class="keyword">new</span> Object[]&#123;var1&#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            m1 = Class.forName(<span class="string">"java.lang.Object"</span>).getMethod(<span class="string">"equals"</span>, Class.forName(<span class="string">"java.lang.Object"</span>));</span><br><span class="line">            m3 = Class.forName(<span class="string">"com.example.demo1.IFunc"</span>).getMethod(<span class="string">"func1"</span>);</span><br><span class="line">            m4 = Class.forName(<span class="string">"com.example.demo1.IFunc"</span>).getMethod(<span class="string">"func2"</span>);</span><br><span class="line">            m2 = Class.forName(<span class="string">"java.lang.Object"</span>).getMethod(<span class="string">"toString"</span>);</span><br><span class="line">            m0 = Class.forName(<span class="string">"java.lang.Object"</span>).getMethod(<span class="string">"hashCode"</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchMethodException var2) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchMethodError(var2.getMessage());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ClassNotFoundException var3) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> NoClassDefFoundError(var3.getMessage());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个类继承了 <code>Proxy</code> 类，同时实现了我们自定义的接口 <code>IFunc</code>，实现了自定义接口的方法一个一些可以Override的方法，构造函数传入的参数就是之前自定义的实现了接口<code>InvocationHandler</code>的 MProxyHandlar 的实例，调用了super方法，这就有看看<code>Proxy</code>类的必要了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Proxy</span> <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    ....</span><br><span class="line">    <span class="keyword">protected</span> InvocationHandler h;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">Proxy</span><span class="params">(InvocationHandler h)</span> </span>&#123;</span><br><span class="line">        Objects.requireNonNull(h);</span><br><span class="line">        <span class="keyword">this</span>.h = h;</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，MProxyHandlar 的实例赋给了这个h变量，后面就调用h变量的 <code>invoke</code>的方法通过反射技术实现对相应方法的代理，而最后的静态代码块中的内容是用来获得 <code>invoke</code> 方法的第二个参数，也就是 <code>Method</code> 对象；就是这个类的实例最后返回给了调用者，最终调用者调用的就是这个类中的方法，而这个方法中进一步用过反射机制使用代理类的 <code>invoke</code> 方法，调用了 MProxyHandlar 中实现的 <code>invoke</code> 方法中的内容，同时传入代理类（此类$Proxy0），被代理方法以及方法参数的信息。</p>
+<p>这里可以做一个实验，对 <code>MProxyHandlar</code> 进行修改</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MProxyHandlar</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="comment">// 实现需要代理的对象的方法</span></span><br><span class="line">        System.out.println(<span class="string">"代理类名为: "</span> + proxy.getClass());</span><br><span class="line">        System.out.println(<span class="string">"代理启动,被代理的类为 "</span> + method.getDeclaringClass().getName() +<span class="string">" ,代理方法 "</span> + method.getName() +<span class="string">" 执行"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>让它打印调用它的代理类的名称，运行代码，如果那个类是是以<code>$Proxy</code>就算成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">代理类名为: class com.sun.proxy.$Proxy0</span><br><span class="line">代理启动,被代理的类为 com.example.demo1.IFunc ,代理方法 func1 执行</span><br><span class="line">代理类名为: class com.sun.proxy.$Proxy0</span><br><span class="line">代理启动,被代理的类为 com.example.demo1.IFunc ,代理方法 func2 执行</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="在MyBatis中的运用"><a href="#在MyBatis中的运用" class="headerlink" title="在MyBatis中的运用"></a>在MyBatis中的运用</h3><p>那一段 <code>sqlSession.getMapper</code> 就等于是实例代码中的 <code>ProxyCreater.getProxy</code>，而实例代码中的 <code>MProxyHandlar</code> 在MyBatis中则是由它自己实现的，传入的第二参数然它知道调用的接口名字和方法的名字，而之前它已经对配置文件进行了解析，把 “namespace.id” 拼接起来正好就是”接口名字.方法名“，两者必须比较就可以实现方法映射了</p>
+<p>当然，<code>sqlSession.getMapper</code> 内的关于map的使用我还是没懂，老师上课的时候给出了抽象的实现，这里贴出来吧</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义的接口</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MyInterface</span> </span>&#123;</span><br><span class="line">    <span class="function">List&lt;Object&gt; <span class="title">query</span><span class="params">(Object parameter)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模拟 SqlSession.getMapper 实现</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SqlSession</span> </span>&#123;</span><br><span class="line">    <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">    <span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">getMapper</span><span class="params">(Class&lt;T&gt; type)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"通过接口的Class从代理工厂Map取出对应的代理工厂"</span>);</span><br><span class="line">        System.out.println(<span class="string">"通过代理工厂实例化一个代理类"</span>);</span><br><span class="line">        System.out.println(<span class="string">"用这个代理类生成一个代理实例返回出去"</span>);</span><br><span class="line">        <span class="keyword">return</span> (T) Proxy.newProxyInstance(type.getClassLoader(), <span class="keyword">new</span> Class[]&#123;type&#125;, <span class="keyword">new</span> MapperProxy());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 模拟将配置文件的 "namespace.id" 和 "package.method" 想映射的代理类实现</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MapperProxy</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"通过接口与method获取对应的配置文件中的信息："</span>);</span><br><span class="line">        System.out.println(<span class="string">"接口名称.方法名==namespace.id"</span>);</span><br><span class="line">        System.out.println(<span class="string">"通过配置文件中的信息获取SQL语句的类型"</span>);</span><br><span class="line">        System.out.println(<span class="string">"根据SQL语句类型调用sqlSession对应的增删改查方法"</span>);</span><br><span class="line">        System.out.println(<span class="string">"当SQL语句类型是查询时"</span>);</span><br><span class="line">        System.out.println(<span class="string">"根据返回值的类型是List、Map、Object"</span>);</span><br><span class="line">        System.out.println(<span class="string">"分别调用selectList、selectMap、selectOne方法"</span>);</span><br><span class="line">        <span class="comment">// 返回查询出的结果</span></span><br><span class="line">        List&lt;Object&gt; list = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</span><br><span class="line">        list.add(<span class="string">"1"</span>);</span><br><span class="line">        list.add(<span class="string">"2"</span>);</span><br><span class="line">        list.add(<span class="string">"3"</span>);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 主函数调用测试</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyMain</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"加载配置信息……"</span>);</span><br><span class="line">        System.out.println(<span class="string">"通过加载配置信息加载一个代理工厂Map："</span>);</span><br><span class="line">        System.out.println(<span class="string">"这个Map存放的是接口Class与对应的代理工厂"</span>);</span><br><span class="line">        SqlSession sqlSession = <span class="keyword">new</span> SqlSession();</span><br><span class="line">        MyInterface myInterface = sqlSession.getMapper(MyInterface.class);</span><br><span class="line">        List&lt;Object&gt; list = myInterface.query(<span class="keyword">new</span> Object());</span><br><span class="line">        System.out.println(list.size());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">加载配置信息……</span><br><span class="line">通过加载配置信息加载一个代理工厂Map：</span><br><span class="line">这个Map存放的是接口Class与对应的代理工厂</span><br><span class="line">通过接口的Class从代理工厂Map取出对应的代理工厂</span><br><span class="line">通过代理工厂实例化一个代理类</span><br><span class="line">用这个代理类生成一个代理实例返回出去</span><br><span class="line">通过接口与method获取对应的配置文件中的信息：</span><br><span class="line">接口名称.方法名==namespace.id</span><br><span class="line">通过配置文件中的信息获取SQL语句的类型</span><br><span class="line">根据SQL语句类型调用sqlSession对应的增删改查方法</span><br><span class="line">当SQL语句类型是查询时</span><br><span class="line">根据返回值的类型是List、Map、Object</span><br><span class="line">分别调用selectList、selectMap、selectOne方法</span><br><span class="line">3</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="动态代理的另一种方式"><a href="#动态代理的另一种方式" class="headerlink" title="动态代理的另一种方式"></a>动态代理的另一种方式</h2><p>Proxy类的文档中写了两种实现动态代理的方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// To create a proxy for some interface Foo:</span></span><br><span class="line">       InvocationHandler handler = <span class="keyword">new</span> MyInvocationHandler(...);</span><br><span class="line">       Class&lt;?&gt; proxyClass = Proxy.getProxyClass(Foo.class.getClassLoader(), Foo.class);</span><br><span class="line">       Foo f = (Foo) proxyClass.getConstructor(InvocationHandler.class).</span><br><span class="line">                       newInstance(handler);</span><br><span class="line"><span class="comment">// or more simply:</span></span><br><span class="line">       Foo f = (Foo) Proxy.newProxyInstance(Foo.class.getClassLoader(),</span><br><span class="line">                                            <span class="keyword">new</span> Class&lt;?&gt;[] &#123; Foo.class &#125;,</span><br><span class="line">                                            handler);</span><br></pre></td></tr></table></figure>
+<p>之前使用的是第二种方式，这里再使用第一种方式，就把 <code>ProxyCreater</code> 改一下就可以了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProxyCreater</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">T <span class="title">getProxy</span><span class="params">(Class&lt;T&gt; type)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        Class&lt;?&gt; proxyClass = Proxy.getProxyClass(type.getClassLoader(), type);</span><br><span class="line"></span><br><span class="line">        Constructor&lt;?&gt; con = proxyClass.getConstructor(InvocationHandler.class);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> (T)con.newInstance(<span class="keyword">new</span> MProxyHandlar());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行和会发现结果和之前的一样；仔细和第二种方式的源码比较一下就会发现，其实就是把第二种方式的源码的一部分自己写了一下，至于 <code>newInstance</code> 源码嘛，功力不够还是看不懂…</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-11-面向接口编程/" data-id="cjx382iw1004mazvgu231g4lm" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/">MyBatis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          学习笔记：javaEE基础-12-MyBatis拦截器
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/01/10/学习笔记-javaEE基础-10-MyBatis/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">学习笔记：javaEE基础10 MyBatis</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">再见，昨天</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>89</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>3</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>44</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="Schwarzeni">
+          Schwarzeni
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
