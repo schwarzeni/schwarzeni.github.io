@@ -35,6 +35,9 @@
   
 
   <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- Github 集成评论 -->
+  <link rel="stylesheet" href="/comment/comment.min.css">
 </head>
 
 <body>
@@ -104,7 +107,7 @@
     <span class="post-day">18</span>
   </time>
 </a>
-   
+
   </div>
   <div class="article-inner">
     
@@ -200,7 +203,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/03/18/Cpp中的内存对齐/" data-id="cjyazv27i000d01vgt6lz4r91" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/03/18/Cpp中的内存对齐/" data-id="cjyc94azb000b27vgylfvo5g2" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c++</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -236,7 +239,7 @@
 
 
 <!-- LiveRe City install code -->
-<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+<!-- <div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
 	<style>
 	iframe {
 		background: #f0f0f0;
@@ -259,8 +262,26 @@
    })(document, 'script');
 	</script>
 <noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
-</div>
+</div> -->
 <!-- completed City install code -->
+<!-- Github 集成评论 -->
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<div id="comments"></div>
+<script>
+const gitment = new Gitment({
+  id: '2019/03/18/Cpp中的内存对齐/', // optional
+  owner: 'schwarzeni',
+  repo: 'schwarzeni.github.io',
+  oauth: {
+    client_id: '11d050d973b80998fb45',
+    client_secret: 'efb49a22c66fd7493280b206d8f06847d089bbf3',
+  },
+  // ...
+  // For more available options, check out the documentation below
+})
+
+gitment.render('comments')
+</script>
 
 </section>
         

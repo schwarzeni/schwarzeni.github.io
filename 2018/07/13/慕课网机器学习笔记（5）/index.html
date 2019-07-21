@@ -38,6 +38,9 @@
   
 
   <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- Github 集成评论 -->
+  <link rel="stylesheet" href="/comment/comment.min.css">
 </head>
 
 <body>
@@ -107,7 +110,7 @@
     <span class="post-day">13</span>
   </time>
 </a>
-   
+
   </div>
   <div class="article-inner">
     
@@ -176,7 +179,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2018/07/13/慕课网机器学习笔记（5）/" data-id="cjyazv2ch006601vgvn3ff6s6" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2018/07/13/慕课网机器学习笔记（5）/" data-id="cjyc94b3u006827vgdvyfk5sd" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/机器学习/">机器学习</a></li></ul>
@@ -212,7 +215,7 @@
 
 
 <!-- LiveRe City install code -->
-<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+<!-- <div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
 	<style>
 	iframe {
 		background: #f0f0f0;
@@ -235,8 +238,26 @@
    })(document, 'script');
 	</script>
 <noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
-</div>
+</div> -->
 <!-- completed City install code -->
+<!-- Github 集成评论 -->
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<div id="comments"></div>
+<script>
+const gitment = new Gitment({
+  id: '2018/07/13/慕课网机器学习笔记（5）/', // optional
+  owner: 'schwarzeni',
+  repo: 'schwarzeni.github.io',
+  oauth: {
+    client_id: '11d050d973b80998fb45',
+    client_secret: 'efb49a22c66fd7493280b206d8f06847d089bbf3',
+  },
+  // ...
+  // For more available options, check out the documentation below
+})
+
+gitment.render('comments')
+</script>
 
 </section>
         

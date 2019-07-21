@@ -30,6 +30,9 @@
   
 
   <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- Github 集成评论 -->
+  <link rel="stylesheet" href="/comment/comment.min.css">
 </head>
 
 <body>
@@ -99,7 +102,7 @@
     <span class="post-day">28</span>
   </time>
 </a>
-   
+
   </div>
   <div class="article-inner">
     
@@ -140,7 +143,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/06/28/2019：来自2018的信件/" data-id="cjyazv274000201vg1cf1eoox" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/06/28/2019：来自2018的信件/" data-id="cjyc94az1000327vgd5b1zzdd" class="article-share-link">Share</a>
       
       
     </footer>
@@ -174,7 +177,7 @@
 
 
 <!-- LiveRe City install code -->
-<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+<!-- <div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
 	<style>
 	iframe {
 		background: #f0f0f0;
@@ -197,8 +200,26 @@
    })(document, 'script');
 	</script>
 <noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
-</div>
+</div> -->
 <!-- completed City install code -->
+<!-- Github 集成评论 -->
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<div id="comments"></div>
+<script>
+const gitment = new Gitment({
+  id: '2019/06/28/2019：来自2018的信件/', // optional
+  owner: 'schwarzeni',
+  repo: 'schwarzeni.github.io',
+  oauth: {
+    client_id: '11d050d973b80998fb45',
+    client_secret: 'efb49a22c66fd7493280b206d8f06847d089bbf3',
+  },
+  // ...
+  // For more available options, check out the documentation below
+})
+
+gitment.render('comments')
+</script>
 
 </section>
         

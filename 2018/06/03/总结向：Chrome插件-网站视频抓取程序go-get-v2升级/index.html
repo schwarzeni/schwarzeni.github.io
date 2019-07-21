@@ -36,6 +36,9 @@
   
 
   <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- Github 集成评论 -->
+  <link rel="stylesheet" href="/comment/comment.min.css">
 </head>
 
 <body>
@@ -105,7 +108,7 @@
     <span class="post-day">03</span>
   </time>
 </a>
-   
+
   </div>
   <div class="article-inner">
     
@@ -179,7 +182,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2018/06/03/总结向：Chrome插件-网站视频抓取程序go-get-v2升级/" data-id="cjyazv2c9005o01vgl6k1lkdh" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2018/06/03/总结向：Chrome插件-网站视频抓取程序go-get-v2升级/" data-id="cjyc94b3o005u27vglrg7jtiw" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Chrome/">Chrome</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术/">技术</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/日记/">日记</a></li></ul>
@@ -215,7 +218,7 @@
 
 
 <!-- LiveRe City install code -->
-<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+<!-- <div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
 	<style>
 	iframe {
 		background: #f0f0f0;
@@ -238,8 +241,26 @@
    })(document, 'script');
 	</script>
 <noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
-</div>
+</div> -->
 <!-- completed City install code -->
+<!-- Github 集成评论 -->
+<script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+<div id="comments"></div>
+<script>
+const gitment = new Gitment({
+  id: '2018/06/03/总结向：Chrome插件-网站视频抓取程序go-get-v2升级/', // optional
+  owner: 'schwarzeni',
+  repo: 'schwarzeni.github.io',
+  oauth: {
+    client_id: '11d050d973b80998fb45',
+    client_secret: 'efb49a22c66fd7493280b206d8f06847d089bbf3',
+  },
+  // ...
+  // For more available options, check out the documentation below
+})
+
+gitment.render('comments')
+</script>
 
 </section>
         
