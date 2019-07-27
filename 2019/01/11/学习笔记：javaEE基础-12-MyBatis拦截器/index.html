@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>学习笔记：javaEE基础-12-MyBatis拦截器 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="学习来源 通过自动回复机器人学Mybatis—加强版 主要目的是在了解MyBatis的拦截器大体的执行步骤">
+<meta name="keywords" content="总结,java,MyBatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="学习笔记：javaEE基础-12-MyBatis拦截器">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="学习来源 通过自动回复机器人学Mybatis—加强版 主要目的是在了解MyBatis的拦截器大体的执行步骤">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image4.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image5.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image6.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image7.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image8.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image9.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:40.558Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="学习笔记：javaEE基础-12-MyBatis拦截器">
+<meta name="twitter:description" content="学习来源 通过自动回复机器人学Mybatis—加强版 主要目的是在了解MyBatis的拦截器大体的执行步骤">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>97</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>5</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>46</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-学习笔记：javaEE基础-12-MyBatis拦截器" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/" class="article-date">
+  <time class="post-time" datetime="2019-01-11T10:10:31.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">11</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      学习笔记：javaEE基础-12-MyBatis拦截器
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>学习来源 <a href="https://www.imooc.com/learn/260" target="_blank" rel="noopener">通过自动回复机器人学Mybatis—加强版</a></p>
+<p>主要目的是在了解MyBatis的拦截器大体的执行步骤</p>
+<a id="more"></a>
+<hr>
+<h2 id="初步印象"><a href="#初步印象" class="headerlink" title="初步印象"></a>初步印象</h2><p>大体上和 Servlet 的 Filter 差不多，就是拦截指定请求，并对其作出相应的处理，但是感觉明显比 Filter设置的要复杂，因为牵涉到了代理机制。每编写一个拦截器都需要在在配置文件中注册</p>
+<hr>
+<h2 id="拦截器编码"><a href="#拦截器编码" class="headerlink" title="拦截器编码"></a>拦截器编码</h2><p>首先新建一个类，需要实现 <code>org.apache.ibatis.plugin.Interceptor</code> 接口，同时要在其上写 <code>@Intercepts</code> 注解，大体如下</p>
+<p>这个拦截器会拦截所有sql准备语句的执行，也就是生成sql语句的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Intercepts</span>(<span class="meta">@Signature</span>(type = StatementHandler.class, method = <span class="string">"prepare"</span>, args =&#123;Connection.class, Integer.class&#125; ))</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExamplePlugin2</span> <span class="keyword">implements</span> <span class="title">Interceptor</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 对被代理方法的前面和后面做一些操作</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">intercept</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="comment">//被代理对象</span></span><br><span class="line">        Object target = invocation.getTarget();</span><br><span class="line">        <span class="comment">//代理方法</span></span><br><span class="line">        Method method = invocation.getMethod();</span><br><span class="line">        <span class="comment">//方法参数</span></span><br><span class="line">        Object[] args = invocation.getArgs();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"ExamplePlugin2: 代理之前"</span>);</span><br><span class="line">        Object result = invocation.proceed();</span><br><span class="line">        System.out.println(<span class="string">"ExamplePlugin2: 代理之后"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 让其有代理功能</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">plugin</span><span class="params">(Object target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Plugin.wrap(target, <span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 读取配置文件中的数据</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProperties</span><span class="params">(Properties properties)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注解 <code>@Intercepts</code> 中的 <code>@Signature</code>中的 <code>type</code> 根据官方文档有如下几个选项，都是一些接口，是生成动态代理函数的 <code>Proxy.newProxyInstance</code> 填写的第二个参数中的值。</p>
+<ul>
+<li>Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)</li>
+<li>ParameterHandler (getParameterObject, setParameters)</li>
+<li>ResultSetHandler (handleResultSets, handleOutputParameters)</li>
+<li>StatementHandler (prepare, parameterize, batch, update, query)</li>
+</ul>
+<p>括号中的就是第二个参数 <code>method</code> 的选项，而第三个是填写对应的方法的参数，比如上面的程序，使用IDE跳到 <code>StatementHandler</code>接口，找到 <code>prepare</code> 方法如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Statement <span class="title">prepare</span><span class="params">(Connection connection, Integer transactionTimeout)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> SQLException</span>;</span><br></pre></td></tr></table></figure>
+<p>所以就填写两个参数类型的类名。</p>
+<p>类中要实现的接口<code>Interceptor</code>的三个方法</p>
+<ul>
+<li>第一个 <strong>intercept</strong> 方法是对拦截的数据进行处理的，相当于是动态代理中的起代理作用的类，注意到方法 <code>invocation.proceed()</code> 方法，点进去，就会发现其实就是执行反射</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">proceed</span><span class="params">()</span> <span class="keyword">throws</span> InvocationTargetException, IllegalAccessException </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> method.invoke(target, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而包含这个方法的 <code>Invocation</code> 类，私有变量就是之前在注解中写的那三个参数的映射值，详细见下面的单步调试；千万记得要调用这个方法并把结果返回，否则程序将无法进行下去。</p>
+<ul>
+<li>第二个 <strong>plugin</strong> 方法是声明对目标方法的代理，使用IDE追踪点进这个方法 <code>Plugin.wrap</code> 查看其实现</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title">wrap</span><span class="params">(Object target, Interceptor interceptor)</span> </span>&#123;</span><br><span class="line">  Map&lt;Class&lt;?&gt;, Set&lt;Method&gt;&gt; signatureMap = getSignatureMap(interceptor);</span><br><span class="line">  Class&lt;?&gt; type = target.getClass();</span><br><span class="line">  Class&lt;?&gt;[] interfaces = getAllInterfaces(type, signatureMap);</span><br><span class="line">  <span class="keyword">if</span> (interfaces.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Proxy.newProxyInstance(</span><br><span class="line">        type.getClassLoader(),</span><br><span class="line">        interfaces,</span><br><span class="line">        <span class="keyword">new</span> Plugin(target, interceptor, signatureMap));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> target;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就会看到 <code>Proxy.newProxyInstance</code> 方法，这正是声明动态代理的方法，第一个参数是被代理的对象，第二个是对其进行代理的类实现的接口，这里就上面注解中第一个参数对应的接口，第三个是被实例化的 <code>Plugin</code> 类，向对其进行代理的类提供被代理对象的方法以及参数信息。</p>
+<ul>
+<li>第三个 <strong>setProperties</strong> 方法是用于读取在配置文件中声明的参数，比如读取下面 <code>property</code> 中的数据</li>
+</ul>
+<hr>
+<p>该类编码完毕之后需要在主配置文件中声明一下，操作如</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0" encoding="UTF-8" ?&gt;</span><br><span class="line"><span class="meta">&lt;!DOCTYPE configuration</span></span><br><span class="line"><span class="meta">        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"</span></span><br><span class="line"><span class="meta">        "http://mybatis.org/dtd/mybatis-3-config.dtd"&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span> <span class="attr">interceptor</span>=<span class="string">"com.example.microapp.db.plugin.ExamplePlugin2"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"key"</span> <span class="attr">value</span>=<span class="string">"value"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">.....</span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="拦截器单步调试"><a href="#拦截器单步调试" class="headerlink" title="拦截器单步调试"></a>拦截器单步调试</h2><p>进行debug的目的主要是要查看几个关键值的内容</p>
+<p>实现动态代理的这段代码中的这些变量都是什么</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> Proxy.newProxyInstance(</span><br><span class="line">          type.getClassLoader(),</span><br><span class="line">          interfaces,</span><br><span class="line">          <span class="keyword">new</span> Plugin(target, interceptor, signatureMap));</span><br></pre></td></tr></table></figure>
+<p><img src="image1.png" alt=""></p>
+<p>（注意当前语句已经执行完毕了）可以看到，<code>target</code>，也就是实现代理的类名为 <code>org.apache.ibatis.executor.statement.RoutingStatementHandler</code>，它实现了 <code>StatementHandler</code> 接口的所有方法，当然，也包括 <code>prepare</code> 方法，下面为其构造函数的源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RoutingStatementHandler</span> <span class="keyword">implements</span> <span class="title">StatementHandler</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 代理对象为私有的</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> StatementHandler delegate;</span><br><span class="line"><span class="function">ublic <span class="title">RoutingStatementHandler</span><span class="params">(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds,  ResultHandler resultHandler, BoundSql boundSql)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 根据选择进行初始化</span></span><br><span class="line">  <span class="keyword">switch</span> (ms.getStatementType()) &#123;</span><br><span class="line">      <span class="keyword">case</span> STATEMENT:</span><br><span class="line">        delegate = <span class="keyword">new</span> SimpleStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> PREPARED:</span><br><span class="line">        delegate = <span class="keyword">new</span> PreparedStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> CALLABLE:</span><br><span class="line">        delegate = <span class="keyword">new</span> CallableStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> ExecutorException(<span class="string">"Unknown statement type: "</span> + ms.getStatementType());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">    .....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于那几个传入构造函数的参数</p>
+<ul>
+<li><code>Executor</code> executor 接口 使用的是CachingExecutor，作用暂时没看懂，貌似使其某种缓存的作用，先打个记号后面研究</li>
+<li><code>MappedStatement</code> ms 这个里面好像存储了配置当前sql语句的mapper的信息，当前sql的mapper如下</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">"com.example.microapp.dao.IContentDao"</span>&gt;</span></span><br><span class="line">.....</span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"queryContentListByPage"</span> <span class="attr">parameterType</span>=<span class="string">"java.util.Map"</span> <span class="attr">resultMap</span>=<span class="string">"ContentResultAss"</span>&gt;</span></span><br><span class="line">      ......</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>而这个里面存储的部分值如下图</p>
+<p><img src="image2.png" alt=""></p>
+<ul>
+<li><code>Object</code> parameter 是一个Hashmap，存入的传入查询的参数</li>
+<li><code>RowBounds</code> rowBounds 是最大行数限制，从0到2147483647</li>
+<li><code>ResultHandler</code> resultHandler 貌似是对结果的处理，此时为null，有一篇文章是讲这个的，先mark一下 <a href="https://www.jianshu.com/p/0339c6fe8b61" target="_blank" rel="noopener">MyBatis 中使用流式查询避免数据量过大导致OOM</a></li>
+<li><code>BoundSql</code> boundSql 存储一切和当前sql有关的数据</li>
+</ul>
+<p><img src="image3.png" alt=""></p>
+<p>而其中的switch语句中的选项，就是这里大写字母为枚举类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.apache.ibatis.mapping;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> StatementType &#123;</span><br><span class="line">  STATEMENT, PREPARED, CALLABLE</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>分别是sql的几种方式，直接执行，预编译，调用sql过程，这里使用到是预编译，也就是代理 <code>PreparedStatementHandler</code>，这个类先放一放，接着往下看 <code>prepare</code> 方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RoutingStatementHandler</span> <span class="keyword">implements</span> <span class="title">StatementHandler</span> </span>&#123;</span><br><span class="line">  ......</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Statement <span class="title">prepare</span><span class="params">(Connection connection, Integer transactionTimeout)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> delegate.prepare(connection, transactionTimeout);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用的是 <code>PreparedStatementHandler</code> 的 <code>prepare</code> 方法，别的方法也都是调用相应的 <code>delegate</code> 的实例的方法，怪不得叫这个命令，原来只是像servlet一样起到一个路由(route)的作用。那就看 <code>PreparedStatementHandler</code> 类吧，先看它的构造方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PreparedStatementHandler</span> <span class="keyword">extends</span> <span class="title">BaseStatementHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PreparedStatementHandler</span><span class="params">(Executor executor, MappedStatement mappedStatement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);</span><br><span class="line">    &#125;</span><br><span class="line">  .....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用了它继承的 <code>BaseStatementHandler</code> 父类的信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseStatementHandler</span> <span class="keyword">implements</span> <span class="title">StatementHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">BaseStatementHandler</span><span class="params">(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.configuration = mappedStatement.getConfiguration();</span><br><span class="line">        <span class="keyword">this</span>.executor = executor;</span><br><span class="line">        <span class="keyword">this</span>.mappedStatement = mappedStatement;</span><br><span class="line">        <span class="keyword">this</span>.rowBounds = rowBounds;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.typeHandlerRegistry = configuration.getTypeHandlerRegistry();</span><br><span class="line">        <span class="keyword">this</span>.objectFactory = configuration.getObjectFactory();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (boundSql == <span class="keyword">null</span>) &#123; <span class="comment">// issue #435, get the key before calculating the statement</span></span><br><span class="line">          generateKeys(parameterObject);</span><br><span class="line">          boundSql = mappedStatement.getBoundSql(parameterObject);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.boundSql = boundSql;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">this</span>.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);</span><br><span class="line">        <span class="keyword">this</span>.resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);</span><br><span class="line">  &#125;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看起来像是初始化一些配置信息，其中的一些参数之前提到过</p>
+<p>出栈出栈，去看 <code>PreparedStatementHandler</code> 中的 <code>prepare</code> 方法，然而并没有，那看来还是在父类 <code>BaseStatementHandler</code> 中的了，此处略去了处理异常的语句</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseStatementHandler</span> <span class="keyword">implements</span> <span class="title">StatementHandler</span> </span>&#123;</span><br><span class="line">  ....</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> Statement <span class="title">prepare</span><span class="params">(Connection connection, Integer transactionTimeout)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        ErrorContext.instance().sql(boundSql.getSql());</span><br><span class="line">        Statement statement = <span class="keyword">null</span>;</span><br><span class="line">        statement = instantiateStatement(connection);</span><br><span class="line">        setStatementTimeout(statement, transactionTimeout);</span><br><span class="line">        setFetchSize(statement);</span><br><span class="line">        <span class="keyword">return</span> statement;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ErrorContext</code> 貌似使其记录信息，这里就不深究了，找了一篇文章<a href="https://blog.csdn.net/lqzkcx3/article/details/84944285" target="_blank" rel="noopener">Mybatis源码研究之ErrorContext</a>，后面有空看，第三行的 <code>instantiateStatement</code> 是一个抽象方法，由子类实现 <code>PreparedStatementHandler</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">abstract</span> Statement <span class="title">instantiateStatement</span><span class="params">(Connection connection)</span> <span class="keyword">throws</span> SQLException</span>;</span><br></pre></td></tr></table></figure>
+<p>下面是 <code>PreparedStatementHandler</code> 的实现，一眼就看到了 <code>connection.prepareStatement</code>，一路追下来真是不容呀啊</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> Statement <span class="title">instantiateStatement</span><span class="params">(Connection connection)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    String sql = boundSql.getSql();</span><br><span class="line">    <span class="keyword">if</span> (mappedStatement.getKeyGenerator() <span class="keyword">instanceof</span> Jdbc3KeyGenerator) &#123;</span><br><span class="line">      String[] keyColumnNames = mappedStatement.getKeyColumns();</span><br><span class="line">      <span class="keyword">if</span> (keyColumnNames == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> connection.prepareStatement(sql, keyColumnNames);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mappedStatement.getResultSetType() != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> connection.prepareStatement(sql);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>别的不同类型的sql语句当然创建的方法不一样了，分别为 <code>connection.createStatement</code> 和 <code>connection.prepareCall</code></p>
+<blockquote>
+<p>这种设计思想蛮有意思的，父类有不同的子类继承，如果多个子类使用的同一个方法十分相似，但还是有些不同，那就把那个方法用父类实现，而不同的地方封装成一个抽象函数，要求用子类分别实现。</p>
+</blockquote>
+<p>剩下的步骤貌似就是一些参数设置，不看了。</p>
+<hr>
+<p>剩下的几个参数就比较简单了，<code>interceptor</code> 就是自己实现的拦截器的实例，因为之前传入的是<code>this</code>参数嘛，而 <code>signatureMap</code> 存放的是一个HashMap，存放的值key就是在拦截器顶上的注解 <code>@Signature</code>中的type的完整的类名</p>
+<p><img src="image4.png" alt=""></p>
+<p>为什么用HashMap存放？需要看一下存放注解 <code>@Intercepts</code> 的<code>@Intercepts</code>的源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Intercepts &#123;</span><br><span class="line">  Signature[] value();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>原来可以放多个 <code>@Signature</code> 注解，那就放两个看看效果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Intercepts</span>(</span><br><span class="line">        &#123;<span class="meta">@Signature</span>(type = StatementHandler.class, method = <span class="string">"prepare"</span>, args = &#123;Connection.class, Integer.class&#125;),</span><br><span class="line">        <span class="meta">@Signature</span>(type= Executor.class, method=<span class="string">"query"</span>, args=&#123;MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class&#125;)&#125;)</span><br><span class="line">        <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExamplePlugin2</span> <span class="keyword">implements</span> <span class="title">Interceptor</span> </span>&#123;</span><br><span class="line">          ......</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p>结果如下</p>
+<p><img src="image5.png" alt=""></p>
+<p>不对呀，<code>type</code> 为什么会是 <code>CachingExecutor</code>，我是多虑了，因为他没有实现相关接口，所以代码<code>interfaces.length</code>长度为0，并不会进行动态代理。把关键代码再贴一下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Plugin</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title">wrap</span><span class="params">(Object target, Interceptor interceptor)</span> </span>&#123;</span><br><span class="line">    Map&lt;Class&lt;?&gt;, Set&lt;Method&gt;&gt; signatureMap = getSignatureMap(interceptor);</span><br><span class="line">    Class&lt;?&gt; type = target.getClass();</span><br><span class="line">    Class&lt;?&gt;[] interfaces = getAllInterfaces(type, signatureMap);</span><br><span class="line">    <span class="keyword">if</span> (interfaces.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> Proxy.newProxyInstance(</span><br><span class="line">          type.getClassLoader(),</span><br><span class="line">          interfaces,</span><br><span class="line">          <span class="keyword">new</span> Plugin(target, interceptor, signatureMap));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> target;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>之前的数据显示在 <code>signatureMap</code> 中只有接口 <code>interface org.apache.ibatis.executor.statement.StatementHandler</code>,所以只有实现了这个接口的类才会进行动态代理。</p>
+<p>接下来依次有 <code>DefaultParameterHandler</code>, <code>DefaultResultSetHandler</code>进过这个方法，但是由于都没有实现接口 <code>StatementHandler</code>而被无视，直到 <code>RoutingStatementHandler</code> 的出现，到了第一个return，返回动态代理实例</p>
+<p>进去的时候是这样子的</p>
+<p><img src="image6.png" alt=""></p>
+<p>出来的东西是这样子</p>
+<p><img src="image7.png" alt=""></p>
+<p>叫$Proxy8的自动生成的代理类，如果为JVM添加了参数 <code>-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true</code>，那应该就可以在项目根目录下找到那个了类 <code>com/sun/proxy/$Proxy8.class</code></p>
+<p>用IDE打开查看，果然接口 <code>StatementHandler</code> 中定义的都被invoke了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> $<span class="title">Proxy8</span> <span class="keyword">extends</span> <span class="title">Proxy</span> <span class="keyword">implements</span> <span class="title">StatementHandler</span> </span>&#123;</span><br><span class="line">......</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">batch</span><span class="params">(Statement var1)</span> <span class="keyword">throws</span> SQLException </span>&#123;...&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> List <span class="title">query</span><span class="params">(Statement var1, ResultHandler var2)</span> <span class="keyword">throws</span> SQLException </span>&#123;....&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Statement <span class="title">prepare</span><span class="params">(Connection var1, Integer var2)</span> <span class="keyword">throws</span> SQLException </span>&#123;....&#125;</span><br><span class="line">.....</span><br><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          ......</span><br><span class="line">            m6 = Class.forName(<span class="string">"org.apache.ibatis.executor.statement.StatementHandler"</span>).getMethod(<span class="string">"batch"</span>, Class.forName(<span class="string">"java.sql.Statement"</span>));</span><br><span class="line">            m5 = Class.forName(<span class="string">"org.apache.ibatis.executor.statement.StatementHandler"</span>).getMethod(<span class="string">"query"</span>, Class.forName(<span class="string">"java.sql.Statement"</span>), Class.forName(<span class="string">"org.apache.ibatis.session.ResultHandler"</span>));</span><br><span class="line">            m2 = Class.forName(<span class="string">"java.lang.Object"</span>).getMethod(<span class="string">"toString"</span>);</span><br><span class="line">            m4 = Class.forName(<span class="string">"org.apache.ibatis.executor.statement.StatementHandler"</span>).getMethod(<span class="string">"prepare"</span>, Class.forName(<span class="string">"java.sql.Connection"</span>), Class.forName(<span class="string">"java.lang.Integer"</span>));</span><br><span class="line">            .....</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchMethodException var2) &#123;</span><br><span class="line">          .....</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>后面就执行到方法 <code>intercept</code> 了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Intercepts</span>(<span class="meta">@Signature</span>(type = StatementHandler.class, method = <span class="string">"prepare"</span>, args = &#123;Connection.class, Integer.class&#125;))</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExamplePlugin2</span> <span class="keyword">implements</span> <span class="title">Interceptor</span> </span>&#123;</span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">intercept</span><span class="params">(Invocation invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        <span class="comment">//被代理对象</span></span><br><span class="line">        Object target = invocation.getTarget();</span><br><span class="line">        <span class="comment">//代理方法</span></span><br><span class="line">        Method method = invocation.getMethod();</span><br><span class="line">        <span class="comment">//方法参数</span></span><br><span class="line">        Object[] args = invocation.getArgs();</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"ExamplePlugin2: 代理之前"</span>);</span><br><span class="line">        Object result = invocation.proceed();</span><br><span class="line">        System.out.println(<span class="string">"ExamplePlugin2: 代理之后"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>三个值如下</p>
+<p><img src="image8.png" alt=""></p>
+<p>这里的代理方法的名字就是注解里写的，而方法参数应该就是注解里写的的第三个参数数组，但是那个类型为Integer的参数我没有设置，所以就为空了，是用来设置超时的，同时，另外一个参数有生成了一个动态代理类，$Proxy9，应该和之前的那个是在一起的，这里就不去查看了</p>
+<p>当执行到return语句时，打印输出如下</p>
+<p><img src="image9.png" alt=""></p>
+<p>可以看出，可以在创建sql语句的前后时间段内搞一些小动作，下一篇笔记就记录一下使用拦截器实现分页查询功能</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/01/11/学习笔记：javaEE基础-12-MyBatis拦截器/" data-id="cjylluk9i005mzxvgdorg9wbj" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/">MyBatis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/12/学习笔记：javaEE基础-13-MyBatis分页式查询/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          学习笔记：javaEE基础-13-MyBatis分页式查询
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/01/11/学习笔记：javaEE基础-11-面向接口编程/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">学习笔记：javaEE基础11 面向接口编程</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>97</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>5</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>46</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

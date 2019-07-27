@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>教程向：自己写一个hexo插件 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="玩转hexo的第一步：自己写一个插件">
+<meta name="keywords" content="总结,Hexo,教程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="教程向：自己写一个hexo插件">
+<meta property="og:url" content="http://blog.schwarzeni.com/2018/05/20/教程向：自己写一个hexo插件/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="玩转hexo的第一步：自己写一个插件">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/05/20/教程向：自己写一个hexo插件/image-0.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/05/20/教程向：自己写一个hexo插件/image-1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/05/20/教程向：自己写一个hexo插件/image-2.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:39.150Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="教程向：自己写一个hexo插件">
+<meta name="twitter:description" content="玩转hexo的第一步：自己写一个插件">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2018/05/20/教程向：自己写一个hexo插件/image-0.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>97</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>5</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>46</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-教程向：自己写一个hexo插件" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/20/教程向：自己写一个hexo插件/" class="article-date">
+  <time class="post-time" datetime="2018-05-20T10:23:29.000Z" itemprop="datePublished">
+    <span class="post-month">5月</span><br/>
+    <span class="post-day">20</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      教程向：自己写一个hexo插件
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>玩转hexo的第一步：自己写一个插件</p>
+<a id="more"></a>
+<p><img src="image-0.png" alt=""></p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>node v8.5.0</li>
+<li>hexo v3.7.1</li>
+<li>hexo-cli v1.1.0</li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Hexo对Markdown解析的不错，唯一不太完美的就是无法添加视频标签，不过其实也是可以的，如下</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">这是一篇博文</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">&#123;% raw %&#125;</span><br><span class="line"><span class="xml"><span class="comment">&lt;!-- 这里可以写原生的HTML代码 --&gt;</span></span></span><br><span class="line">&#123;% endraw %&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>但是如果我又想用第三方库把播放器装扮的好看一点呢，总归不可能写一次视频就写一大堆<code>script</code>,<code>link</code>,<code>div</code>标签吧，这样代码的重用性非常的不好，比较希望是如下效果</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">这是一篇博文</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">&#123;% mdVideo video.mp4 %&#125;&#123;% endmdVideo %&#125;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>那就自己写一个插件呗。</p>
+<p>ps：</p>
+<p>1.这里的video.mp4是默认存在执行<code>hexo new post</code>时创建的文件夹中的，只要把配置文件_config.yml中的<code>post_asset_folder</code>设为<code>true</code>就可以了。这样子静态资源对应的路径就是<code>http:// ... /文章名/video.mp4</code>了</p>
+<ol start="2">
+<li>需要对javascript的语法有一定的了解</li>
+</ol>
+<hr>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>在博客的根目录的<code>node_modules</code>中创建一个文件夹，就把它叫做<code>hexo-simple-video-tag</code>好了，注意，文件夹一定要是以<code>hexo-</code>开头的，请参考<a href="https://hexo.io/docs/plugins.html" target="_blank" rel="noopener">官网文档</a>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">First, create a folder in the node_modules folder.</span><br><span class="line">The name of this folder must begin with hexo- or Hexo will ignore it.</span><br></pre></td></tr></table></figure>
+<p>到这个文件夹的根目录(<code>/node_modules/hexo-simple-video-tag</code>)下执行<code>npm init</code>命令，使其生成一个<code>package.json</code>文件，同时创建一个<code>index.js</code>文件目录如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── index.js</span><br><span class="line">└── package.json</span><br></pre></td></tr></table></figure>
+<p>package.json(<code>/node_modules/hexo-simple-video-tag/package.json</code>)的文件内容如下</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"hexo-simple-video-tag"</span>,</span><br><span class="line">  <span class="attr">"version"</span>: <span class="string">"1.0.0"</span>,</span><br><span class="line">  <span class="attr">"description"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"main"</span>: <span class="string">"index.js"</span>,</span><br><span class="line">  <span class="attr">"scripts"</span>: &#123;</span><br><span class="line">    <span class="attr">"test"</span>: <span class="string">"echo \"Error: no test specified\" &amp;&amp; exit 1"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"author"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"license"</span>: <span class="string">"ISC"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将<code>name</code>与<code>version</code>的信息添加到博客根目录的package.json文件中</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">....</span><br><span class="line">  "dependencies": &#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    "hexo-simple-video-tag": "1.0.0"</span><br><span class="line">  &#125;,</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<p>使用npm script简化命令的输入，还是在博客根目录的package.json文件中</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">....</span><br><span class="line">  "scripts": &#123;</span><br><span class="line">    "local": "hexo clean &amp;&amp; hexo g &amp;&amp; hexo s"</span><br><span class="line">  &#125;</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<p>这样直接在命令行中执行<code>npm run local</code>就可以启动本地预览服务器了</p>
+<p>好了，打开文件夹hexo-simple-video-tag中的index.js文件开始编写代码</p>
+<p>关于 <code>hexo.extend.tag.register</code> 的说明请查看<a href="https://hexo.io/api/tag.html" target="_blank" rel="noopener">官方文档</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">hexo.extend.tag.register(<span class="string">'mdVideo'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">args, content</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">`&lt;div&gt;Hello <span class="subst">$&#123;args[<span class="number">0</span>]&#125;</span> tag! <span class="subst">$&#123;content&#125;</span>&lt;/div&gt;`</span></span><br><span class="line">  <span class="comment">// ends为true的话标签是这样的</span></span><br><span class="line">  <span class="comment">// &#123;%tag arg0 arg1 arg2%&#125; content &#123;%endtag%&#125;</span></span><br><span class="line">  <span class="comment">// false的话是这样</span></span><br><span class="line">  <span class="comment">// &#123;%tag%&#125;</span></span><br><span class="line">  <span class="comment">// 回调函数的 args参数是[arg0, arg1, arg2 ...] 组成的数组</span></span><br><span class="line">  <span class="comment">//          content是夹在标签之间的内容</span></span><br><span class="line">&#125;, &#123;<span class="attr">ends</span>: <span class="literal">true</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>创建一篇新博文，就是本文的标题吧<code>教程向：自己写一个hexo插件</code>,写入如下内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% mdVideo hexo %&#125;</span><br><span class="line">&lt;p&gt;I&apos;m content&lt;/p&gt;</span><br><span class="line">&#123;%endmdVideo%&#125;</span><br></pre></td></tr></table></figure>
+<p>在博客根目录下执行<code>hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</code>看效果</p>
+<p><img src="image-1.png" alt=""></p>
+<hr>
+<h2 id="编写函数逻辑"><a href="#编写函数逻辑" class="headerlink" title="编写函数逻辑"></a>编写函数逻辑</h2><p>规定，传入的第一个参数，也就是<code>args[0]</code>为视频文件的名称，且视频不在首页显示</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">hexo.extend.tag.register(<span class="string">'mdVideo'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">args, content</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> filename = args[<span class="number">0</span>]</span><br><span class="line">  <span class="comment">// 判断是否有值输入</span></span><br><span class="line">  <span class="keyword">if</span> (filename === <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.error(<span class="string">'&gt;&gt;&gt;&gt;&gt;&gt;&gt;错误：请填写视频的名'</span>);</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'缺少视频名'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取博客根路径，用于判断当前路径是否为根路径</span></span><br><span class="line">  <span class="keyword">const</span> blog_root = hexo.config.root;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;video id="video_tag" controls&gt;&lt;/video&gt;</span></span><br><span class="line"><span class="string">    &lt;script&gt;</span></span><br><span class="line"><span class="string">      var $video = document.getElementById('video_tag')</span></span><br><span class="line"><span class="string">      var cur_url = window.location.href;</span></span><br><span class="line"><span class="string">      var idx = cur_url.lastIndexOf('/');</span></span><br><span class="line"><span class="string">      // 如果是根路径，则不显示</span></span><br><span class="line"><span class="string">      if (window.location.pathname === "<span class="subst">$&#123;blog_root&#125;</span>") &#123;</span></span><br><span class="line"><span class="string">        $video.style.display = "none"</span></span><br><span class="line"><span class="string">      &#125; else &#123;</span></span><br><span class="line"><span class="string">        // 对路径进行拼接，结果如下</span></span><br><span class="line"><span class="string">        // 文章径路 http://localhost:4000/2018/05/20/hexo-plugin-example/</span></span><br><span class="line"><span class="string">        // 视频路径 http://localhost:4000/2018/05/20/hexo-plugin-example/result.mp4</span></span><br><span class="line"><span class="string">        // 进行这样拼接的原因是，如果你设置了 &lt;!-- more --&gt; 的话，则文章路径会变成下面这样子</span></span><br><span class="line"><span class="string">        // http://localhost:4000/2018/05/20/hexo-plugin-example/#more</span></span><br><span class="line"><span class="string">        // 必须要把 '#more' 去掉</span></span><br><span class="line"><span class="string">        $video.setAttribute("src", cur_url.slice(0, idx+1)+ "<span class="subst">$&#123;filename&#125;</span>");</span></span><br><span class="line"><span class="string">      &#125;</span></span><br><span class="line"><span class="string">    &lt;/script&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;, &#123;<span class="attr">ends</span>: <span class="literal">true</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>在对应的资源文件夹中添加视频</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── _posts</span><br><span class="line">│   ├── hexo-plugin-example</span><br><span class="line">│   │   └── result.mp4</span><br><span class="line">│   ├── hexo-plugin-example.md</span><br></pre></td></tr></table></figure>
+<p>并在文章中输入如下内容看效果，重新执行 <code>npm run local</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;% mdVideo result.mp4 %&#125;&#123;% endmdVideo %&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="image-2.png" alt=""></p>
+<p>莓问题！</p>
+<hr>
+<h2 id="一些改进"><a href="#一些改进" class="headerlink" title="一些改进"></a>一些改进</h2><p>当你要添加第三方播放器库的时候，就可以非常方便地修改插件而对所有的视频标签进行修改了，不过有一些主题的css会影响到H5视频的全屏播放功能，而且压缩的js过大导致hexo在generate时出错，这些问题我都在之前的一篇文章里有说，就在前几篇的位置,名字叫<code>经验向：使用HEXO的两个小坑以及一个效率优化</code></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2018/05/20/教程向：自己写一个hexo插件/" data-id="cjylluka6006pzxvg8cu3uf4n" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/">Hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/教程/">教程</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/05/29/科普向：下载pc端爱奇艺视频的思路/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          科普向：下载pc端爱奇艺视频的思路
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/05/18/使用HEXO的两个小坑以及一个效率优化/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">经验向：使用HEXO的两个小坑以及一个效率优化</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>97</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>5</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>46</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
