@@ -17,7 +17,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/v-a-%27.gif">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/v-i-b.gif">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/v-i-tab.gif">
-<meta property="og:updated_time" content="2019-07-29T14:06:14.849Z">
+<meta property="og:updated_time" content="2019-07-30T13:23:43.983Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="vim一些小技巧">
 <meta name="twitter:description" content="这里总结一些vim的快捷点技巧">
@@ -152,11 +152,28 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">resize +/-n</span><br></pre></td></tr></table></figure>
 <p>改变水平宽段</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertical resize +-n</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="如何刷新vimrc配置"><a href="#如何刷新vimrc配置" class="headerlink" title="如何刷新vimrc配置"></a>如何刷新vimrc配置</h2><p>默认<code>.vimrc</code>的路径为<code>~/.vimrc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:source ~/.vimrc</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="如何在tag间跳转"><a href="#如何在tag间跳转" class="headerlink" title="如何在tag间跳转"></a>如何在tag间跳转</h2><ul>
+<li>跳过去 <code>ctl+]</code></li>
+<li>跳回来 <code>ctl+o</code></li>
+</ul>
+<hr>
+<h2 id="如何快速查看日历？"><a href="#如何快速查看日历？" class="headerlink" title="如何快速查看日历？"></a>如何快速查看日历？</h2><p><a href="https://github.com/mattn/calendar-vim" target="_blank" rel="noopener">calendar-vim</a> 可以满足你的需求，而且还可以把它变成日记本</p>
+<ul>
+<li><code>:Calendar</code> 垂直方向打开日历 (\cal)</li>
+<li><code>:CalendarH</code> 水平方向打开日历 (\caL)</li>
+<li><code>:CalendarT</code> 全屏显示当月日历</li>
+</ul>
+<p>如果把它作为日记本的话需要在家目录下创建 <code>~/diary</code> 文件夹</p>
+<p>进阶用法详见文档 <code>:help calendar</code></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/" data-id="cjypl4830001qc7vgjtrxgv37" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/" data-id="cjypv8shx001ko5vghpr54ie5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vim/">vim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
