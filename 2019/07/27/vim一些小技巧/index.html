@@ -17,7 +17,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/v-a-%27.gif">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/v-i-b.gif">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/v-i-tab.gif">
-<meta property="og:updated_time" content="2019-07-30T13:23:43.983Z">
+<meta property="og:updated_time" content="2019-07-31T05:27:36.850Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="vim一些小技巧">
 <meta name="twitter:description" content="这里总结一些vim的快捷点技巧">
@@ -136,32 +136,36 @@
         <p>这里总结一些vim的快捷点技巧</p>
 <a id="more"></a>
 <hr>
-<h2 id="如何选中引号等符号中的内容"><a href="#如何选中引号等符号中的内容" class="headerlink" title="如何选中引号等符号中的内容"></a>如何选中引号等符号中的内容</h2><p>拿双引号来举例：<code>v+i+&quot;</code></p>
+<h2 id="编辑"><a href="#编辑" class="headerlink" title="编辑"></a>编辑</h2><h3 id="如何选中引号等符号中的内容"><a href="#如何选中引号等符号中的内容" class="headerlink" title="如何选中引号等符号中的内容"></a>如何选中引号等符号中的内容</h3><p>拿双引号来举例：<code>v+i+&quot;</code></p>
 <p><img src="v-i-&quot;.gif" alt=""></p>
 <hr>
-<h2 id="如何选中引号等符号及其中的内容"><a href="#如何选中引号等符号及其中的内容" class="headerlink" title="如何选中引号等符号及其中的内容"></a>如何选中引号等符号及其中的内容</h2><p>拿单引号举例：<code>v+a+&#39;</code></p>
+<h3 id="如何选中引号等符号及其中的内容"><a href="#如何选中引号等符号及其中的内容" class="headerlink" title="如何选中引号等符号及其中的内容"></a>如何选中引号等符号及其中的内容</h3><p>拿单引号举例：<code>v+a+&#39;</code></p>
 <p><img src="v-a-&#39;.gif" alt=""></p>
 <hr>
-<h2 id="更加快捷选中-、-、-内容的方法"><a href="#更加快捷选中-、-、-内容的方法" class="headerlink" title="更加快捷选中(、[、{内容的方法"></a>更加快捷选中(、[、{内容的方法</h2><p>拿小括号举例：<code>v+i+b</code></p>
+<h3 id="更加快捷选中-、-、-内容的方法"><a href="#更加快捷选中-、-、-内容的方法" class="headerlink" title="更加快捷选中(、[、{内容的方法"></a>更加快捷选中(、[、{内容的方法</h3><p>拿小括号举例：<code>v+i+b</code></p>
 <p><img src="v-i-b.gif" alt=""></p>
 <hr>
-<h2 id="快速对多行进行操作"><a href="#快速对多行进行操作" class="headerlink" title="快速对多行进行操作"></a>快速对多行进行操作</h2><p><img src="v-i-tab.gif" alt=""></p>
+<h3 id="快速对多行进行操作"><a href="#快速对多行进行操作" class="headerlink" title="快速对多行进行操作"></a>快速对多行进行操作</h3><p><img src="v-i-tab.gif" alt=""></p>
 <hr>
-<h2 id="多窗口时改变窗口大小"><a href="#多窗口时改变窗口大小" class="headerlink" title="多窗口时改变窗口大小"></a>多窗口时改变窗口大小</h2><p>输入’:’后，输入如下命令</p>
+<h2 id="浏览"><a href="#浏览" class="headerlink" title="浏览"></a>浏览</h2><h3 id="多窗口时改变窗口大小"><a href="#多窗口时改变窗口大小" class="headerlink" title="多窗口时改变窗口大小"></a>多窗口时改变窗口大小</h3><p>输入’:’后，输入如下命令</p>
 <p>改变上下高度</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">resize +/-n</span><br></pre></td></tr></table></figure>
 <p>改变水平宽段</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vertical resize +-n</span><br></pre></td></tr></table></figure>
 <hr>
-<h2 id="如何刷新vimrc配置"><a href="#如何刷新vimrc配置" class="headerlink" title="如何刷新vimrc配置"></a>如何刷新vimrc配置</h2><p>默认<code>.vimrc</code>的路径为<code>~/.vimrc</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:source ~/.vimrc</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="如何在tag间跳转"><a href="#如何在tag间跳转" class="headerlink" title="如何在tag间跳转"></a>如何在tag间跳转</h2><ul>
+<h3 id="如何在tag间跳转"><a href="#如何在tag间跳转" class="headerlink" title="如何在tag间跳转"></a>如何在tag间跳转</h3><ul>
 <li>跳过去 <code>ctl+]</code></li>
 <li>跳回来 <code>ctl+o</code></li>
 </ul>
 <hr>
-<h2 id="如何快速查看日历？"><a href="#如何快速查看日历？" class="headerlink" title="如何快速查看日历？"></a>如何快速查看日历？</h2><p><a href="https://github.com/mattn/calendar-vim" target="_blank" rel="noopener">calendar-vim</a> 可以满足你的需求，而且还可以把它变成日记本</p>
+<h3 id="居中、置顶和置底光标所在行"><a href="#居中、置顶和置底光标所在行" class="headerlink" title="居中、置顶和置底光标所在行"></a>居中、置顶和置底光标所在行</h3><p>如果希望将光标当前行显示在屏幕中央该如何操作呢？<code>zz</code>即可，同类的还有：<code>zt</code>和<code>zb</code>，分别是置顶和置底</p>
+<p>如果希望在置顶和置底时空出几行，可以在配置文件<code>.vimrc</code>中添加如下配置</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">se</span> <span class="keyword">so</span>=<span class="number">3</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="光标滚动屏幕时底-顶部空行"><a href="#光标滚动屏幕时底-顶部空行" class="headerlink" title="光标滚动屏幕时底/顶部空行"></a>光标滚动屏幕时底/顶部空行</h3><p>在配置文件<code>.vimrc</code>中添加如下配置</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> scrolloff=<span class="number">10</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="插件"><a href="#插件" class="headerlink" title="插件"></a>插件</h2><h3 id="如何快速查看日历？"><a href="#如何快速查看日历？" class="headerlink" title="如何快速查看日历？"></a>如何快速查看日历？</h3><p><a href="https://github.com/mattn/calendar-vim" target="_blank" rel="noopener">calendar-vim</a> 可以满足你的需求，而且还可以把它变成日记本</p>
 <ul>
 <li><code>:Calendar</code> 垂直方向打开日历 (\cal)</li>
 <li><code>:CalendarH</code> 水平方向打开日历 (\caL)</li>
@@ -169,11 +173,15 @@
 </ul>
 <p>如果把它作为日记本的话需要在家目录下创建 <code>~/diary</code> 文件夹</p>
 <p>进阶用法详见文档 <code>:help calendar</code></p>
+<hr>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="如何刷新vimrc配置"><a href="#如何刷新vimrc配置" class="headerlink" title="如何刷新vimrc配置"></a>如何刷新vimrc配置</h3><p>默认<code>.vimrc</code>的路径为<code>~/.vimrc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:source ~/.vimrc</span><br></pre></td></tr></table></figure>
+<hr>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/" data-id="cjypv8shx001ko5vghpr54ie5" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/07/27/vim一些小技巧/" data-id="cjyqt8d47001h4cvgjnwsyowl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/vim/">vim</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
