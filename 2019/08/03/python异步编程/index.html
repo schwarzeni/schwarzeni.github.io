@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>python异步编程 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="学习实验楼课程《Python 异步编程》的总结">
+<meta name="keywords" content="实验楼笔记,Python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python异步编程">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/08/03/python异步编程/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="学习实验楼课程《Python 异步编程》的总结">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-08-03T05:56:23.265Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="python异步编程">
+<meta name="twitter:description" content="学习实验楼课程《Python 异步编程》的总结">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>101</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>6</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>49</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-python异步编程" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/03/python异步编程/" class="article-date">
+  <time class="post-time" datetime="2019-08-03T05:13:42.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">03</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      python异步编程
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>学习实验楼课程<a href="https://www.shiyanlou.com/courses/1278" target="_blank" rel="noopener">《Python 异步编程》</a>的总结</p>
+<a id="more"></a>
+<h2 id="从线程到协程"><a href="#从线程到协程" class="headerlink" title="从线程到协程"></a>从线程到协程</h2><h3 id="yield-生成器"><a href="#yield-生成器" class="headerlink" title="yield 生成器"></a>yield 生成器</h3><p>生成器终止时必定抛出 StopIteration 异常，for 循环可以捕获此异常，异常的 value 属性值为生成器函数的 return 值。</p>
+<p>生成器还可以使用 next 方法迭代。生成器会在 yield 语句处暂停，这是至关重要的，未来协程中的 IO 阻塞就出现在这里。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Generator</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">task_generator</span><span class="params">(task_num: int)</span> -&gt; Generator[str, <span class="keyword">None</span>, <span class="keyword">None</span>]:</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(task_num):</span><br><span class="line">        <span class="keyword">yield</span> <span class="string">'task &#123;&#125;'</span>.format(i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> task_generator(<span class="number">10</span>):</span><br><span class="line">        print(i, end=<span class="string">' '</span>)</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">task 0 task 1 task 2 task 3 task 4 task 5 task 6 task 7 task 8 task 9</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="协程的四种状态"><a href="#协程的四种状态" class="headerlink" title="协程的四种状态"></a>协程的四种状态</h3><ul>
+<li><code>GEN_CREATED</code> 创建完成，等待执行</li>
+<li><code>GEN_RUNNING</code> 解释器正在执行（这个状态在下面的示例程序中无法看到）</li>
+<li><code>GEN_SUSPENDED</code> 在 yield 表达式处暂停-</li>
+<li><code>GEN_CLOSE</code> 执行结束，生成器停止</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> inspect</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Generator</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generator</span><span class="params">()</span> -&gt; Generator[int, str, <span class="keyword">None</span>]:</span></span><br><span class="line">    word_count = <span class="number">0</span></span><br><span class="line">    word_list = []</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            value = <span class="keyword">yield</span> word_count  <span class="comment"># 阻塞于此，等待接收send</span></span><br><span class="line">            print(<span class="string">'got str: &#123;&#125;'</span>.format(value))</span><br><span class="line">            word_list.append(value)</span><br><span class="line">            word_count += <span class="number">1</span></span><br><span class="line">        <span class="keyword">except</span> ValueError:</span><br><span class="line">            print(<span class="string">'OVER, all the words: &#123;&#125;'</span>.format(word_list))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    g = generator()</span><br><span class="line">    print(inspect.getgeneratorstate(g))  <span class="comment"># GEN_CREATED</span></span><br><span class="line"></span><br><span class="line">    print(<span class="string">'word count: &#123;&#125;'</span>.format(next(g)))  <span class="comment"># word count: 0</span></span><br><span class="line">    print(inspect.getgeneratorstate(g))  <span class="comment"># GEN_SUSPENDED</span></span><br><span class="line"></span><br><span class="line">    print(<span class="string">'word count: &#123;&#125;'</span>.format(g.send(<span class="string">'Hello'</span>)))  <span class="comment"># word count: 1</span></span><br><span class="line">    print(<span class="string">'word count: &#123;&#125;'</span>.format(g.send(<span class="string">'World'</span>)))  <span class="comment"># word count: 2</span></span><br><span class="line"></span><br><span class="line">    g.throw(ValueError)  <span class="comment"># OVER</span></span><br><span class="line">    g.close()</span><br><span class="line">    print(inspect.getgeneratorstate(g))  <span class="comment"># GEN_CLOSE</span></span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">GEN_CREATED</span><br><span class="line">word count: 0</span><br><span class="line">GEN_SUSPENDED</span><br><span class="line">got str: Hello</span><br><span class="line">word count: 1</span><br><span class="line">got str: World</span><br><span class="line">word count: 2</span><br><span class="line">OVER, all the words: [&apos;Hello&apos;, &apos;World&apos;]</span><br><span class="line">GEN_CLOSED</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="预激活生成器以及协程的返回值"><a href="#预激活生成器以及协程的返回值" class="headerlink" title="预激活生成器以及协程的返回值"></a>预激活生成器以及协程的返回值</h3><p>这里需要使用到修饰器</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> wraps</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">coroutine</span><span class="params">(func)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    预激活协程</span></span><br><span class="line"><span class="string">    :param func:</span></span><br><span class="line"><span class="string">    :return:</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @wraps(func)</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">(*args, **kw)</span>:</span></span><br><span class="line">        g = func(*args, **kw)</span><br><span class="line">        next(g)</span><br><span class="line">        <span class="keyword">return</span> g</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> wrapper</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@coroutine</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generator</span><span class="params">()</span>:</span></span><br><span class="line">    l = []</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        value = <span class="keyword">yield</span></span><br><span class="line">        <span class="keyword">if</span> value == <span class="string">'CLOSE'</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        l.append(value)</span><br><span class="line">    <span class="keyword">return</span> l</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    g = generator()</span><br><span class="line">    value = <span class="keyword">None</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> (<span class="string">'hello'</span>, <span class="string">'world'</span>, <span class="string">'CLOSE'</span>):</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            g.send(i)</span><br><span class="line">        <span class="keyword">except</span> StopIteration <span class="keyword">as</span> e: <span class="comment"># 捕获生成器停止的异常</span></span><br><span class="line">            value = e.value                <span class="comment"># 获取其返回值</span></span><br><span class="line">            print(<span class="string">'END'</span>)</span><br><span class="line">    print(value)</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">END</span><br><span class="line">[&apos;hello&apos;, &apos;world&apos;]</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="使用-yield-from"><a href="#使用-yield-from" class="headerlink" title="使用 yield from"></a>使用 yield from</h3><p>这个可以实现对内部生成器的迭代，例子如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">chain</span><span class="params">(*args)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    使用 yield from 进行迭代器的嵌套迭代</span></span><br><span class="line"><span class="string">    :param args:</span></span><br><span class="line"><span class="string">    :return:</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">for</span> iter_obj <span class="keyword">in</span> args:</span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> iter_obj</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> chain(&#123;<span class="string">'one'</span>, <span class="string">'two'</span>&#125;, list(<span class="string">'ace'</span>)):</span><br><span class="line">        print(i, end=<span class="string">' '</span>)</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">one two a c e</span><br></pre></td></tr></table></figure>
+<p>这种 <code>chain</code>迭代器有官方的实现</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> chain</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    c = chain(&#123;<span class="string">'one'</span>, <span class="string">'two'</span>&#125;, list(<span class="string">'ace'</span>))</span><br><span class="line">    print(c)  <span class="comment"># &lt;itertools.chain object at 0x1033a2b38&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> c:</span><br><span class="line">        print(i, end=<span class="string">' '</span>)  <span class="comment"># two one a c</span></span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;itertools.chain object at 0x102aa2588&gt;</span><br><span class="line">one two a c e</span><br></pre></td></tr></table></figure>
+<hr>
+<p>yield from 实战</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> faker <span class="keyword">import</span> Faker</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sub_coro</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">"""子生成器函数，真正做事的函数"""</span></span><br><span class="line">    l = []</span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        value = <span class="keyword">yield</span></span><br><span class="line">        <span class="keyword">if</span> value == <span class="string">'CLOSE'</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        l.append(value)</span><br><span class="line">    <span class="keyword">return</span> sorted(l)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dele_coro</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        l = <span class="keyword">yield</span> <span class="keyword">from</span> sub_coro()</span><br><span class="line">        print(<span class="string">'排序后的列表：'</span>, l)</span><br><span class="line">        print(<span class="string">'-------------------'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    fake = Faker().country_code</span><br><span class="line">    nest_country_list = [[fake() <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">3</span>)] <span class="keyword">for</span> j <span class="keyword">in</span> range(<span class="number">3</span>)]</span><br><span class="line">    <span class="keyword">for</span> country_list <span class="keyword">in</span> nest_country_list:</span><br><span class="line">        print(<span class="string">'国家代号列表：'</span>, country_list)</span><br><span class="line">        c = dele_coro()</span><br><span class="line">        next(c)</span><br><span class="line">        <span class="keyword">for</span> country <span class="keyword">in</span> country_list:</span><br><span class="line">            c.send(country)</span><br><span class="line">        c.send(<span class="string">'CLOSE'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>输出结果如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">国家代号列表： [<span class="string">'SL'</span>, <span class="string">'IE'</span>, <span class="string">'SD'</span>]</span><br><span class="line">排序后的列表： [<span class="string">'IE'</span>, <span class="string">'SD'</span>, <span class="string">'SL'</span>]</span><br><span class="line">-------------------</span><br><span class="line">国家代号列表： [<span class="string">'HU'</span>, <span class="string">'NE'</span>, <span class="string">'KM'</span>]</span><br><span class="line">排序后的列表： [<span class="string">'HU'</span>, <span class="string">'KM'</span>, <span class="string">'NE'</span>]</span><br><span class="line">-------------------</span><br><span class="line">国家代号列表： [<span class="string">'TO'</span>, <span class="string">'LI'</span>, <span class="string">'PL'</span>]</span><br><span class="line">排序后的列表： [<span class="string">'LI'</span>, <span class="string">'PL'</span>, <span class="string">'TO'</span>]</span><br><span class="line">-------------------</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="asyncio模块"><a href="#asyncio模块" class="headerlink" title="asyncio模块"></a>asyncio模块</h2><h3 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h3><p>使用 <code>asyncio</code> 中的 <code>asyncio.coroutine</code> 修饰器来注明其为异步函数，可加入事件循环(event loop)中</p>
+<hr>
+<h3 id="阻塞式"><a href="#阻塞式" class="headerlink" title="阻塞式"></a>阻塞式</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@asyncio.coroutine</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">worker</span><span class="params">(name: str, sleep_time: float)</span>:</span></span><br><span class="line">    print(<span class="string">'worker &#123;&#125; start work'</span>.format(name))</span><br><span class="line">    time.sleep(sleep_time)</span><br><span class="line">    print(<span class="string">'worker &#123;&#125; finish work, took &#123;&#125;s'</span>.format(name, sleep_time))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    workers = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">4</span>):</span><br><span class="line">        workers.append(loop.create_task(worker(<span class="string">'&#123;&#125;'</span>.format(i), i)))</span><br><span class="line">    gather = asyncio.gather(*workers)</span><br><span class="line"></span><br><span class="line">    start = time.time()</span><br><span class="line">    loop.run_until_complete(gather)</span><br><span class="line">    print(<span class="string">'all is finish, time usage: &#123;&#125;s'</span>.format(time.time() - start))</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">worker 1 start work</span><br><span class="line">worker 1 finish work, took 1s</span><br><span class="line">worker 2 start work</span><br><span class="line">worker 2 finish work, took 2s</span><br><span class="line">worker 3 start work</span><br><span class="line">worker 3 finish work, took 3s</span><br><span class="line">all is finish, time usage: 6.003150701522827s</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="异步式"><a href="#异步式" class="headerlink" title="异步式"></a>异步式</h3><p>这里将 <code>time.sleep</code> 换成了 <code>asyncio.sleep</code>，就将其变成异步的了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">import asyncio</span><br><span class="line">import time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">async def worker(name: str, sleep_time: float):</span><br><span class="line">    print(&apos;worker &#123;&#125; start work&apos;.format(name))</span><br><span class="line">    await asyncio.sleep(sleep_time)</span><br><span class="line">    print(&apos;worker &#123;&#125; finish work, took &#123;&#125;s&apos;.format(name, sleep_time))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == &apos;__main__&apos;:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    workers = []</span><br><span class="line">    for i in range(1, 4):</span><br><span class="line">        workers.append(loop.create_task(worker(&apos;&#123;&#125;&apos;.format(i), i)))</span><br><span class="line">    gather = asyncio.gather(*workers)</span><br><span class="line"></span><br><span class="line">    start = time.time()</span><br><span class="line">    loop.run_until_complete(gather)</span><br><span class="line">    print(&apos;all is finish, time usage: &#123;&#125;s&apos;.format(time.time() - start))</span><br></pre></td></tr></table></figure>
+<p>输入如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">worker 1 start work</span><br><span class="line">worker 2 start work</span><br><span class="line">worker 3 start work</span><br><span class="line">worker 1 finish work, took 1s</span><br><span class="line">worker 2 finish work, took 2s</span><br><span class="line">worker 3 finish work, took 3s</span><br><span class="line">all is finish, time usage: 3.004673957824707</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="为其添加回调函数"><a href="#为其添加回调函数" class="headerlink" title="为其添加回调函数"></a>为其添加回调函数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> functools</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">worker</span><span class="params">(name: str, sleep_time: float)</span> -&gt; float:</span></span><br><span class="line">    print(<span class="string">'worker &#123;&#125; start work'</span>.format(name))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(sleep_time)</span><br><span class="line">    <span class="keyword">return</span> sleep_time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">cb</span><span class="params">(name: str, task: asyncio.Task)</span>:</span></span><br><span class="line">    <span class="string">"""worker的回调函数"""</span></span><br><span class="line">    print(<span class="string">'worker &#123;&#125; state: &#123;&#125; , took &#123;&#125;s'</span>.format(name, task._state, task._result))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    tasks = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">4</span>):</span><br><span class="line">        task = loop.create_task(worker(<span class="string">'&#123;&#125;'</span>.format(i), i))</span><br><span class="line">        task.add_done_callback(functools.partial(cb, <span class="string">'&#123;&#125;'</span>.format(i)))</span><br><span class="line">        tasks.append(task)</span><br><span class="line">    gather = asyncio.gather(*tasks)</span><br><span class="line"></span><br><span class="line">    start = time.time()</span><br><span class="line">    loop.run_until_complete(gather)</span><br><span class="line">    print(<span class="string">'all is finish, time usage: &#123;&#125;s'</span>.format(time.time() - start))</span><br></pre></td></tr></table></figure>
+<p>输出结果如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">worker 1 start work</span><br><span class="line">worker 2 start work</span><br><span class="line">worker 3 start work</span><br><span class="line">worker 1 state: FINISHED , took 1s</span><br><span class="line">worker 2 state: FINISHED , took 2s</span><br><span class="line">worker 3 state: FINISHED , took 3s</span><br><span class="line">all is finish, time usage: 3.003952980041504s</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="异步编程"><a href="#异步编程" class="headerlink" title="异步编程"></a>异步编程</h2><h3 id="取消异步任务"><a href="#取消异步任务" class="headerlink" title="取消异步任务"></a>取消异步任务</h3><p>只有处于 <code>PENDING</code> 状态下的任务才可以取消，<code>FINISHED</code>状态不可以取消</p>
+<hr>
+<h3 id="一个简单的实例"><a href="#一个简单的实例" class="headerlink" title="一个简单的实例"></a>一个简单的实例</h3><p>使用 <code>KeyboardInterrupt</code> 来接收终止事件</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">work</span><span class="params">(id, t)</span>:</span></span><br><span class="line">    print(<span class="string">'Working...'</span>)</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(t)</span><br><span class="line">    print(<span class="string">'Work &#123;&#125; done'</span>.format(id))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    coroutines = [work(i, i) <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">4</span>)]</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        loop.run_until_complete(asyncio.gather(*coroutines))</span><br><span class="line">    <span class="keyword">except</span> KeyboardInterrupt:  <span class="comment"># 接收终端事件，结束事件循环中全部的pending任务</span></span><br><span class="line">        loop.stop()</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        loop.close()</span><br></pre></td></tr></table></figure>
+<p>在任务执行过程中 <code>ctrl+c</code>，直接取消还未完成的任务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Working...</span><br><span class="line">Working...</span><br><span class="line">Working...</span><br><span class="line">Work 1 done</span><br><span class="line">Work 2 done</span><br><span class="line">^C</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="显示任务的详细信息"><a href="#显示任务的详细信息" class="headerlink" title="显示任务的详细信息"></a>显示任务的详细信息</h3><p>通过 <code>asyncio.Task.all_tasks</code> 获取全部任务并获取它们的状态</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">work</span><span class="params">(id, t)</span>:</span></span><br><span class="line">    print(<span class="string">'Working...'</span>)</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(t)</span><br><span class="line">    print(<span class="string">'Work &#123;&#125; done'</span>.format(id))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    coroutines = [work(i, i) <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">4</span>)]</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        loop.run_until_complete(asyncio.gather(*coroutines))</span><br><span class="line">    <span class="keyword">except</span> KeyboardInterrupt:</span><br><span class="line">        tasks = asyncio.Task.all_tasks()</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> tasks:</span><br><span class="line">            print(<span class="string">'取消任务：&#123;&#125;'</span>.format(i._state))</span><br><span class="line">            print(<span class="string">'取消状态：&#123;&#125;'</span>.format(i.cancel()))</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        loop.close()</span><br></pre></td></tr></table></figure>
+<p>效果如下，在执行过程中输入 <code>ctrl+c</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Working...</span><br><span class="line">Working...</span><br><span class="line">Working...</span><br><span class="line">Work 1 done</span><br><span class="line">^C取消任务：PENDING</span><br><span class="line">取消状态：True</span><br><span class="line">取消任务：FINISHED</span><br><span class="line">取消状态：False</span><br><span class="line">取消任务：PENDING</span><br><span class="line">取消状态：True</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="排定任务"><a href="#排定任务" class="headerlink" title="排定任务"></a>排定任务</h3><p><code>asyncio</code>的<code>eventloop</code>提供了一系列函数来处理异步函数执行的问题</p>
+<ul>
+<li><code>run_forever</code> loop一直执行直到调用 <code>loop.stop()</code>函数</li>
+<li><code>call_soon</code> 将普通的函数加入到事件循环中，立刻执行</li>
+<li><code>call_later</code> 将普通的函数加入到事件循环中，延时执行</li>
+<li><code>call_at</code> 将普通的函数加入到事件循环中， 在某时刻执行，配合 <code>loop.time()</code> 使用</li>
+</ul>
+<p>下面是一个整合的例子</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> functools</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">normal_func</span><span class="params">(name: str)</span>:</span></span><br><span class="line">    print(<span class="string">'[normal_func] triggered by &#123;&#125;'</span>.format(name))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">loop_stop</span><span class="params">(loop: asyncio.AbstractEventLoop, future: asyncio.Future)</span>:</span></span><br><span class="line">    loop.stop()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">work</span><span class="params">(t: int, name: str)</span>:</span></span><br><span class="line">    print(<span class="string">'[&#123;&#125;] start'</span>.format(name))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(t)</span><br><span class="line">    print(<span class="string">'[&#123;&#125;] after &#123;&#125;s stop'</span>.format(name, t))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="comment"># asyncio.ensure_future</span></span><br><span class="line">    <span class="comment"># loop.create_Task</span></span><br><span class="line">    <span class="comment"># loop.run_until_complete</span></span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    start = loop.time()</span><br><span class="line">    tasks = asyncio.gather(work(<span class="number">1</span>, <span class="string">'1'</span>), work(<span class="number">4</span>, <span class="string">'2'</span>))</span><br><span class="line"></span><br><span class="line">    loop.call_soon(normal_func, <span class="string">'call_soon'</span>)</span><br><span class="line">    loop.call_later(<span class="number">2</span>, normal_func, <span class="string">'call_later'</span>)</span><br><span class="line">    loop.call_at(start + <span class="number">3</span>, normal_func, <span class="string">'call_at'</span>)</span><br><span class="line"></span><br><span class="line">    tasks.add_done_callback(functools.partial(loop_stop, loop))</span><br><span class="line">    loop.run_forever()  <span class="comment"># 无限运行事件循环，直至 loop.stop 停止</span></span><br><span class="line">    loop.close()  <span class="comment"># 关闭事件循环，只有 loop 处于停止状态才会执行</span></span><br></pre></td></tr></table></figure>
+<p>结果如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[2] start</span><br><span class="line">[1] start</span><br><span class="line">[normal_func] triggered by call_soon</span><br><span class="line">[1] after 1s stop</span><br><span class="line">[normal_func] triggered by call_later</span><br><span class="line">[normal_func] triggered by call_at</span><br><span class="line">[2] after 4s stop</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/08/03/python异步编程/" data-id="cjyv4kbut001upfvgbkobyc5k" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/实验楼笔记/">实验楼笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/03/Jupyter-Notebook-快速上手/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Jupyter Notebook 快速上手
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/07/30/vim-orgmode-安装-TODO/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">vim-orgmode 安装+TODO</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>101</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>6</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>49</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
