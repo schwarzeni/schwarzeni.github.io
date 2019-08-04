@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Python：环境、基础、数据结构 | Schwarzeni&#39;s blog</title>
+  <title>Python快速回忆笔记 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="此为实验楼楼+机器学习前置课程Python3 简明教程前6章内容，包含一些环境配置、基础的语法以及其内置的一些数据结构，仅为一些小的知识点，权当复习和笔记">
+  <meta name="description" content="此为实验楼楼+机器学习前置课程Python3 简明教程前12章内容，包含一些环境配置、基础的语法、内置的一些数据结构、字符串、函数以及类，仅为一些小的知识点，权当复习和笔记">
 <meta name="keywords" content="实验楼笔记,Python">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python：环境、基础、数据结构">
+<meta property="og:title" content="Python快速回忆笔记">
 <meta property="og:url" content="http://blog.schwarzeni.com/2019/08/03/Python-环境-基础-数据结构/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
-<meta property="og:description" content="此为实验楼楼+机器学习前置课程Python3 简明教程前6章内容，包含一些环境配置、基础的语法以及其内置的一些数据结构，仅为一些小的知识点，权当复习和笔记">
+<meta property="og:description" content="此为实验楼楼+机器学习前置课程Python3 简明教程前12章内容，包含一些环境配置、基础的语法、内置的一些数据结构、字符串、函数以及类，仅为一些小的知识点，权当复习和笔记">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-08-03T05:57:06.678Z">
+<meta property="og:updated_time" content="2019-08-04T06:26:26.177Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python：环境、基础、数据结构">
-<meta name="twitter:description" content="此为实验楼楼+机器学习前置课程Python3 简明教程前6章内容，包含一些环境配置、基础的语法以及其内置的一些数据结构，仅为一些小的知识点，权当复习和笔记">
+<meta name="twitter:title" content="Python快速回忆笔记">
+<meta name="twitter:description" content="此为实验楼楼+机器学习前置课程Python3 简明教程前12章内容，包含一些环境配置、基础的语法、内置的一些数据结构、字符串、函数以及类，仅为一些小的知识点，权当复习和笔记">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
   
@@ -109,7 +109,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Python：环境、基础、数据结构
+      Python快速回忆笔记
     </h1>
   
 
@@ -128,7 +128,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>此为实验楼楼+机器学习前置课程<a href="https://www.shiyanlou.com/courses/596" target="_blank" rel="noopener">Python3 简明教程</a>前6章内容，包含一些环境配置、基础的语法以及其内置的一些数据结构，仅为一些小的知识点，权当复习和笔记</p>
+        <p>此为实验楼楼+机器学习前置课程<a href="https://www.shiyanlou.com/courses/596" target="_blank" rel="noopener">Python3 简明教程</a>前12章内容，包含一些环境配置、基础的语法、内置的一些数据结构、字符串、函数以及类，仅为一些小的知识点，权当复习和笔记</p>
 <a id="more"></a>
 <hr>
 <h2 id="tmux（终端的极致体验）"><a href="#tmux（终端的极致体验）" class="headerlink" title="tmux（终端的极致体验）"></a>tmux（终端的极致体验）</h2><ul>
@@ -210,11 +210,32 @@
 <li>同时遍历两个列表</li>
 </ul>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> item1, item2 <span class="keyword">in</span> zip(list1, list2):</span><br><span class="line">    <span class="comment"># ....</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><ul>
+<li>格式化输出字符串</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">print(<span class="string">"%s, %d"</span> % (<span class="string">'str'</span>, <span class="number">12</span>))</span><br><span class="line"><span class="comment"># str, 2</span></span><br></pre></td></tr></table></figure>
+<p>-判断字符串是否为回文</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> s == s[::<span class="number">-1</span>]:</span><br><span class="line">    <span class="comment"># ....</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><ul>
+<li>函数强制关键字参数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">fn</span><span class="params">(*, arg=<span class="string">'arg'</span>)</span>:</span></span><br><span class="line">    print(arg)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>高阶函数</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">lst = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br><span class="line"></span><br><span class="line">print(list(map(<span class="keyword">lambda</span> x : x*x, lst)))</span><br><span class="line"><span class="comment"># 1, 4, 9, 16, 25</span></span><br><span class="line"></span><br><span class="line">print(list(filter(<span class="keyword">lambda</span> x : x &gt; <span class="number">2</span>, lst)))</span><br><span class="line"><span class="comment"># 3, 4, 5</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="类"><a href="#类" class="headerlink" title="类"></a>类</h2><ul>
+<li>类属性修饰器</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.__year = <span class="number">1978</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">year</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.__year</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">    @year.setter</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">year</span><span class="params">(self, year)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> year &lt; <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">raise</span> Exception(<span class="string">"Error year type"</span>)</span><br><span class="line">        self.__year = year</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">p = Person()</span><br><span class="line">p.year = <span class="number">1997</span></span><br><span class="line">print(p.year)</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/08/03/Python-环境-基础-数据结构/" data-id="cjywfubdu000y1bvgcnbulfw0" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/08/03/Python-环境-基础-数据结构/" data-id="cjywl1tiq000qbhvgybgpx8t9" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/实验楼笔记/">实验楼笔记</a></li></ul>
