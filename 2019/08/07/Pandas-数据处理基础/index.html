@@ -5,19 +5,24 @@
   
   <title>Pandas 数据处理基础 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="此为实验楼楼+机器学习前置课程Pandas 数据处理基础课程学习笔记 未完">
+  <meta name="description" content="此为实验楼楼+机器学习前置课程Pandas 数据处理基础课程学习笔记">
 <meta name="keywords" content="实验楼笔记,Python,机器学习">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Pandas 数据处理基础">
 <meta property="og:url" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
-<meta property="og:description" content="此为实验楼楼+机器学习前置课程Pandas 数据处理基础课程学习笔记 未完">
+<meta property="og:description" content="此为实验楼楼+机器学习前置课程Pandas 数据处理基础课程学习笔记">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/image1.png">
-<meta property="og:updated_time" content="2019-08-07T15:54:00.314Z">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/2-image-1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/2-image-2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/2-image-3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/2-image-4.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/2-image-5.png">
+<meta property="og:updated_time" content="2019-08-08T05:18:24.266Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Pandas 数据处理基础">
-<meta name="twitter:description" content="此为实验楼楼+机器学习前置课程Pandas 数据处理基础课程学习笔记 未完">
+<meta name="twitter:description" content="此为实验楼楼+机器学习前置课程Pandas 数据处理基础课程学习笔记">
 <meta name="twitter:image" content="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/image1.png">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
@@ -131,7 +136,6 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>此为实验楼楼+机器学习前置课程<a href="https://www.shiyanlou.com/courses/906" target="_blank" rel="noopener">Pandas 数据处理基础课程</a>学习笔记</p>
-<p><strong>未完</strong></p>
 <a id="more"></a>
 <p>基于<code>NumPy</code> 开发</p>
 <h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><ul>
@@ -167,11 +171,76 @@
 <hr>
 <p>用NumPy随机生成</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pd.DataFrame(np.random.randint(<span class="number">5</span>, size=(<span class="number">2</span>, <span class="number">4</span>)))</span><br><span class="line"></span><br><span class="line"><span class="comment">#   0	1	2	3</span></span><br><span class="line"><span class="comment"># 0	0	1	1	3</span></span><br><span class="line"><span class="comment"># 1	3	3	2	1</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="数据读取"><a href="#数据读取" class="headerlink" title="数据读取"></a>数据读取</h2><p>读取cvs数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line">df = pd.read_csv(<span class="string">"https://labfile.oss.aliyuncs.com/courses/906/los_census.csv"</span>)</span><br><span class="line">df</span><br></pre></td></tr></table></figure>
+<p><img src="2-image-1.png" alt=""></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 读取前8个数据</span></span><br><span class="line">df.head(<span class="number">10</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取后7个数据</span></span><br><span class="line">df.tail(<span class="number">7</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 转换成NumPy数组</span></span><br><span class="line">df.values</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看索引</span></span><br><span class="line">df.index</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看列名</span></span><br><span class="line">df.columns</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看形状</span></span><br><span class="line">df.shape</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="数据选择"><a href="#数据选择" class="headerlink" title="数据选择"></a>数据选择</h2><h3 id="基于索引数字选择"><a href="#基于索引数字选择" class="headerlink" title="基于索引数字选择"></a>基于索引数字选择</h3><p>选取前三行数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.iloc[:<span class="number">3</span>]</span><br></pre></td></tr></table></figure>
+<p>选定一行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.iloc[<span class="number">5</span>]</span><br></pre></td></tr></table></figure>
+<p><code>df.iloc[]</code> 的 <code>[[行]，[列]]</code> 里面可以同时接受行和列的位置</p>
+<p>选取1、3、5行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.iloc[[<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>]]</span><br></pre></td></tr></table></figure>
+<p>选取2-4列</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.iloc[:, <span class="number">1</span>:<span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="基于标签名选择"><a href="#基于标签名选择" class="headerlink" title="基于标签名选择"></a>基于标签名选择</h3><p>使用 <code>df.loc</code></p>
+<p>选择前三行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 首尾都包括在内</span></span><br><span class="line">df.loc[<span class="number">0</span>:<span class="number">2</span>]</span><br></pre></td></tr></table></figure>
+<p>选择1、3、5行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.loc[[<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>]]</span><br></pre></td></tr></table></figure>
+<p>选择2-4列</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这里第二行为列的名称</span></span><br><span class="line">df.loc[:, <span class="string">'Total Population'</span>:<span class="string">'Total Males'</span>]</span><br></pre></td></tr></table></figure>
+<p>选择1、3行和Median Age 后面的列</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.loc[[<span class="number">0</span>, <span class="number">2</span>], <span class="string">'Median Age'</span>:]</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="数据删减"><a href="#数据删减" class="headerlink" title="数据删减"></a>数据删减</h2><p>以 <code>.drop</code> 开头的方法都与数据删减有关。</p>
+<p>设定 <code>labels</code> 指定标签，通过 <code>axis</code> 指定按列或按行删除</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 删除指定标签下所有的数据</span></span><br><span class="line">df.drop(labels=[<span class="string">'Median Age'</span>, <span class="string">'Total Males'</span>], axis=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<p>数据去重</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.drop_duplicates()</span><br></pre></td></tr></table></figure>
+<p>删除数据中空缺的数据列和数据行</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.dropna()</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="数据填充"><a href="#数据填充" class="headerlink" title="数据填充"></a>数据填充</h2><p>我们一般不会乱填数据，而更多的是对缺失值进行填充。存在但明显不正确的数据也被归为缺失值一类</p>
+<h3 id="检查缺失值"><a href="#检查缺失值" class="headerlink" title="检查缺失值"></a>检查缺失值</h3><p>将不同类型数据的缺失均采用 <code>NaN</code> 标记，时间戳缺失也用这个来表示。使用函数 <code>isna()</code> 和 <code>notna()</code> 来判断</p>
+<p>首先先认为生成一组含缺失值的数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 9行5列，列名分别为A、B、C、D、E</span></span><br><span class="line">df = pd.DataFrame(np.random.rand(<span class="number">9</span>,<span class="number">5</span>), columns=list(<span class="string">'ABCDE'</span>))</span><br><span class="line"><span class="comment"># 将新列Time作为第一列</span></span><br><span class="line">df.insert(value=pd.Timestamp(<span class="string">'2017-10-1'</span>), loc=<span class="number">0</span>, column=<span class="string">'Time'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 1, 3, 5 列的 1，3，5 行置为缺失值</span></span><br><span class="line">df.iloc[[x <span class="keyword">for</span> x <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">8</span>, <span class="number">2</span>)], [y <span class="keyword">for</span> y <span class="keyword">in</span> range(<span class="number">0</span>, <span class="number">5</span>, <span class="number">2</span>)]] = np.nan</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 2, 4, 6 列的 2，4，6 行置为缺失值</span></span><br><span class="line">df.iloc[[x <span class="keyword">for</span> x <span class="keyword">in</span> range(<span class="number">2</span>, <span class="number">9</span>, <span class="number">2</span>)], [y <span class="keyword">for</span> y <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>)]] = np.nan</span><br></pre></td></tr></table></figure>
+<p><img src="2-image-2.png" alt=""></p>
+<p>执行 <code>df.isna()</code> 即可确认整个数据表的缺失值情况</p>
+<p><img src="2-image-3.png" alt=""></p>
+<p>将缺失值都填充为一个值</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.fillna(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>使用缺失值前面的值进行填充</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.fillna(method=<span class="string">'pad'</span>)</span><br></pre></td></tr></table></figure>
+<p>使用缺失值后面的值进行填充</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.fillna(method=<span class="string">'bfill'</span>)</span><br></pre></td></tr></table></figure>
+<p>出现连续缺失值的情况，使用 <code>limit</code> 参数设置最多连续填充的数量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">df.fillna(method=<span class="string">'pad'</span>, limit=<span class="number">1</span>)  <span class="comment"># 最多填充一项</span></span><br></pre></td></tr></table></figure>
+<p>使用平均值填充</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对 C 列和 E 列用平均值填充。</span></span><br><span class="line">df.fillna(df.mean()[<span class="string">'C'</span>:<span class="string">'E'</span>])</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="插值填充"><a href="#插值填充" class="headerlink" title="插值填充"></a>插值填充</h3><p>借助于一个函数（线性或非线性），再根据已知数据去求解未知数据的值。<code>interpolate()</code></p>
+<p>生成测试数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">df = pd.DataFrame(&#123;<span class="string">'A'</span>: [<span class="number">1.1</span>, <span class="number">2.2</span>, np.nan, <span class="number">4.5</span>, <span class="number">5.7</span>, <span class="number">6.9</span>],</span><br><span class="line">                   <span class="string">'B'</span>: [<span class="number">.21</span>, np.nan, np.nan, <span class="number">3.1</span>, <span class="number">11.7</span>, <span class="number">13.2</span>]&#125;)</span><br></pre></td></tr></table></figure>
+<p><img src="2-image-4.png" alt=""></p>
+<p>使用默认的线性插值</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">df_interpolate = df.interpolate()</span><br><span class="line">df_interpolate</span><br></pre></td></tr></table></figure>
+<p>插值后，其符合变化趋势</p>
+<p><img src="2-image-5.png" alt=""></p>
+<ol>
+<li>如果你的数据增长速率越来越快，可以选择 <code>method=&#39;quadratic&#39;</code>二次插值。</li>
+<li>如果数据集呈现出累计分布的样子，推荐选择 <code>method=&#39;pchip&#39;</code>。</li>
+<li>如果需要填补缺省值，以平滑绘图为目标，推荐选择 <code>method=&#39;akima&#39;</code>。</li>
+</ol>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/" data-id="cjz1fp1c7000xjwvgwg4oaq7y" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/08/07/Pandas-数据处理基础/" data-id="cjz28fd6h00129cvgtc5ph7m1" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/实验楼笔记/">实验楼笔记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/机器学习/">机器学习</a></li></ul>
