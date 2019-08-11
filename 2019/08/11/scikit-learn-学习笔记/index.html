@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>scikit-learn 学习笔记 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="scikit-learn 机器学习基础课程 笔记">
+<meta property="og:type" content="article">
+<meta property="og:title" content="scikit-learn 学习笔记">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/08/11/scikit-learn-学习笔记/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="scikit-learn 机器学习基础课程 笔记">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2019-08-11T05:00:36.808Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="scikit-learn 学习笔记">
+<meta name="twitter:description" content="scikit-learn 机器学习基础课程 笔记">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>109</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>50</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-scikit-learn-学习笔记" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/11/scikit-learn-学习笔记/" class="article-date">
+  <time class="post-time" datetime="2019-08-11T00:24:36.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">11</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      scikit-learn 学习笔记
+    </h1>
+  
+
+        <div>
+          
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://www.shiyanlou.com/courses/866" target="_blank" rel="noopener">scikit-learn 机器学习基础课程</a> 笔记</p>
+<a id="more"></a>
+<h2 id="入门介绍"><a href="#入门介绍" class="headerlink" title="入门介绍"></a>入门介绍</h2><p><strong>监督学习</strong> 的目标是从已知训练数据中学习一个预测模型，使得这个模型对于其他输入数据产生一个预测输出。其中，监督学习的「监督」是相对与「非监督」的一种表达，二者的区别在于， <strong>监督学习的训练数据经过了人工进行标注，而非监督学习则没有这个过程</strong> 。</p>
+<p>监督学习分类：</p>
+<ul>
+<li>分类：输出为有限个离散变量，布尔值或者定类变量。（人的性别）</li>
+<li>归回：输出为连续变量，一般为实数，也就是一个确切值。（人的年龄）</li>
+</ul>
+<p>提供给 <strong>非监督学习</strong> 的数据并没有人工标注，类聚。</p>
+<p><strong>scikit-learn</strong> 封装了大量复杂的算法，例如：线性回归、支持向量机、k 近邻、决策树、朴素贝叶斯、逻辑回归等。scikit-learn 还提供了围绕机器学习核心算法的一套工具，包括数据预处理，模型评估，超参数优化等。</p>
+<p>代码风格</p>
+<ol>
+<li>调用一个机器学习方法 <strong>构建</strong> 相应的模型 <code>model</code>，并设置模型参数。</li>
+<li>使用该机器学习模型提供的 <code>model.fit()</code> 方法 <strong>训练</strong> 模型。</li>
+<li>使用该机器学习模型提供的 <code>model.predict()</code> 方法用于 <strong>预测</strong>。</li>
+</ol>
+<hr>
+<h2 id="线性回归模型"><a href="#线性回归模型" class="headerlink" title="线性回归模型"></a>线性回归模型</h2><p><strong>scikit-learn</strong> 由 <code>sklearn.linear_model</code> 模块导入。线性模型：</p>
+<ul>
+<li>回归<ul>
+<li>最小二乘回归</li>
+<li>感知机</li>
+<li>逻辑回归</li>
+</ul>
+</li>
+<li>分类<ul>
+<li>岭回归，</li>
+<li>贝叶斯回归等。</li>
+</ul>
+</li>
+</ul>
+<p>通过如下的拟合函数完成 <strong>样本分类</strong> 或 <strong>回归预测</strong></p>
+<p>$$\mathrm{y}(\mathrm{w}, \mathrm{x}) = w_{0} + w_{1} \cdot x_{1} + \cdots + w_{p} \cdot x_{p}$$</p>
+<hr>
+<h3 id="最小二乘法"><a href="#最小二乘法" class="headerlink" title="最小二乘法"></a>最小二乘法</h3><p><code>sklearn.linear_model.LinearRegression()</code></p>
+<h4 id="基础实战"><a href="#基础实战" class="headerlink" title="基础实战"></a>基础实战</h4><p>第一步：生成模型</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> warning</span><br><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LinearRegression</span><br><span class="line"></span><br><span class="line">model = LinearRegression()</span><br><span class="line">model</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LinearRegression(copy_X=<span class="keyword">True</span>, fit_intercept=<span class="keyword">True</span>, n_jobs=<span class="keyword">None</span>, normalize=<span class="keyword">False</span>)</span><br></pre></td></tr></table></figure>
+<p>第二步：训练模型</p>
+<p>使用 <code>fit</code> 方法去拟合3个点，三个点的 <strong>特征向量</strong> 分别为 $[0, 0]$、$[1, 1]$、$[2, 2]$，对应的目标值为 $[1, 2, 3]$</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model.fit([[<span class="number">0</span>, <span class="number">0</span>], [<span class="number">1</span>, <span class="number">1</span>], [<span class="number">2</span>, <span class="number">2</span>]], [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])  <span class="comment"># 模型训练(第 2 步)</span></span><br></pre></td></tr></table></figure>
+<p>可以通过如下方法查看拟合直线 <code>ww项</code> 和 <code>常数项值</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">model.coef_</span><br><span class="line"><span class="comment"># array([0.5, 0.5])</span></span><br><span class="line">model.intercept_</span><br><span class="line"><span class="comment"># 1.0000000000000002</span></span><br></pre></td></tr></table></figure>
+<p>所以可以看出，拟合函数为</p>
+<p>$$\mathrm{y}(\mathrm{x}) = 0.5 \times x_{1} + 0.5 \times x_{2} + 1$$</p>
+<p>第三部：模型预测</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">model.predict([[<span class="number">3</span>,<span class="number">3</span>]])</span><br><span class="line"><span class="comment"># array([4.])</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="进阶实战"><a href="#进阶实战" class="headerlink" title="进阶实战"></a>进阶实战</h4><p>使用内置的 <code>diabetes</code> 糖尿病数据集来训练一个复制一点的最小二乘回归模型。数据分为 70% 训练集和 30% 测试集。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> datasets</span><br><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span> train_test_split</span><br><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LinearRegression</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载数据</span></span><br><span class="line">diabetes = datasets.load_diabetes()</span><br><span class="line">diabetes_feature = diabetes.data[:, np.newaxis, <span class="number">2</span>]</span><br><span class="line">diabetes_target = diabetes.target</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拆分数据：训练集+测试集</span></span><br><span class="line">train_feature, test_feature, train_target, test_target \</span><br><span class="line">    = train_test_split(</span><br><span class="line">            diabetes_feature,</span><br><span class="line">            diabetes_target,</span><br><span class="line">            test_size=<span class="number">0.3</span>,</span><br><span class="line">            random_state=<span class="number">56</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进行运算</span></span><br><span class="line">model = LinearRegression()</span><br><span class="line">model.fit(train_feature, train_target)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印</span></span><br><span class="line">plt.scatter(train_feature, train_target, color=<span class="string">'black'</span>)</span><br><span class="line">plt.scatter(test_feature, test_target, color=<span class="string">'red'</span>)</span><br><span class="line">plt.plot(test_feature, model.predict(test_feature), color=<span class="string">'blue'</span>, linewidth=<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">plt.legend((<span class="string">'Fit line'</span>, <span class="string">'Train Set'</span>, <span class="string">'Test Set'</span>), loc=<span class="string">'lower right'</span>)</span><br><span class="line">plt.title(<span class="string">'LinearRegression Example'</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>在这里，我对于加载数据中的 <code>diabetes.data[:, np.newaxis, 2]</code> 有些疑惑，不清楚它的作用，于是稍微研究了一下</p>
+<p>首先，<code>diabetes.data</code> 的值是一个 <code>ndarray</code>，它的shape为 <code>(442, 10)</code>，大概长这样</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">array([[ <span class="number">0.03807591</span>,  <span class="number">0.05068012</span>,  <span class="number">0.06169621</span>, ..., <span class="number">-0.00259226</span>, <span class="number">0.01990842</span>, <span class="number">-0.01764613</span>],</span><br><span class="line">       [<span class="number">-0.00188202</span>, <span class="number">-0.04464164</span>, <span class="number">-0.05147406</span>, ..., <span class="number">-0.03949338</span>, <span class="number">-0.06832974</span>, <span class="number">-0.09220405</span>],</span><br><span class="line">       [ <span class="number">0.08529891</span>,  <span class="number">0.05068012</span>,  <span class="number">0.04445121</span>, ..., <span class="number">-0.00259226</span>, <span class="number">0.00286377</span>, <span class="number">-0.02593034</span>],</span><br><span class="line">       ...,</span><br><span class="line">       [ <span class="number">0.04170844</span>,  <span class="number">0.05068012</span>, <span class="number">-0.01590626</span>, ..., <span class="number">-0.01107952</span>, <span class="number">-0.04687948</span>,  <span class="number">0.01549073</span>],</span><br><span class="line">       [<span class="number">-0.04547248</span>, <span class="number">-0.04464164</span>,  <span class="number">0.03906215</span>, ...,  <span class="number">0.02655962</span>, <span class="number">0.04452837</span>, <span class="number">-0.02593034</span>],</span><br><span class="line">       [<span class="number">-0.04547248</span>, <span class="number">-0.04464164</span>, <span class="number">-0.0730303</span> , ..., <span class="number">-0.03949338</span>, <span class="number">-0.00421986</span>,  <span class="number">0.00306441</span>]]</span><br></pre></td></tr></table></figure>
+<p>每一行代表一组数据，而每一列代表用一类型的数据。每一组数据中10中<a href="https://www4.stat.ncsu.edu/~boos/var.select/diabetes.html" target="_blank" rel="noopener">类型代表的意义</a>分别为：</p>
+<blockquote>
+<p>age, sex, body mass index, average blood pressure, and six blood serum measurements</p>
+</blockquote>
+<p>其次，对它的操作 <code>data[:, np.newaxis, 2]</code> 又有什么意义？根据实验楼教程中的代码注释，其目的是选取其中一项特征值，也就是选取第三列作为训练的数据。先看一下这个语句的执行结果如何：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">array([[ <span class="number">0.06169621</span>],</span><br><span class="line">       [<span class="number">-0.05147406</span>],</span><br><span class="line">       [ <span class="number">0.04445121</span>],</span><br><span class="line">       ...,</span><br><span class="line">       [<span class="number">-0.01590626</span>],</span><br><span class="line">       [ <span class="number">0.03906215</span>],</span><br><span class="line">       [<span class="number">-0.0730303</span> ]])</span><br><span class="line"><span class="comment"># shape: (442, 1)</span></span><br></pre></td></tr></table></figure>
+<p>如果把最后的参数 <code>2</code> 去掉呢？</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">array([[[ <span class="number">0.03807591</span>,  <span class="number">0.05068012</span>,  <span class="number">0.06169621</span>, ..., <span class="number">-0.00259226</span>, <span class="number">0.01990842</span>, <span class="number">-0.01764613</span>]],</span><br><span class="line">       [[<span class="number">-0.00188202</span>, <span class="number">-0.04464164</span>, <span class="number">-0.05147406</span>, ..., <span class="number">-0.03949338</span>, <span class="number">-0.06832974</span>, <span class="number">-0.09220405</span>]],</span><br><span class="line">       [[ <span class="number">0.08529891</span>,  <span class="number">0.05068012</span>,  <span class="number">0.04445121</span>, ..., <span class="number">-0.00259226</span>, <span class="number">0.00286377</span>, <span class="number">-0.02593034</span>]],</span><br><span class="line">       ...,</span><br><span class="line">       [[ <span class="number">0.04170844</span>,  <span class="number">0.05068012</span>, <span class="number">-0.01590626</span>, ..., <span class="number">-0.01107952</span>, <span class="number">-0.04687948</span>,  <span class="number">0.01549073</span>]],</span><br><span class="line">       [[<span class="number">-0.04547248</span>, <span class="number">-0.04464164</span>,  <span class="number">0.03906215</span>, ...,  <span class="number">0.02655962</span>, <span class="number">0.04452837</span>, <span class="number">-0.02593034</span>]],</span><br><span class="line">       [[<span class="number">-0.04547248</span>, <span class="number">-0.04464164</span>, <span class="number">-0.0730303</span> , ..., <span class="number">-0.03949338</span>, <span class="number">-0.00421986</span>,  <span class="number">0.00306441</span>]]])</span><br><span class="line"><span class="comment"># shape: (442, 1, 10)</span></span><br></pre></td></tr></table></figure>
+<p>发现其升了一维，那么还是要搞清楚 <code>np.newaxis</code> 是个什么东西。根据官方文档：</p>
+<blockquote>
+<p>A convenient alias for None, useful for indexing arrays.</p>
+</blockquote>
+<p>下面是一个简单的例子，用其来模拟下矩阵乘法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tmp_x = np.arange(<span class="number">3</span>)</span><br><span class="line">tmp_y = np.arange(<span class="number">3</span>, <span class="number">6</span>)</span><br><span class="line"></span><br><span class="line">print(tmp_x[:, np.newaxis])</span><br><span class="line">print(tmp_x[:, np.newaxis] * tmp_y)</span><br></pre></td></tr></table></figure>
+<p>结果如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment"># print(tmp_x[:, np.newaxis])</span></span><br><span class="line">array([[<span class="number">0</span>],</span><br><span class="line">       [<span class="number">1</span>],</span><br><span class="line">       [<span class="number">2</span>]])</span><br><span class="line"></span><br><span class="line"><span class="comment"># print(tmp_x[:, np.newaxis] * tmp_y)</span></span><br><span class="line">array([[ <span class="number">0</span>,  <span class="number">0</span>,  <span class="number">0</span>],</span><br><span class="line">       [ <span class="number">3</span>,  <span class="number">4</span>,  <span class="number">5</span>],</span><br><span class="line">       [ <span class="number">6</span>,  <span class="number">8</span>, <span class="number">10</span>]])</span><br></pre></td></tr></table></figure>
+<p>这个等同于如下矩阵乘法</p>
+<p>$$<br>\begin{pmatrix}<br>0 \<br>1 \<br>2<br>\end{pmatrix}<br>\times<br>\begin{pmatrix}<br>3 &amp; 4 &amp; 5<br>\end{pmatrix}<br>=<br>\begin{pmatrix}<br>0 &amp; 0 &amp; 0\<br>3 &amp; 4 &amp; 5\<br>6 &amp; 8 &amp; 10\<br>\end{pmatrix}<br>$$</p>
+<p>所以，那个表达式就是从一个二维矩阵中截取某一列的思路。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/08/11/scikit-learn-学习笔记/" data-id="cjz6i2iyx002376vgj1ah3ftg" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/08/10/Matplotlib-二维图像绘制/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Matplotlib 二维图像绘制</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+<!-- LiveRe City install code -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zNjQ1Ni8xMjk5MQ==">
+	<style>
+	iframe {
+		background: #f0f0f0;
+    opacity: 0.8;
+    padding: 13px;
+    border-radius: 30px;
+	}
+	</style>
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> Please activate JavaScript for write a comment in LiveRe</noscript>
+</div>
+<!-- completed City install code -->
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>109</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>50</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由<a href="https://www.bilibili.com/bangumi/media/md9192" target="_blank">02X广主席</a>强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
