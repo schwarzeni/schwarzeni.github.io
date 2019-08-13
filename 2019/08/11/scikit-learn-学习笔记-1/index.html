@@ -14,7 +14,7 @@
 <meta property="og:description" content="楼+机器学习前置课程 scikit-learn 机器学习基础课程 实验1、2笔记">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/08/11/scikit-learn-学习笔记-1/image1.png">
-<meta property="og:updated_time" content="2019-08-11T14:55:09.099Z">
+<meta property="og:updated_time" content="2019-08-13T03:13:40.404Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="scikit-learn 学习笔记(1)线性回归和感知机分类">
 <meta name="twitter:description" content="楼+机器学习前置课程 scikit-learn 机器学习基础课程 实验1、2笔记">
@@ -202,11 +202,7 @@
 <p>结果如下</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment"># print(tmp_x[:, np.newaxis])</span></span><br><span class="line">array([[<span class="number">0</span>],</span><br><span class="line">       [<span class="number">1</span>],</span><br><span class="line">       [<span class="number">2</span>]])</span><br><span class="line"></span><br><span class="line"><span class="comment"># print(tmp_x[:, np.newaxis] * tmp_y)</span></span><br><span class="line">array([[ <span class="number">0</span>,  <span class="number">0</span>,  <span class="number">0</span>],</span><br><span class="line">       [ <span class="number">3</span>,  <span class="number">4</span>,  <span class="number">5</span>],</span><br><span class="line">       [ <span class="number">6</span>,  <span class="number">8</span>, <span class="number">10</span>]])</span><br></pre></td></tr></table></figure>
 <p>这个等同于如下矩阵乘法</p>
-<p>$$<br>\begin{pmatrix}<br>0 \\<br>1 \\<br>2<br>\end{pmatrix}</p>
-<p>\times</p>
-<p>\begin{pmatrix}<br>3 &amp; 4 &amp; 5<br>\end{pmatrix}</p>
-<p>=</p>
-<p>\begin{pmatrix}<br>0 &amp; 0 &amp; 0\\<br>3 &amp; 4 &amp; 5\\<br>6 &amp; 8 &amp; 10\\<br>\end{pmatrix}<br>$$</p>
+<p>$$<br>\begin{pmatrix}<br>0 \\<br>1 \\<br>2<br>\end{pmatrix}\times<br>\begin{pmatrix}<br>3 &amp; 4 &amp; 5<br>\end{pmatrix}=<br>\begin{pmatrix}<br>0 &amp; 0 &amp; 0\\<br>3 &amp; 4 &amp; 5\\<br>6 &amp; 8 &amp; 10\\<br>\end{pmatrix}<br>$$</p>
 <p>所以，那个表达式就是从一个二维矩阵中截取某一列的思路。</p>
 <hr>
 <h2 id="线性分类模型"><a href="#线性分类模型" class="headerlink" title="线性分类模型"></a>线性分类模型</h2><h3 id="感知机"><a href="#感知机" class="headerlink" title="感知机"></a>感知机</h3><p>它是神经网络和支持向量机的基础。感知机模型非常简单，<strong>输入为一些特征向量</strong> ，输出则由 <strong>正类</strong> 和 <strong>负类</strong> 组成。而输入和输出之间，则是由符号函数连接:`</p>
@@ -220,7 +216,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/08/11/scikit-learn-学习笔记-1/" data-id="cjz951uom0028nkvgy6r81zx0" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/08/11/scikit-learn-学习笔记-1/" data-id="cjz994wf10027kuvgp7ddoapz" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/实验楼笔记/">实验楼笔记</a></li></ul>
