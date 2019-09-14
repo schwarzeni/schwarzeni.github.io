@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="今天无意间在慕课网上看到这么一则问题，要求使用 input 标签上传html文件并同时将其显示在页面上（不是文件内容，而是渲染好的页面）">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-06-19T00:52:39.147Z">
+<meta property="og:updated_time" content="2019-09-14T01:13:47.673Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="input标签上传HTML文件+显示出页面来">
 <meta name="twitter:description" content="今天无意间在慕课网上看到这么一则问题，要求使用 input 标签上传html文件并同时将其显示在页面上（不是文件内容，而是渲染好的页面）">
@@ -58,9 +58,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>120</strong><br>文章</div></a>
-      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>50</strong><br>标签</div></a>
+      <a href="/archives"><div><strong>123</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>51</strong><br>标签</div></a>
     </div>
     <ul class="blog-link">
      
@@ -142,27 +142,11 @@
 <hr>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.onload = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="comment">/**</span></span><br><span class="line"><span class="comment">             * 上传函数</span></span><br><span class="line"><span class="comment">             * @param fileInput DOM对象</span></span><br><span class="line"><span class="comment">             * @param callback 回调函数</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            <span class="keyword">var</span> getFileContent = <span class="function"><span class="keyword">function</span> (<span class="params">fileInput, callback</span>) </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (fileInput.files &amp;&amp; fileInput.files.length &gt; <span class="number">0</span> &amp;&amp; fileInput.files[<span class="number">0</span>].size &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="comment">//下面这一句相当于JQuery的：var file =$("#upload").prop('files')[0];</span></span><br><span class="line">                    <span class="keyword">var</span> file = fileInput.files[<span class="number">0</span>];</span><br><span class="line">                    <span class="keyword">if</span> (<span class="built_in">window</span>.FileReader) &#123;</span><br><span class="line">                        <span class="keyword">var</span> reader = <span class="keyword">new</span> FileReader();</span><br><span class="line">                        reader.onloadend = <span class="function"><span class="keyword">function</span> (<span class="params">evt</span>) </span>&#123;</span><br><span class="line">                            <span class="keyword">if</span> (evt.target.readyState == FileReader.DONE) &#123;</span><br><span class="line">                                callback(evt.target.result);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;;</span><br><span class="line">                        <span class="comment">// 包含中文内容用gbk编码</span></span><br><span class="line">                        reader.readAsText(file, <span class="string">'utf-8'</span>);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            <span class="comment">/**</span></span><br><span class="line"><span class="comment">             * upload内容变化时载入内容</span></span><br><span class="line"><span class="comment">             */</span></span><br><span class="line">            <span class="built_in">document</span>.getElementById(<span class="string">'upload'</span>).onchange = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="built_in">document</span>.getElementById(<span class="string">'content'</span>);</span><br><span class="line"></span><br><span class="line">                getFileContent(<span class="keyword">this</span>, <span class="function"><span class="keyword">function</span> (<span class="params">str</span>) </span>&#123;</span><br><span class="line">                    <span class="built_in">console</span>.log(str);</span><br><span class="line">                    <span class="keyword">var</span> blob = <span class="keyword">new</span> Blob([str], &#123;</span><br><span class="line">                        type: <span class="string">'text/html'</span>,</span><br><span class="line">                    &#125;)</span><br><span class="line">                    <span class="keyword">var</span> src = <span class="built_in">window</span>.URL.createObjectURL(blob);</span><br><span class="line">                    <span class="built_in">document</span>.getElementById(<span class="string">"iframe"</span>).setAttribute(<span class="string">"src"</span>, src);</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
 <hr>
-<p>以下是演示，蛮好玩的</p>
-
-
-  <div id="video_wrapper" class="container">
-  </div>
-  <script src="/hexo-powerful-video/util.js"></script>
-  <script>
-    var p = new PowerfulVideo('video_wrapper')
-    p.init({filename: 'video.mp4'}, {'iconUrl': '/third-party/plyr/plyr.svg'})
-  </script>
-
-  <link rel="stylesheet" href="/third-party/plyr/plyr.css">
-  <script src="/third-party/plyr/plyr.min.js"></script>
-  <script>
-  	p.initPlyr('#player');
-  </script>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2018/12/29/input标签上传HTML文件-显示出页面来/" data-id="ck09npono001wdqvgoi8ic9fb" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2018/12/29/input标签上传HTML文件-显示出页面来/" data-id="ck0iwduzb002at3vg0vvecq7u" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/前端/">前端</a></li></ul>
@@ -248,9 +232,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>120</strong><br>文章</div></a>
-      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>50</strong><br>标签</div></a>
+      <a href="/archives"><div><strong>123</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>51</strong><br>标签</div></a>
     </div>
 
 
