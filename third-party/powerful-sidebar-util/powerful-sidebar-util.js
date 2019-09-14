@@ -1,17 +1,17 @@
 // 评论插件擅自插入广告，去死吧
-(function() {
-  var interval = setInterval(function() {
-    var adroot = document.getElementById("taboola-livere");
-    if (adroot != null) {
-      if (adroot.remove != null) {
-        adroot.remove();
-      } else {
-        adroot.style.display = "none";
-      }
-      clearInterval(interval);
-    }
-  }, 1000);
-})();
+// (function() {
+//   var interval = setInterval(function() {
+//     var adroot = document.getElementById("taboola-livere");
+//     if (adroot != null) {
+//       if (adroot.remove != null) {
+//         adroot.remove();
+//       } else {
+//         adroot.style.display = "none";
+//       }
+//       clearInterval(interval);
+//     }
+//   }, 1000);
+// })();
 
 // 创建容器
 var powerfulPluginContainer = document.createElement('div');
@@ -39,21 +39,34 @@ document.body.appendChild(powerfulPluginContainer);
 // 前一个函数加 ；
 (function(){
   var parabtn = document.createElement('div')
+  const BAR_HIDE = "BAR_HIDE"
+  const BAR_SHOW = "BAR_SHOW"
+  const KEY_BAR_STATUS = 'bar_status'
   powerfulPluginContainer.appendChild(parabtn);
   parabtn.setAttribute("id", "ssp_hide_all_btn");
   parabtn.setAttribute("class", "ssp-self-opt-btn");
   // 记录侧栏是否隐藏
-  var isSideBarHide = false;
-  parabtn.style.backgroundImage = "url('/third-party/powerful-sidebar-util/icon/hideBtns.png')"
+  var sidebarStatus = window.localStorage.getItem(KEY_BAR_STATUS)
+  if (!sidebarStatus) {
+    sidebarStatus = BAR_SHOW
+    window.localStorage.setItem(KEY_BAR_STATUS, sidebarStatus)
+  }
+  toggleSideBar()
 
   parabtn.onclick = function() {
-    if (isSideBarHide) {
+    changeBarStatus()
+    toggleSideBar()
+    window.localStorage.setItem(KEY_BAR_STATUS, sidebarStatus)
+  }
+
+  function toggleSideBar() {
+    if (sidebarStatus == BAR_SHOW) {
       // 无视
       powerfulPluginContainer.style.left = "";
       parabtn.style.position = "";
       parabtn.style.left = "";
       parabtn.style.backgroundImage = "url('/third-party/powerful-sidebar-util/icon/hideBtns.png')"
-    } else {
+    } else if (sidebarStatus == BAR_HIDE){
       powerfulPluginContainer.style.left = "-50px";
       parabtn.style.backgroundImage = "";
       setTimeout(function() {
@@ -61,7 +74,14 @@ document.body.appendChild(powerfulPluginContainer);
         parabtn.style.left = "35px";
       }, 400)
     }
-    isSideBarHide = !isSideBarHide;
+  }
+
+  function changeBarStatus() {
+    if (sidebarStatus == BAR_SHOW) {
+      sidebarStatus = BAR_HIDE
+    } else if (sidebarStatus == BAR_HIDE) {
+      sidebarStatus = BAR_SHOW
+    }
   }
 })();
 
