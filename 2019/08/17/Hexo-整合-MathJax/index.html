@@ -58,9 +58,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>125</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>127</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>51</strong><br>标签</div></a>
+      <a href="/tags"><div><strong>52</strong><br>标签</div></a>
     </div>
     <ul class="blog-link">
      
@@ -135,7 +135,7 @@
 <p>按照官方的<a href="https://www.mathjax.org/#gettingstarted" target="_blank" rel="noopener">脚本安装教程</a>，将下下列标签加入至页面底部</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML'</span> <span class="attr">async</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>这里会有两个问题，第一，可能对 <code>$$</code> 不支持，这时可以在页面中添加如下脚本</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/x-mathjax-config"</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="undefined">  MathJax.Hub.Config(&#123;</span></span><br><span class="line"><span class="undefined">    tex2jax: &#123;</span></span><br><span class="line"><span class="javascript">      inlineMath: [ [<span class="string">'$'</span>,<span class="string">'$'</span>], [<span class="string">"\\("</span>,<span class="string">"\\)"</span>] ],</span></span><br><span class="line"><span class="javascript">      processEscapes: <span class="literal">true</span></span></span><br><span class="line"><span class="undefined">    &#125;</span></span><br><span class="line"><span class="undefined">  &#125;);</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/x-mathjax-config"</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="undefined">  MathJax.Hub.Config(&#123;</span></span><br><span class="line"><span class="undefined">    tex2jax: &#123;</span></span><br><span class="line"><span class="undefined">      inlineMath: [ ['$','$'], ["\\(","\\)"] ],</span></span><br><span class="line"><span class="undefined">      processEscapes: true</span></span><br><span class="line"><span class="undefined">    &#125;</span></span><br><span class="line"><span class="undefined">  &#125;);</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>第二，Hexo中转换Markdown的库 <code>marked.js</code> 可能会对 MathJax 产生影响，此时需要对 <code>marked.js</code> 的源码进行修改，找到 <code>./node_modules/marked/lib/</code> 文件夹下的代码文件，找到类似于如下的代码</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">escape</span>: <span class="regexp">/^\\([\\`*&#123;&#125;\[\]()# +\-.!_&gt;])/</span>,</span><br></pre></td></tr></table></figure>
 <p>改成这样</p>
@@ -150,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/08/17/Hexo-整合-MathJax/" data-id="ck0khjcx1000y7vvgcdygsakf" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/08/17/Hexo-整合-MathJax/" data-id="ck0mar2kr000yexvg4sv3v81n" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/">Hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -236,9 +236,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>125</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>127</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>51</strong><br>标签</div></a>
+      <a href="/tags"><div><strong>52</strong><br>标签</div></a>
     </div>
 
 
