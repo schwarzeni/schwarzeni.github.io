@@ -14,7 +14,7 @@
 <meta property="og:description" content="遇到一些莫名其妙的坑填不了就只能绕路走了">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/09/16/Minikube使用Swagger查看API/image1.png">
-<meta property="og:updated_time" content="2019-09-16T10:24:57.879Z">
+<meta property="og:updated_time" content="2019-09-16T11:03:26.171Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Minikube使用Swagger查看API">
 <meta name="twitter:description" content="遇到一些莫名其妙的坑填不了就只能绕路走了">
@@ -132,6 +132,12 @@
       
         <p>遇到一些莫名其妙的坑填不了就只能绕路走了</p>
 <a id="more"></a>
+<h2 id="版本信息"><a href="#版本信息" class="headerlink" title="版本信息"></a>版本信息</h2><ul>
+<li>minikube v1.2.0</li>
+<li>kubernetes v1.15.0</li>
+<li>macOS v10.14.6</li>
+</ul>
+<hr>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>完全按照官方文档和网上的成功案例做了如下配置</p>
 <p>对于Minikube，在启动时加入参数 <code>--extra-config=apiserver.enable-swagger-ui=true</code> ，参考了这个<a href="https://stackoverflow.com/a/46194444/6532356" target="_blank" rel="noopener">回答</a>，但是无效</p>
 <p>对于Kubernetes API Server，将其相关的yaml <code>/etc/kubernetes/manifests/kube-apiserver.yaml</code> 文件中添加了启动参数 <code>--enable-swagger-ui=true</code> ，并执行 <code>systemctl daemon-reload &amp;&amp; systemctl restart kubelet</code> 重启Kubelet，但是依然无效</p>
@@ -150,7 +156,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/09/16/Minikube使用Swagger查看API/" data-id="ck0mar2ls001oexvgasx0hocq" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/09/16/Minikube使用Swagger查看API/" data-id="ck0mavuco001sg5vgowttnviy" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
