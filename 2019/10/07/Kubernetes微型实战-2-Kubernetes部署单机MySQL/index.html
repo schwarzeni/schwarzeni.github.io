@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kubernetes微型实战(2): Kubernetes部署单机MySQL | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本节将会介绍如何在Kubernetes中部署（deployment）一个MySQL服务">
+<meta name="keywords" content="总结,Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes微型实战(2): Kubernetes部署单机MySQL">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="本节将会介绍如何在Kubernetes中部署（deployment）一个MySQL服务">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/image2.png">
+<meta property="og:updated_time" content="2019-10-07T10:57:22.045Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes微型实战(2): Kubernetes部署单机MySQL">
+<meta name="twitter:description" content="本节将会介绍如何在Kubernetes中部署（deployment）一个MySQL服务">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>137</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>52</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Kubernetes微型实战-2-Kubernetes部署单机MySQL" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/" class="article-date">
+  <time class="post-time" datetime="2019-10-07T10:54:20.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kubernetes微型实战(2): Kubernetes部署单机MySQL
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本节将会介绍如何在Kubernetes中部署（deployment）一个MySQL服务</p>
+<a id="more"></a>
+<h2 id="Bugs"><a href="#Bugs" class="headerlink" title="Bugs"></a>Bugs</h2><p>使用的官方MySQLv5.6镜像在部署的时候一开始也无法远程访问，需要自己手动额外设置！</p>
+<hr>
+<h2 id="环境参数"><a href="#环境参数" class="headerlink" title="环境参数"></a>环境参数</h2><ul>
+<li>本地ip：192.168.43.205</li>
+<li>使用k8s：Minikube v1.2.0</li>
+<li>k8s单节点ip：192.168.64.6</li>
+<li>私服ip地址：192.168.43.205:5000</li>
+</ul>
+<p>如何搭建私服在之前已经提到过了，这里就不再赘述</p>
+<p>关于MySQL乱码的问题，在第5篇中会提到</p>
+<hr>
+<h2 id="将镜像推至私服"><a href="#将镜像推至私服" class="headerlink" title="将镜像推至私服"></a>将镜像推至私服</h2><ul>
+<li>拉取镜像</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull mysql:5.6</span><br></pre></td></tr></table></figure>
+<ul>
+<li>打上私服标签</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker tag mysql:5.6 192.168.43.205:5000/mysql:5.6</span><br></pre></td></tr></table></figure>
+<ul>
+<li>推送至私服</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker push 192.168.43.205:5000/mysql:5.6</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="为MySQL准备挂载卷"><a href="#为MySQL准备挂载卷" class="headerlink" title="为MySQL准备挂载卷"></a>为MySQL准备挂载卷</h2><p>使用 <code>PersistentVolume</code>。由于实验环境为单节点的Kubernetes，所以使用 <code>hostpath</code> 类型</p>
+<p><img src="image1.png" alt="image1"></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql-pv-hostpath.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolume</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">mysql-pv-hostpath</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  storageClassName:</span> <span class="string">manual</span></span><br><span class="line"><span class="attr">  capacity:</span></span><br><span class="line"><span class="attr">    storage:</span> <span class="number">1</span><span class="string">Gi</span></span><br><span class="line"><span class="attr">  accessModes:</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">ReadWriteOnce</span> <span class="comment"># 被单个用户挂载为读写模式</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">ReadOnlyMany</span>  <span class="comment"># 被多个用户挂载为只读模式</span></span><br><span class="line"><span class="attr">  persistentVolumeReclaimPolicy:</span> <span class="string">Retain</span> <span class="comment"># 声明释放后内容将保留</span></span><br><span class="line"><span class="attr">  hostPath:</span></span><br><span class="line"><span class="attr">    path:</span> <span class="string">"/mnt/data"</span></span><br></pre></td></tr></table></figure>
+<p>创建该存储卷</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f mysql-pv-hostpath.yaml</span><br></pre></td></tr></table></figure>
+<hr>
+<p>创建一个 <code>PersistentVolumeClaim</code> ，提供给MySQL使用</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql-pvc.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolumeClaim</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">mysql-pv-claim</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  resources:</span></span><br><span class="line"><span class="attr">    requests:</span></span><br><span class="line"><span class="attr">      storage:</span> <span class="number">1</span><span class="string">Gi</span></span><br><span class="line"><span class="attr">  accessModes:</span></span><br><span class="line"><span class="bullet">    -</span> <span class="string">ReadWriteOnce</span></span><br><span class="line"><span class="attr">  storageClassName:</span> <span class="string">manual</span></span><br></pre></td></tr></table></figure>
+<p>创建该存储卷声明</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f mysql-pvc.yaml</span><br></pre></td></tr></table></figure>
+<hr>
+<p>执行完毕后，查看是否成功创建</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pv mysql-pv-hostpath</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS   REASON   AGE</span><br><span class="line">mysql-pv-hostpath   1Gi        RWO,ROX        Retain           Bound    default/mysql-pv-claim   manual                  40m</span><br></pre></td></tr></table></figure>
+<p>此时发现， <code>STATUS</code> 与 <code>CLAIM</code> 表明该存储卷已经被存储卷声明 <code>default/mysql-pv-claim</code> 所使用的，再查看一下这个存储卷声明 <code>mysql-pv-claim</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pvc mysql-pv-claim</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME             STATUS   VOLUME              CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span><br><span class="line">mysql-pv-claim   Bound    mysql-pv-hostpath   1Gi        RWO,ROX        manual         42m</span><br></pre></td></tr></table></figure>
+<p>创建成功</p>
+<hr>
+<h2 id="创建MySQL实例"><a href="#创建MySQL实例" class="headerlink" title="创建MySQL实例"></a>创建MySQL实例</h2><p>配置文件如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql-deployment.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">mysql-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">mysql-demo</span></span><br><span class="line"><span class="attr">  strategy:</span></span><br><span class="line"><span class="attr">    type:</span> <span class="string">Recreate</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">mysql-demo</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">mysql-demo</span></span><br><span class="line"><span class="attr">        image:</span> <span class="number">192.168</span><span class="number">.43</span><span class="number">.205</span><span class="string">:5000/mysql:5.6</span></span><br><span class="line"><span class="attr">        env:</span></span><br><span class="line">          <span class="comment"># 配置密码</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">MYSQL_ROOT_PASSWORD</span></span><br><span class="line"><span class="attr">          value:</span> <span class="string">Nzy19970502</span></span><br><span class="line"><span class="attr">        resources:</span></span><br><span class="line"><span class="attr">          limits:</span></span><br><span class="line"><span class="attr">            memory:</span> <span class="string">"1Gi"</span> <span class="comment"># 内存不能太小，否则会 oomkilled</span></span><br><span class="line"><span class="attr">            cpu:</span> <span class="string">"100m"</span></span><br><span class="line"><span class="attr">          requests:</span></span><br><span class="line"><span class="attr">            memory:</span> <span class="string">"256Mi"</span> <span class="comment"># 内存不能太小，否则会 oomkilled</span></span><br><span class="line"><span class="attr">            cpu:</span> <span class="string">"100m"</span></span><br><span class="line"><span class="attr">        volumeMounts:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">mysql-persistent-storage</span></span><br><span class="line"><span class="attr">          mountPath:</span> <span class="string">/var/lib/mysql</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">3306</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">mysql</span></span><br><span class="line"><span class="attr">      volumes:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">mysql-persistent-storage</span></span><br><span class="line"><span class="attr">        persistentVolumeClaim:</span></span><br><span class="line"><span class="attr">          claimName:</span> <span class="string">mysql-pv-claim</span> <span class="comment"># 注意，这里填写的就是PersistentVolumeClaim的名称</span></span><br></pre></td></tr></table></figure>
+<p>执行该配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f mysql-deployment.yaml</span><br></pre></td></tr></table></figure>
+<p>查看是否成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods</span><br></pre></td></tr></table></figure>
+<p>一般情况下应该是可以创建成功的。注意，某些时候会出现配置的环境变量无效的情况，那么root的密码就为空</p>
+<hr>
+<h2 id="远程访问MySQL"><a href="#远程访问MySQL" class="headerlink" title="远程访问MySQL"></a>远程访问MySQL</h2><p>首先先创建一个service向外暴露这个服务</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># mysql-service.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">mysql</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  externalIPs:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="number">192.168</span><span class="number">.64</span><span class="number">.6</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">mysql-demo</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="attr">  - port:</span> <span class="number">3306</span></span><br></pre></td></tr></table></figure>
+<p>创建这个service，这样远端就可以通过 <code>192.168.64.6:3306</code> 来访问MySQL了</p>
+<p>随后登录到mysql所在的节点，使用 <code>docker exec</code> 登录至MySQL容器中运行root用户远程访问</p>
+<p>执行如下命令找到mysql容器的ID</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker ps | grep mysql</span><br></pre></td></tr></table></figure>
+<p>进入到容器内部</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it &lt;容器ID&gt; bash</span><br></pre></td></tr></table></figure>
+<p>进入到里面之后，登录(root账户可以用密码也可以不用密码)至MySQL内部，执行如下sql命令</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> all <span class="keyword">privileges</span> <span class="keyword">on</span> *.* <span class="keyword">to</span> root@<span class="string">"%"</span> <span class="keyword">identified</span> <span class="keyword">by</span> <span class="string">"root"</span> <span class="keyword">with</span> <span class="keyword">grant</span> <span class="keyword">option</span>;</span><br><span class="line"><span class="keyword">flush</span> <span class="keyword">privileges</span>;</span><br></pre></td></tr></table></figure>
+<p>此时远端使用root账户，密码为root来访问</p>
+<p>在本地进行测试</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -h 192.168.64.6  -P 3306 -u root -p</span><br></pre></td></tr></table></figure>
+<p><img src="image2.png" alt="image2"></p>
+<p>如果不删除节点上 <code>/mnt/data</code> 中的内容，或者使用别的 <code>PersistentVolumeClaim</code> ，那么之后新创建的MySQL的Pod都会使用该配置信息</p>
+<p>如果在Kubernetes集群内部，直接使用url <code>mysql.default</code> 登录即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#        服务名称.命名空间名称</span></span><br><span class="line">mysql -h mysql.default -P 3306 -u root -p</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="自动化导入数据"><a href="#自动化导入数据" class="headerlink" title="自动化导入数据"></a>自动化导入数据</h2><p>MySQL官方镜像中根目录有一个目录 <code>/docker-entrypoint-initdb.d</code> ，MySQL启动时会加载启动的sql文件，所以可以为其编写一个Dockerfile打包成新的镜像</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mysql:<span class="number">5.6</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> ./mysql.cnf /etc/mysql/conf.d/mysql.cnf</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash">ADD ./mysql.sql /docker-entrypoint-initdb.d</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
+<li><a href="https://kubernetes.io/docs/tasks/run-application/run-single-instance-stateful-application/" target="_blank" rel="noopener">Run a Single-Instance Stateful Application</a></li>
+<li><a href="https://blog.csdn.net/smartdt/article/details/78126324" target="_blank" rel="noopener">Docker安装mysql 配置远程登录</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/" data-id="ck1gc5cs000236pvg16uuhgvu" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/10/07/Kubernetes微型实战-3-renren-fast前后端分离项目-后端/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Kubernetes微型实战(3): renren_fast前后端分离项目(后端)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/10/07/Kubernetes微型实战-1-Docker设置私有仓库并使用/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Kubernetes微型实战(1): Docker设置私有仓库并使用</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>137</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>52</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由 Hexo 强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

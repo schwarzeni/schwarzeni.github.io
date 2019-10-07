@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kubernetes微型实战(4): renren_fast前后端分离项目(前端) | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本篇介绍前端的部署">
+<meta name="keywords" content="总结,Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes微型实战(4): renren_fast前后端分离项目(前端)">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="本篇介绍前端的部署">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/image3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/image4.png">
+<meta property="og:updated_time" content="2019-10-07T11:16:21.034Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes微型实战(4): renren_fast前后端分离项目(前端)">
+<meta name="twitter:description" content="本篇介绍前端的部署">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>137</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>52</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Kubernetes微型实战-4-renren-fast前后端分离项目-前端" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/" class="article-date">
+  <time class="post-time" datetime="2019-10-07T11:13:32.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kubernetes微型实战(4): renren_fast前后端分离项目(前端)
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本篇介绍前端的部署</p>
+<a id="more"></a>
+<h2 id="Bug"><a href="#Bug" class="headerlink" title="Bug"></a>Bug</h2><p>renren-fast前端界面中关于SQL监控部分的功能不可用，不知道是它代码的问题还是啥，那个链接无法修改</p>
+<p><img src="image1.png" alt="image1.png"></p>
+<hr>
+<h2 id="前期准备"><a href="#前期准备" class="headerlink" title="前期准备"></a>前期准备</h2><p>请确保实战笔记1-3的内容可以正常运行，且环境参数和之前保持一致</p>
+<p>我本机的环境参数</p>
+<ul>
+<li>Docker registry私服地址：192.168.43.205:5000</li>
+<li>后台服务地址：192.168.64.6:30125，内部的配置信息和笔记3保持一致</li>
+</ul>
+<hr>
+<h2 id="部署的项目"><a href="#部署的项目" class="headerlink" title="部署的项目"></a>部署的项目</h2><p>renren_fast 提供了<a href="https://github.com/daxiongYang/renren-fast-vue" target="_blank" rel="noopener">前端单页面应用</a>，请按照<a href="https://www.renren.io/guide/#fornt" target="_blank" rel="noopener">官网教程</a>将其下载下来</p>
+<p>这里摘录重要步骤，保证本地有Node.js安装，且版本大于8</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 克隆项目</span></span><br><span class="line">git <span class="built_in">clone</span> https://github.com/daxiongYang/renren-fast-vue</span><br><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+<p>此时请保证后端服务正常运行，按照我本机的参数，后端服务运行在 192.168.64.6:30125 上</p>
+<p>打开项目，将 <code>static/config/index-prod.js （部署环境时用）</code> 以及 <code>static/config/index.js（开发环境时用）</code>，修改 <code>window.SITE_CONFIG[&#39;baseUrl&#39;]</code> 的值为后端服务器地址，我这里需要做如下修改</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.SITE_CONFIG[<span class="string">'baseUrl'</span>] = <span class="string">'http://192.168.64.6:30125/renren-fast'</span></span><br></pre></td></tr></table></figure>
+<p>首先先测试一下开发环境是否能正常运行，在项目根目录下执行如下命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run dev</span><br></pre></td></tr></table></figure>
+<p>访问浏览器 localhost:8001，会有页面显示，且可以使用admin（密码同）登录，如果不成功请查看控制台相关报错</p>
+<p><img src="image2.png" alt="image2.png"></p>
+<hr>
+<h2 id="项目打包"><a href="#项目打包" class="headerlink" title="项目打包"></a>项目打包</h2><p>在根目录下执行如下命令对项目进行打包</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
+<p>打包的文件在 <code>dist</code> 目录下，可以新建立一个文件夹作为存放部署资源的目录 <code>front-end-file-deployment</code> ，并将该文件夹拷贝至其根目录下，建立如果的目录结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">front-end-file-deployment/</span><br><span class="line">├── dist/</span><br><span class="line">├── Dockerfile</span><br><span class="line">├── default.conf</span><br><span class="line">└── deployment/</span><br><span class="line">    ├── front-end-deployment.yaml</span><br><span class="line">    └── front-end-service.yaml</span><br></pre></td></tr></table></figure>
+<p>首先编写 <code>default.conf</code>，这个是Nginx配置文件。这个前端应用准备使用Nginx提供静态文件服务。配置文件内容如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  localhost;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        root   /usr/share/nginx/html;</span><br><span class="line">        index  index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    error_page   500 502 503 504  /50x.html;</span><br><span class="line">    location = /50x.html &#123;</span><br><span class="line">        root   /usr/share/nginx/html;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面需要将dist中的内容拷贝到容器内部的 <code>/usr/share/nginx/html</code> 目录下，同时，添加Nginx配置文件至容器内部。编写Dockerfile</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> nginx:alpine</span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> default.conf /etc/nginx/conf.d/default.conf</span></span><br><span class="line"><span class="bash">COPY dist /usr/share/nginx/html/</span></span><br></pre></td></tr></table></figure>
+<p>在此目录下执行Docker打包命令并推送至私有仓库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker build -t 192.168.43.205:5000/renren-fast-front-end:1.0 .</span><br><span class="line"></span><br><span class="line">docker push 192.168.43.205:5000/renren-fast-front-end:1.0</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="部署Kubernetes"><a href="#部署Kubernetes" class="headerlink" title="部署Kubernetes"></a>部署Kubernetes</h2><p>编写Deployment资源配置文件 <code>eployment/front-end-deployment.yaml</code> ，内容如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">front-end</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      app:</span> <span class="string">front-end</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        app:</span> <span class="string">front-end</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">      - name:</span> <span class="string">front-end</span></span><br><span class="line"><span class="attr">        image:</span> <span class="number">192.168</span><span class="number">.43</span><span class="number">.205</span><span class="string">:5000/renren-fast-front-end:1.0</span></span><br><span class="line"><span class="attr">        resources:</span></span><br><span class="line"><span class="attr">          limits:</span></span><br><span class="line"><span class="attr">            memory:</span> <span class="string">"256Mi"</span></span><br><span class="line"><span class="attr">            cpu:</span> <span class="string">"200m"</span></span><br><span class="line"><span class="attr">          requests:</span></span><br><span class="line"><span class="attr">            memory:</span> <span class="string">"128Mi"</span></span><br><span class="line"><span class="attr">            cpu:</span> <span class="string">"100m"</span></span><br><span class="line"><span class="attr">        ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">front-end-port</span></span><br></pre></td></tr></table></figure>
+<p>并用service暴露pod服务，<code>deployment/front-end-service.yaml</code></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">front-end</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  type:</span> <span class="string">NodePort</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    app:</span> <span class="string">front-end</span></span><br><span class="line"><span class="attr">  ports:</span></span><br><span class="line"><span class="attr">  - port:</span> <span class="number">8080</span></span><br><span class="line"><span class="attr">    targetPort:</span> <span class="string">front-end-port</span></span><br><span class="line"><span class="attr">    nodePort:</span> <span class="number">30130</span></span><br></pre></td></tr></table></figure>
+<p>在项目根目录下执行命令部署资源 <code>kubectl apply -f deployment</code></p>
+<p>执行命令 <code>kubectl get pods</code> 查看部署是否成功</p>
+<p>访问 <code>192.168.64.6:30130</code> （Kubernetes ip地址:30130 ）</p>
+<p><img src="image3.png" alt="image3.png"></p>
+<p><img src="image4.png" alt="image4.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/" data-id="ck1gc5csc00286pvg9aqkaras" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/10/07/Kubernetes微型实战-5-Kubernetes集群搭建/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Kubernetes微型实战(5): Kubernetes集群搭建
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/10/07/Kubernetes微型实战-3-renren-fast前后端分离项目-后端/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Kubernetes微型实战(3): renren_fast前后端分离项目(后端)</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+
+
+
+
+
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>137</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>52</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2018 - 2019 Schwarzeni<br>
+      由 Hexo 强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script> 
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
