@@ -126,37 +126,15 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>获取用户真实IP的思路</p>
-<hr>
-<h2 id="推荐文章"><a href="#推荐文章" class="headerlink" title="推荐文章"></a>推荐文章</h2><p>阅读了不少相关的文章，列表如下，都写的不错</p>
-<ul>
-<li><a href="https://blog.calabash.top/Calabash/articles/20190725171244" target="_blank" rel="noopener">calabash’s blog: X-Forwarded Headers</a></li>
-<li><a href="http://xxlegend.com/2016/11/01/%E8%8E%B7%E5%8F%96%E7%94%A8%E6%88%B7IP%E7%9A%84%E6%AD%A3%E7%A1%AE%E5%A7%BF%E5%8A%BF/" target="_blank" rel="noopener">获取用户IP的正确姿势</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/62265144" target="_blank" rel="noopener">科普文：Node.js 安全攻防 - 如何伪造和获取用户真实 IP ？</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/64821617" target="_blank" rel="noopener">利用X-Forwarded-For伪造客户端IP漏洞成因及防范</a></li>
-</ul>
-<hr>
-<h2 id="产生的问题以及解决方案"><a href="#产生的问题以及解决方案" class="headerlink" title="产生的问题以及解决方案"></a>产生的问题以及解决方案</h2><h3 id="服务分层"><a href="#服务分层" class="headerlink" title="服务分层"></a>服务分层</h3><p>每一种编程语言的Web开发框架都提供原生的方法可以获取连接到服务器的远程地址，这是网络四层结构中网络层的信息，代表远程socket连接的IP地址。</p>
-<p>但是目前开发中于后端服务直接建立socket连接的往往都是负载均衡服务器或者是其它的服务，这就会导致获取的IP地址信息不准确。</p>
-<p>解决方案是在接入层设置 <code>X-Forwarded-For</code> 请求头，或者在请求头中添加一个字段记录用户的IP地址。参考上面的第二篇文章中的内容，对于接入层的Nginx可以做如下配置</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">proxy_set_header            Host $host;</span><br><span class="line">proxy_set_header            X-Real-IP $remote_addr;</span><br><span class="line"># Nginx也一定会把直接请求Nginx的IP地址追加到X-Forwarded-For最右边</span><br><span class="line">proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;</span><br></pre></td></tr></table></figure>
-<p>这样对于后台服务，可以尝试获得请求头中的 <code>X-Real-IP</code> 字段，或 <code>X-Forwarded-For</code> 字段对应的值的列表的第一个</p>
-<hr>
-<h3 id="用户的恶意"><a href="#用户的恶意" class="headerlink" title="用户的恶意"></a>用户的恶意</h3><p>有些用户可能在发起请求时就在请求头中添加 <code>X-Forwarded-For</code> 字段，这样子就会破坏 <code>X-Forwarded-For</code> 字段对应的列表的正确性，比如或变成这样</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -H <span class="string">'X-Forwarded-For: 1.2.3.4'</span> http://your.add</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Forwarded-For: 1.2.3.4, client, proxy1, proxy2</span><br></pre></td></tr></table></figure>
-<p>这样的话服务端获取的 <code>X-Forwarded-For</code> 将不准确，不过这个问题可以通过获取 <code>X-Real-IP</code> 的方法解决。</p>
-<p>但是上面的第三篇文章指出了一个问题：如果接入层不可控怎么办？它给出的解决方案是：</p>
-<blockquote>
-<p>确定我们的部署架构上到底有多少个反向代理服务，从而在从 X-Forwarded-For 请求头中获取请求的真实 IP 时，过滤掉用户伪造的 IP 地址</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码</span></span><br><span class="line"><span class="comment">// [ illegalIp, clientRealIp, proxyIp1, proxyIp2 ...]</span></span><br><span class="line"><span class="keyword">const</span> val = ctx.get(<span class="string">'X-Forwarded-For'</span>);</span><br><span class="line"><span class="keyword">let</span> ips = val ? val.split(<span class="regexp">/\s*,\s*/</span>) : [];</span><br><span class="line">ips = ips.slice(-(maxProxyCount + <span class="number">1</span>));</span><br></pre></td></tr></table></figure>
-<hr>
-<p>上面的第四篇文章也对相关的问题做了详细的总结</p>
-
+        
+          <p class="article-more-link">
+            <a href="/2019/10/12/获取用户IP地址策略/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/12/获取用户IP地址策略/" data-id="ck1n1xu7100cclevgnndohqqx" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/12/获取用户IP地址策略/" data-id="ck1n1yl2j00cghrvgvhoe046h" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/网络/">网络</a></li></ul>
@@ -217,7 +195,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/10/2019-10-10-ni的小可爱连载12/" data-id="ck1n1xu0n0012levgpfjoukr5" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/10/2019-10-10-ni的小可爱连载12/" data-id="ck1n1yku60013hrvgaddcscly" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ni的小可爱连载/">ni的小可爱连载</a></li></ul>
@@ -278,7 +256,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/09/2019-10-08-ni的小可爱连载11/" data-id="ck1n1xu0j000zlevgvsakrd86" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/09/2019-10-08-ni的小可爱连载11/" data-id="ck1n1yku30010hrvgmhsqdxh6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ni的小可爱连载/">ni的小可爱连载</a></li></ul>
@@ -339,7 +317,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/" data-id="ck1n1xu2z002llevgtkcdwd6i" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/" data-id="ck1n1ykwv002hhrvgupb3fopc" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -400,7 +378,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-5-Kubernetes集群搭建/" data-id="ck1n1xu2q002glevg0a59p6sk" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-5-Kubernetes集群搭建/" data-id="ck1n1ykx2002jhrvgillpf5v9" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -461,7 +439,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/" data-id="ck1n1xu32002rlevgkz1q68a5" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-4-renren-fast前后端分离项目-前端/" data-id="ck1n1ykwo002ehrvgexhzdo11" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -522,7 +500,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-3-renren-fast前后端分离项目-后端/" data-id="ck1n1xu2m002elevg149v3niq" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-3-renren-fast前后端分离项目-后端/" data-id="ck1n1ykwa0029hrvgho4g5ovs" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -583,7 +561,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/" data-id="ck1n1xu2g002alevgyysf8y39" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-2-Kubernetes部署单机MySQL/" data-id="ck1n1ykwi002chrvge5gf4ggl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -644,7 +622,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-1-Docker设置私有仓库并使用/" data-id="ck1n1xu2b0027levggogfng8s" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-1-Docker设置私有仓库并使用/" data-id="ck1n1ykvy0022hrvg6wp8ci23" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -705,7 +683,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/04/与小可爱的2019年国庆节游记/" data-id="ck1n1xu4w006glevghy2upj45" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/04/与小可爱的2019年国庆节游记/" data-id="ck1n1ykzi006hhrvg6d9r4hxc" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ni的小可爱连载/">ni的小可爱连载</a></li></ul>
