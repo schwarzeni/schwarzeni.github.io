@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="关于Golang中的 recover">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-10-19T12:01:09.834Z">
+<meta property="og:updated_time" content="2019-10-20T09:54:15.573Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="学一手Golang的recover使用">
 <meta name="twitter:description" content="关于Golang中的 recover">
@@ -58,7 +58,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>143</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>144</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
       <a href="/tags"><div><strong>52</strong><br>标签</div></a>
     </div>
@@ -131,6 +131,13 @@
         <p>关于Golang中的 <code>recover</code></p>
 <a id="more"></a>
 <hr>
+<p>环境：</p>
+<ul>
+<li>Go v1.12.7</li>
+<li>MacOS 10.15</li>
+<li>iris v11.1.1</li>
+</ul>
+<hr>
 <p>今天看 <a href="https://github.com/kataras/iris" target="_blank" rel="noopener">iris</a> 源码时看到了它的<a href="https://github.com/kataras/iris/blob/master/middleware/recover/recover.go" target="_blank" rel="noopener"><code>recover</code>中间件</a>的写法，感觉写的不错，摘录如下</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// New returns a new recover middleware,</span></span><br><span class="line"><span class="comment">// it recovers from panics and logs</span></span><br><span class="line"><span class="comment">// the panic message to the application's logger "Warn" level.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">New</span><span class="params">()</span> <span class="title">context</span>.<span class="title">Handler</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context)</span></span> &#123;</span><br><span class="line">    <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">      <span class="keyword">if</span> err := <span class="built_in">recover</span>(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> ctx.IsStopped() &#123;</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> stacktrace <span class="keyword">string</span></span><br><span class="line">        <span class="keyword">for</span> i := <span class="number">1</span>; ; i++ &#123;</span><br><span class="line">          _, f, l, got := runtime.Caller(i)</span><br><span class="line">          <span class="keyword">if</span> !got &#123;</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          stacktrace += fmt.Sprintf(<span class="string">"%s:%d\n"</span>, f, l)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// when stack finishes</span></span><br><span class="line">        logMessage := fmt.Sprintf(<span class="string">"Recovered from a route's Handler('%s')\n"</span>, ctx.HandlerName())</span><br><span class="line">        logMessage += fmt.Sprintf(<span class="string">"At Request: %s\n"</span>, getRequestLogs(ctx))</span><br><span class="line">        logMessage += fmt.Sprintf(<span class="string">"Trace: %s\n"</span>, err)</span><br><span class="line">        logMessage += fmt.Sprintf(<span class="string">"\n%s"</span>, stacktrace)</span><br><span class="line">        ctx.Application().Logger().Warn(logMessage)</span><br><span class="line"></span><br><span class="line">        ctx.StatusCode(<span class="number">500</span>)</span><br><span class="line">        ctx.StopExecution()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;()</span><br><span class="line"></span><br><span class="line">    ctx.Next()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>不但使用了 <code>recover</code> 防止程序因为 <code>panic</code> 而退出，而且使用了 <code>runtime.Caller()</code> 打印出错堆栈信息。</p>
@@ -142,7 +149,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/19/学一手Golang的recover使用/" data-id="ck1xih1y6007f0bvg8szt9wvg" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/19/学一手Golang的recover使用/" data-id="ck1yuaqh4007h2wvgfe880vt2" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -152,6 +159,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2019/10/20/Golang优雅地结束server/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Golang优雅地结束server
+        
+      </div>
+    </a>
   
   
     <a href="/2019/10/15/Golang：Context基本使用/" id="article-nav-older" class="article-nav-link-wrap">
@@ -219,7 +235,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>143</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>144</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
       <a href="/tags"><div><strong>52</strong><br>标签</div></a>
     </div>
