@@ -31,6 +31,9 @@
   
 
   <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/plugins/gittalk/gittalk.css" type="text/css">
 </head>
 
 <body>
@@ -196,7 +199,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/06/26/三十岁以前的往事（二）/" data-id="ck31c74qe007dpgvg5zz0gvmh" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/06/26/三十岁以前的往事（二）/" data-id="ck32gj20k007ci7vgzd3tnjgy" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -225,14 +228,25 @@
 </nav>
 
   
+  
+    
+    <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: location.pathname,      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
 </article>
-
-
-
-
-
-
-
 
 
 </section>

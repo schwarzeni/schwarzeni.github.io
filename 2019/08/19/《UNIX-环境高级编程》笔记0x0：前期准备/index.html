@@ -37,6 +37,9 @@
   
 
   <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/plugins/gittalk/gittalk.css" type="text/css">
 </head>
 
 <body>
@@ -171,7 +174,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/08/19/《UNIX-环境高级编程》笔记0x0：前期准备/" data-id="ck31c74pl005tpgvggzzc1wrb" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/08/19/《UNIX-环境高级编程》笔记0x0：前期准备/" data-id="ck32gj1zo005oi7vgns4ll1yb" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li></ul>
@@ -200,14 +203,25 @@
 </nav>
 
   
+  
+    
+    <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: location.pathname,      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
 </article>
-
-
-
-
-
-
-
 
 
 </section>
