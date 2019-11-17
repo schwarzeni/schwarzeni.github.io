@@ -710,7 +710,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/plans/index.html" data-id="ck32gj1ri0005i7vg64iz4gcf" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/plans/index.html" data-id="ck32hbs18000eivvgoszw1rhx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -721,6 +721,7 @@
   
     
     <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+    <script src="/plugins/gittalk/md5.min.js"></script>
     <div id="gitalk-container"></div>
     <script>
     var gitalk = new Gitalk({
@@ -729,7 +730,7 @@
       repo: 'schwarzeni.comment.github.io',
       owner: 'schwarzeni',
       admin: ['schwarzeni'],
-      id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
       distractionFreeMode: false  // Facebook-like distraction free mode
     })
 

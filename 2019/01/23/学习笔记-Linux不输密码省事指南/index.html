@@ -186,7 +186,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/01/23/学习笔记-Linux不输密码省事指南/" data-id="ck32gj211008ki7vgazaivclk" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/01/23/学习笔记-Linux不输密码省事指南/" data-id="ck32hbs7w008livvg4gl695i1" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -218,6 +218,7 @@
   
     
     <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+    <script src="/plugins/gittalk/md5.min.js"></script>
     <div id="gitalk-container"></div>
     <script>
     var gitalk = new Gitalk({
@@ -226,7 +227,7 @@
       repo: 'schwarzeni.comment.github.io',
       owner: 'schwarzeni',
       admin: ['schwarzeni'],
-      id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
       distractionFreeMode: false  // Facebook-like distraction free mode
     })
 

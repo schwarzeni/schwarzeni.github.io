@@ -250,7 +250,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/01/25/学习笔记-PlantUML与设计模式几大原则/" data-id="ck32gj212008oi7vg2xvt8k78" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/01/25/学习笔记-PlantUML与设计模式几大原则/" data-id="ck32hbs7y008oivvghjgbhois" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/UML/">UML</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/设计模式/">设计模式</a></li></ul>
@@ -282,6 +282,7 @@
   
     
     <script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+    <script src="/plugins/gittalk/md5.min.js"></script>
     <div id="gitalk-container"></div>
     <script>
     var gitalk = new Gitalk({
@@ -290,7 +291,7 @@
       repo: 'schwarzeni.comment.github.io',
       owner: 'schwarzeni',
       admin: ['schwarzeni'],
-      id: location.pathname,      // Ensure uniqueness and length less than 50
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
       distractionFreeMode: false  // Facebook-like distraction free mode
     })
 
