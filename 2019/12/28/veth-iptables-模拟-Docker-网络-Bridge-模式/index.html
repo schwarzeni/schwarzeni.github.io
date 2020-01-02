@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-2.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-3.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-4.png">
-<meta property="og:updated_time" content="2019-12-28T13:53:23.482Z">
+<meta property="og:updated_time" content="2019-12-29T06:02:45.596Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="veth + iptables 模拟 Docker 网络 Bridge 模式">
 <meta name="twitter:description" content="万恶的 iptables :-/">
@@ -67,7 +67,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>158</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>159</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
       <a href="/tags"><div><strong>54</strong><br>标签</div></a>
     </div>
@@ -208,6 +208,7 @@
 <p><code>-i</code> 表示接收数据包的网卡，而 <code>-o</code> 表示发送数据包的网卡。</p>
 <p>第一行命令规定了转发给 <code>ns_br</code> 网卡的数据包一律放行。第二行命令规定了由 <code>ns_br</code> 网卡转发给 175.18.0.2:80 且不是由 <code>ns_br</code> 网卡发送的数据包给 一律放行（emm，有点绕，下面这张示意图可能更形象），第三行同理类似。</p>
 <p><img src="image-4.png" alt="image-4"></p>
+<p>注意，由于这里限制了从 <code>ns_br</code> 网卡出来的流量，所以以及无法从 <code>ns1</code> 或 <code>ns2</code> 中 ping 外网了</p>
 <hr>
 <p>介绍两个查看 iptables 的方式（以查看 <code>NAT</code> 表为例 ）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按照不同链（chain）显示</span></span><br><span class="line">iptables -t nat -n --list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示完整的配置信息</span></span><br><span class="line">iptables -t nat -S</span><br></pre></td></tr></table></figure>
@@ -220,7 +221,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/" data-id="ck4pndyto005iwfvg73p2eklj" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/" data-id="ck4wt32xq005bk5vgd1qztdgi" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -230,6 +231,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2020/01/02/你的2019/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          你的2019
+        
+      </div>
+    </a>
   
   
     <a href="/2019/12/22/逛漫展/" id="article-nav-older" class="article-nav-link-wrap">
@@ -309,7 +319,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>158</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>159</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
       <a href="/tags"><div><strong>54</strong><br>标签</div></a>
     </div>
@@ -352,7 +362,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy;2018 - 2019 Schwarzeni<br>
+      &copy;2019 - 2020 Schwarzeni<br>
       由 Hexo 强力驱动 | 
       主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
       
