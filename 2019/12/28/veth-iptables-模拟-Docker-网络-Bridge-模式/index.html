@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-2.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-3.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-4.png">
-<meta property="og:updated_time" content="2020-01-05T06:48:39.161Z">
+<meta property="og:updated_time" content="2020-01-10T05:27:31.395Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="veth + iptables 模拟 Docker 网络 Bridge 模式">
 <meta name="twitter:description" content="万恶的 iptables :-/">
@@ -210,6 +210,9 @@
 <p><img src="image-4.png" alt="image-4"></p>
 <p>注意，由于这里限制了从 <code>ns_br</code> 网卡出来的流量，所以以及无法从 <code>ns1</code> 或 <code>ns2</code> 中 ping 外网了，如果希望可以从容器内部想外部发起icmp等非tcp请求，则添加如下配置</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter -A FORWARD -o ns_br -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>目前还无法支持从本地用 127.0.0.1 访问，也不支持在本地用主机 ip 直接访问，满足后者需求可以执行如下命令，前者目前未找到解决方案：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -p tcp --dport 8088 -j DNAT --to-destination 175.18.0.2:80</span><br><span class="line">iptables -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -p tcp --dport 8089 -j DNAT --to-destination 175.18.0.3:80</span><br></pre></td></tr></table></figure>
+<p>查阅网上资料后，<a href="https://www.linuxquestions.org/questions/linux-networking-3/iptables-redirect-127-0-0-1-to-192-168-1-113-a-818817/#3" target="_blank" rel="noopener">一种说法</a>是 iptables 无法直接操作 lo 接口的流量</p>
 <hr>
 <p>介绍两个查看 iptables 的方式（以查看 <code>NAT</code> 表为例 ）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按照不同链（chain）显示</span></span><br><span class="line">iptables -t nat -n --list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示完整的配置信息</span></span><br><span class="line">iptables -t nat -S</span><br></pre></td></tr></table></figure>
@@ -222,7 +225,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/" data-id="ck53ji090005pmkvgr6y2lrg8" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/" data-id="ck57xi0ui005o4hvgi8jfhb1b" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -379,7 +382,7 @@
 <script src="/third-party/wow/wow.min.js"></script>
 <script>
 new WOW().init();
-</script> 
+</script>
 <!-- 修改浮动小按钮 -->
 <script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
 <script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
@@ -440,6 +443,16 @@ new WOW().init();
 
 <script src="/js/script.js"></script>
 
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
 
 
 <script type="text/x-mathjax-config">
