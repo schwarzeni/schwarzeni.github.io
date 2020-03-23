@@ -17,7 +17,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image2.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image3.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image4.png">
-<meta property="og:updated_time" content="2020-03-23T07:04:22.866Z">
+<meta property="og:updated_time" content="2020-03-23T07:09:46.958Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="局域网上传文件">
 <meta name="twitter:description" content="最近老爸换了台笔记本电脑，希望可以从手机向电脑传照片，新笔记本电脑的蓝牙和手机蓝牙老是连不上，试了别的一些手机照片管理软件，但是在电脑上都安装不起来，都是缺少某些 dll 文件，同时老爸觉得手机和电脑进行有线连接太麻烦的。于是乎我就有了一个想法，在笔记本电脑上运行个服务端提供上传文件的功能不就行了吗，只要手机和电脑是在用一个 WiFi 局域网下就可以了，手机浏览器访问电脑上的服务端程序上传文件，非">
@@ -137,6 +137,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>最近老爸换了台笔记本电脑，希望可以从手机向电脑传照片，新笔记本电脑的蓝牙和手机蓝牙老是连不上，试了别的一些手机照片管理软件，但是在电脑上都安装不起来，都是缺少某些 dll 文件，同时老爸觉得手机和电脑进行有线连接太麻烦的。于是乎我就有了一个想法，在笔记本电脑上运行个服务端提供上传文件的功能不就行了吗，只要手机和电脑是在用一个 WiFi 局域网下就可以了，手机浏览器访问电脑上的服务端程序上传文件，非常简单的需求。</p>
+<p>代码在 <a href="https://github.com/schwarzeni/go-simple-uploadfile" target="_blank" rel="noopener">Github</a> 上</p>
 <a id="more"></a>
 <p>首先先选取编程语言，首先将解释型语言以及需要虚拟机运行的语言 pass，因为我希望服务端程序体积尽量地小，最好就是一个可执行二进制文件，同时做到部署时零配置，图形界面点击图标即运行；底层语言 pass，因为我想几个小时内就写出这个程序，而且我也需要能交叉编译，因为我的开发电脑是 MacOS，而老爸的笔记本电脑是 Windows7。我熟悉的编程语言就那么几种，这么排除下来就剩下 Golang 了，版本为 1.13。</p>
 <p>给别人的用的程序最重要的要求是操作方便，所以我为笔记本电脑上运行的服务端程序设计了几个特性：点击可执行文件后直接打开浏览器，用来显示当前链接的二维码，方便手机扫码；同时，上传文件时需要显示进度条，方便查看进度。</p>
@@ -175,7 +176,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/" data-id="ck844mjmh00caewvgjtfevtrb" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/" data-id="ck844r91w00caipvgermiz2ap" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
