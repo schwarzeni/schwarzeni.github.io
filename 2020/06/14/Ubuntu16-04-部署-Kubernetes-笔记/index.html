@@ -6,14 +6,14 @@
   <title>Ubuntu16.04 部署 Kubernetes 笔记 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="仅仅为一个笔记，持续更新">
-<meta name="keywords" content="总结,Kubernetes">
+<meta name="keywords" content="Kubernetes">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Ubuntu16.04 部署 Kubernetes 笔记">
 <meta property="og:url" content="http://blog.schwarzeni.com/2020/06/14/Ubuntu16-04-部署-Kubernetes-笔记/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="仅仅为一个笔记，持续更新">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-06-14T09:44:01.212Z">
+<meta property="og:updated_time" content="2020-06-15T12:23:27.117Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Ubuntu16.04 部署 Kubernetes 笔记">
 <meta name="twitter:description" content="仅仅为一个笔记，持续更新">
@@ -61,9 +61,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>164</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>165</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>54</strong><br>标签</div></a>
+      <a href="/tags"><div><strong>56</strong><br>标签</div></a>
     </div>
     <ul class="blog-link">
      
@@ -145,7 +145,7 @@
 <p>先配置一下 Ubuntu 的基础源镜像，使用<a href="https://mirror.tuna.tsinghua.edu.cn/help/ubuntu/" target="_blank" rel="noopener">清华源</a></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install \</span><br><span class="line">    apt-transport-https \</span><br><span class="line">    ca-certificates \</span><br><span class="line">    curl \</span><br><span class="line">    gnupg-agent \</span><br><span class="line">    software-properties-common</span><br></pre></td></tr></table></figure>
 <p>由于国外源下载 Docker 较慢，使用国内镜像</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -</span><br><span class="line"></span><br><span class="line">sudo add-apt-repository \</span><br><span class="line">    <span class="string">"deb https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu \</span></span><br><span class="line"><span class="string">    <span class="variable">$(lsb_release -cs)</span> \</span></span><br><span class="line"><span class="string">    stable"</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu/gpg | sudo apt-key add -</span><br><span class="line"></span><br><span class="line">sudo add-apt-repository \</span><br><span class="line">    <span class="string">"deb https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu \</span></span><br><span class="line"><span class="string">    <span class="variable">$(lsb_release -cs)</span> \</span></span><br><span class="line"><span class="string">    stable"</span></span><br><span class="line"></span><br><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
 <p>启动同时设置为开机启动</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start docker &amp;&amp; systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
 <p>注意，由于之后需要使用 Docker 下载容器镜像，建议为 Docker 配置<a href="https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors" target="_blank" rel="noopener">国内镜像源</a></p>
@@ -182,28 +182,31 @@
 <li><a href="https://coredns.io/plugins/loop/#troubleshooting" target="_blank" rel="noopener">参考 2</a></li>
 </ul>
 <hr>
-<h2 id="Dashboard"><a href="#Dashboard" class="headerlink" title="Dashboard"></a>Dashboard</h2><p>关于它的安装请参考 K8S 文件夹下的笔记中的 doc 文件</p>
-<p>配置完成后执行如下命令</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl proxy --address=<span class="string">'0.0.0.0'</span>  --accept-hosts=<span class="string">'^*$'</span></span><br></pre></td></tr></table></figure>
-<p>访问如下链接</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://你的Kubernetes所在IP:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy</span><br></pre></td></tr></table></figure>
-<hr>
 <h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h3 id="fix-Linux-locale-issue"><a href="#fix-Linux-locale-issue" class="headerlink" title="fix Linux locale issue"></a>fix Linux locale issue</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> LC_ALL=<span class="string">"en_US.UTF-8"</span></span><br></pre></td></tr></table></figure>
 <p>或 <a href="https://wiki.ubuntu.org.cn/%E4%BF%AE%E6%94%B9locale" target="_blank" rel="noopener">修改 locale</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/06/14/Ubuntu16-04-部署-Kubernetes-笔记/" data-id="ckbevumc9004limvgzjulww1n" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/06/14/Ubuntu16-04-部署-Kubernetes-笔记/" data-id="ckbgh1qr0004i6avgyeivvyou" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
 
     </footer>
   </div>
   
     
 <nav id="article-nav">
+  
+    <a href="/2020/06/15/安装-KubeEdge/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          安装 KubeEdge
+        
+      </div>
+    </a>
   
   
     <a href="/2020/03/23/局域网上传文件/" id="article-nav-older" class="article-nav-link-wrap">
@@ -283,9 +286,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>164</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>165</strong><br>文章</div></a>
       <a href="/categories"><div><strong>8</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>54</strong><br>标签</div></a>
+      <a href="/tags"><div><strong>56</strong><br>标签</div></a>
     </div>
 
 
