@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>KubeEdge 部署简单应用 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="KubeEdge 部署简单应用">
+<meta name="keywords" content="KubeEdge,边缘计算">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KubeEdge 部署简单应用">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/06/16/KubeEdge-部署简单应用/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="KubeEdge 部署简单应用">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-06-16T12:49:17.552Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="KubeEdge 部署简单应用">
+<meta name="twitter:description" content="KubeEdge 部署简单应用">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>166</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>56</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-KubeEdge-部署简单应用" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/16/KubeEdge-部署简单应用/" class="article-date">
+  <time class="post-time" datetime="2020-06-16T12:44:18.000Z" itemprop="datePublished">
+    <span class="post-month">6月</span><br/>
+    <span class="post-day">16</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      KubeEdge 部署简单应用
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>KubeEdge 部署简单应用</p>
+<a id="more"></a>
+<h2 id="参考（主要来源）"><a href="#参考（主要来源）" class="headerlink" title="参考（主要来源）"></a>参考（主要来源）</h2><p><a href="https://github.com/JingruiLea/blogs/blob/master/%E5%AE%89%E8%A3%85kubeedge.md" target="_blank" rel="noopener">Kubeedge 安装,配置,HelloWorld</a></p>
+<p>非常感谢该文作者</p>
+<hr>
+<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><p><a href="https://github.com/kubeedge/examples/tree/master/kubeedge-web-demo" target="_blank" rel="noopener">KubeEdge Web Demo</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"> Cloud</span><br><span class="line">+-----------------------------+</span><br><span class="line">|    +-------------------+    |</span><br><span class="line">|    | KubeEdge Cloud    |    |     User Message</span><br><span class="line">|    | +---------------+ |    |</span><br><span class="line">|    | |   Server  :80 +&lt;------------+</span><br><span class="line">|    | +---------------+ |    |</span><br><span class="line">|    +-------------------+    |</span><br><span class="line">+-----------------------------+</span><br><span class="line">             |</span><br><span class="line">             |</span><br><span class="line">             |   Sync Message</span><br><span class="line">             |</span><br><span class="line"> Edge        |</span><br><span class="line">+------------v----------------------------+</span><br><span class="line">|                                         |</span><br><span class="line">|   +-----------------+    +------------+ |</span><br><span class="line">|   |  KubeEdge Edge  |    | MQTT       | |</span><br><span class="line">|   |                 +----&gt;            | |</span><br><span class="line">|   +-----------------+    +------------+ |</span><br><span class="line">|                                         |</span><br><span class="line">+-----------------------------------------+</span><br></pre></td></tr></table></figure>
+<p>部署的 KubeEdge 由两个节点组成，一个节点为主节点，一个节点为边缘节点，如果部署参照前面的文章，以下为两个节点的情况</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NAME     STATUS   ROLES        AGE    VERSION</span><br><span class="line">edge1    Ready    agent,edge   28h    v1.17.1-kubeedge-v1.3.1</span><br><span class="line">ubuntu   Ready    master       2d5h   v1.17.0</span><br></pre></td></tr></table></figure>
+<p>服务运行在主节点上，该服务会根据用户下达的请求向边缘节点的 MQTT 同步消息。此程序运行于 80 端口</p>
+<hr>
+<h2 id="前置要求"><a href="#前置要求" class="headerlink" title="前置要求"></a>前置要求</h2><p>KubeEdge 以部署完毕，在主节点上一个有 KubeEdge 源码并正确地将其加入到 GOPATH 中</p>
+<hr>
+<h2 id="主节点部署"><a href="#主节点部署" class="headerlink" title="主节点部署"></a>主节点部署</h2><p>clone 代码 <a href="https://github.com/kubeedge/examples/tree/master/kubeedge-web-demo" target="_blank" rel="noopener">kubeedge/examples</a> 至本地，进入到目录 <code>github.com/kubeedge/examples/kubeedge-web-demo/</code> 下。之后的讲解都以此为根目录</p>
+<p>修改 <code>utils/kubeclient.go</code> 内容为</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> utils</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"errors"</span></span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  <span class="string">"io/ioutil"</span></span><br><span class="line">  <span class="string">"k8s.io/client-go/rest"</span></span><br><span class="line">  certutil <span class="string">"k8s.io/client-go/util/cert"</span></span><br><span class="line">  <span class="string">"net"</span></span><br><span class="line">  <span class="string">"os"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> KubeQPS = <span class="keyword">float32</span>(<span class="number">5.000000</span>)</span><br><span class="line"><span class="keyword">var</span> KubeBurst = <span class="number">10</span></span><br><span class="line"><span class="keyword">var</span> KubeContentType = <span class="string">"application/vnd.kubernetes.protobuf"</span></span><br><span class="line"><span class="keyword">var</span> ErrNotInCluster = errors.New(<span class="string">"unable to load in-cluster configuration, KUBERNETES_SERVICE_HOST and KUBERNETES_SERVICE_PORT must be defined"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">InClusterConfig</span><span class="params">()</span> <span class="params">(*rest.Config, error)</span></span> &#123;</span><br><span class="line">  <span class="keyword">const</span> (</span><br><span class="line">    tokenFile  = <span class="string">"/var/run/secrets/kubernetes.io/serviceaccount/token"</span></span><br><span class="line">    rootCAFile = <span class="string">"/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"</span></span><br><span class="line">  )</span><br><span class="line">  host, port := os.Getenv(<span class="string">"KUBERNETES_SERVICE_HOST"</span>), os.Getenv(<span class="string">"KUBERNETES_SERVICE_PORT"</span>)</span><br><span class="line">  <span class="keyword">if</span> <span class="built_in">len</span>(host) == <span class="number">0</span> || <span class="built_in">len</span>(port) == <span class="number">0</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, ErrNotInCluster</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  token, err := ioutil.ReadFile(tokenFile)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  tlsClientConfig := rest.TLSClientConfig&#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> _, err := certutil.NewPool(rootCAFile); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    fmt.Errorf(<span class="string">"Expected to load root CA config from %s, but got err: %v"</span>, rootCAFile, err)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    tlsClientConfig.CAFile = rootCAFile</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &amp;rest.Config&#123;</span><br><span class="line">    Host:            <span class="string">"https://"</span> + net.JoinHostPort(host, port),</span><br><span class="line">    TLSClientConfig: tlsClientConfig,</span><br><span class="line">    BearerToken:     <span class="keyword">string</span>(token),</span><br><span class="line">  &#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// KubeConfig from flags</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">KubeConfig</span><span class="params">()</span> <span class="params">(conf *rest.Config, err error)</span></span> &#123;</span><br><span class="line">  kubeConfig, err := InClusterConfig()</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">  &#125;</span><br><span class="line">  kubeConfig.QPS = KubeQPS</span><br><span class="line">  kubeConfig.Burst = KubeBurst</span><br><span class="line">  kubeConfig.ContentType = KubeContentType</span><br><span class="line">  <span class="keyword">return</span> kubeConfig, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改 <code>deployments/kubeedge-speaker-instance.yaml</code> 为</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">devices.kubeedge.io/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Device</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">speaker-01</span></span><br><span class="line"><span class="attr">  labels:</span></span><br><span class="line"><span class="attr">    description:</span> <span class="string">"Speaker"</span></span><br><span class="line"><span class="attr">    manufacturer:</span> <span class="string">"test"</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  deviceModelRef:</span></span><br><span class="line"><span class="attr">    name:</span> <span class="string">speaker-model</span></span><br><span class="line"><span class="attr">  nodeSelector:</span></span><br><span class="line"><span class="attr">    nodeSelectorTerms:</span></span><br><span class="line"><span class="attr">      - matchExpressions:</span></span><br><span class="line"><span class="attr">          - key:</span> <span class="string">""</span></span><br><span class="line"><span class="attr">            operator:</span> <span class="string">In</span></span><br><span class="line"><span class="attr">            values:</span></span><br><span class="line"><span class="bullet">              -</span> <span class="string">edge1</span></span><br></pre></td></tr></table></figure>
+<p>注意，最后的 <code>edge1</code> 为<strong>边缘节点的名称</strong></p>
+<p>修改文件 <code>deployments/kubeedge-web-app.yaml</code> 为</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  labels:</span></span><br><span class="line"><span class="attr">    k8s-app:</span> <span class="string">kubeedge-web-app</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">kubeedge-web-app</span></span><br><span class="line"><span class="attr">  namespace:</span> <span class="string">default</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  selector:</span></span><br><span class="line"><span class="attr">    matchLabels:</span></span><br><span class="line"><span class="attr">      k8s-app:</span> <span class="string">kubeedge-web-app</span></span><br><span class="line"><span class="attr">  template:</span></span><br><span class="line"><span class="attr">    metadata:</span></span><br><span class="line"><span class="attr">      labels:</span></span><br><span class="line"><span class="attr">        k8s-app:</span> <span class="string">kubeedge-web-app</span></span><br><span class="line"><span class="attr">    spec:</span></span><br><span class="line"><span class="attr">      nodeSelector:</span></span><br><span class="line">        <span class="string">node-role.kubernetes.io/master:</span> <span class="string">""</span></span><br><span class="line"><span class="attr">      hostNetwork:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">      containers:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">kubeedge-web-app</span></span><br><span class="line"><span class="attr">          image:</span> <span class="string">kubeedge/kubeedge-web-app:v2.6</span></span><br><span class="line"><span class="attr">          imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line"><span class="attr">      restartPolicy:</span> <span class="string">Always</span></span><br></pre></td></tr></table></figure>
+<p>修改 Dockerfile 为</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> centos:<span class="number">7.6</span>.<span class="number">1810</span></span><br><span class="line"><span class="keyword">LABEL</span><span class="bash"> maintainers=<span class="string">"KubeEdge Authors"</span></span></span><br><span class="line"><span class="bash">LABEL description=<span class="string">"KubeEdge Web App"</span></span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash"><span class="comment"># Copy from build directory</span></span></span><br><span class="line"><span class="bash">COPY kubeedge-web-app /kubeedge-web-app</span></span><br><span class="line"><span class="bash">COPY static /static</span></span><br><span class="line"><span class="bash">COPY views /views</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash"><span class="comment"># Define default command</span></span></span><br><span class="line"><span class="bash">ENTRYPOINT [<span class="string">"/kubeedge-web-app"</span>]</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash"><span class="comment"># Run the executable</span></span></span><br><span class="line"><span class="bash">CMD [<span class="string">"kubeedge-web-app"</span>]</span></span><br></pre></td></tr></table></figure>
+<p>编译 Go 程序以及构造镜像</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">go build -o kubeedge-web-app main.go</span><br><span class="line">docker build . -t kubeedge/kubeedge-web-app:v2.6</span><br></pre></td></tr></table></figure>
+<p>添加用户权限</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">sudo tee deployments/fabric8-rbac.yaml &lt;&lt;-<span class="string">'EOF'</span></span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">kind: ClusterRoleBinding</span><br><span class="line">metadata:</span><br><span class="line">  name: fabric8-rbac</span><br><span class="line">subjects:</span><br><span class="line">  - kind: ServiceAccount</span><br><span class="line">    <span class="comment"># Reference to upper's `metadata.name`</span></span><br><span class="line">    name: default</span><br><span class="line">    <span class="comment"># Reference to upper's `metadata.namespace`</span></span><br><span class="line">    namespace: default</span><br><span class="line">roleRef:</span><br><span class="line">  kind: ClusterRole</span><br><span class="line">  name: cluster-admin</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<p>部署资源文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f deployments/fabric8-rbac.yaml</span><br><span class="line">kubectl create -f deployments/kubeedge-speaker-model.yaml</span><br><span class="line">kubectl create -f deployments/kubeedge-speaker-instance.yaml</span><br><span class="line">kubectl create -f deployments/kubeedge-web-app.yaml</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="查看主节点运行状态"><a href="#查看主节点运行状态" class="headerlink" title="查看主节点运行状态"></a>查看主节点运行状态</h2><p>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get nodes</span><br></pre></td></tr></table></figure>
+<p>结果为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NAME     STATUS   ROLES        AGE    VERSION</span><br><span class="line">edge1    Ready    agent,edge   28h    v1.17.1-kubeedge-v1.3.1</span><br><span class="line">ubuntu   Ready    master       2d5h   v1.17.0</span><br></pre></td></tr></table></figure>
+<p>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get deployments</span><br></pre></td></tr></table></figure>
+<p>结果为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME               READY   UP-TO-DATE   AVAILABLE   AGE</span><br><span class="line">kubeedge-web-app   1/1     1            1           160m</span><br></pre></td></tr></table></figure>
+<p>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods</span><br></pre></td></tr></table></figure>
+<p>结果为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME                                READY   STATUS    RESTARTS   AGE</span><br><span class="line">kubeedge-web-app-76d4755f59-qbjpd   1/1     Running   0          160m</span><br></pre></td></tr></table></figure>
+<p>执行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl describe pod kubeedge-web-app-76d4755f59-qbjpd | grep IP</span><br></pre></td></tr></table></figure>
+<p>结果为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">IP:           10.211.55.52</span><br><span class="line">IPs:</span><br><span class="line">  IP:           10.211.55.52</span><br></pre></td></tr></table></figure>
+<p>访问 <code>http://10.211.55.52</code> 即可看到页面</p>
+<hr>
+<h2 id="边缘端"><a href="#边缘端" class="headerlink" title="边缘端"></a>边缘端</h2><p>此处不使用样例代码中运行在边缘端的代码，仅仅查看边缘端 MQTT 是否接受到来自于主节点的消息，代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"encoding/json"</span></span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  <span class="string">"github.com/kubeedge/kubeedge/cloud/pkg/devicecontroller/types"</span></span><br><span class="line">  <span class="string">"github.com/yosssi/gmq/mqtt"</span></span><br><span class="line">  <span class="string">"github.com/yosssi/gmq/mqtt/client"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  fmt.Println(<span class="string">"Get music list successfully"</span>)</span><br><span class="line"></span><br><span class="line">  cli := client.New(&amp;client.Options&#123;</span><br><span class="line">    <span class="comment">// Define the processing of the error handler.</span></span><br><span class="line">    ErrorHandler: <span class="function"><span class="keyword">func</span><span class="params">(err error)</span></span> &#123;</span><br><span class="line">      fmt.Println(err)</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  fmt.Println(<span class="string">"Create mqtt client successfully"</span>)</span><br><span class="line"></span><br><span class="line">  stopchan := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</span><br><span class="line">  <span class="comment">// Terminate the Client.</span></span><br><span class="line">  <span class="keyword">defer</span> cli.Terminate()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Connect to the MQTT Server.</span></span><br><span class="line">  err := cli.Connect(&amp;client.ConnectOptions&#123;</span><br><span class="line">    Network:  <span class="string">"tcp"</span>,</span><br><span class="line">    Address:  <span class="string">"localhost:1883"</span>,</span><br><span class="line">    ClientID: []<span class="keyword">byte</span>(<span class="string">"receive-client"</span>),</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="built_in">panic</span>(err)</span><br><span class="line">  &#125;</span><br><span class="line">  fmt.Println(<span class="string">"Connect mqtt client successfully"</span>)</span><br><span class="line"></span><br><span class="line">  err = cli.Subscribe(&amp;client.SubscribeOptions&#123;</span><br><span class="line">    SubReqs: []*client.SubReq&#123;</span><br><span class="line">      &#123;</span><br><span class="line">        TopicFilter: []<span class="keyword">byte</span>(<span class="string">`$hw/events/device/speaker-01/twin/update/document`</span>),</span><br><span class="line">        QoS:         mqtt.QoS0,</span><br><span class="line">        <span class="comment">// Define the processing of the message handler.</span></span><br><span class="line">        Handler: <span class="function"><span class="keyword">func</span><span class="params">(topicName, message []<span class="keyword">byte</span>)</span></span> &#123;</span><br><span class="line">          Update := &amp;types.DeviceTwinDocument&#123;&#125;</span><br><span class="line">          err := json.Unmarshal(message, Update)</span><br><span class="line">          <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            fmt.Println(<span class="string">"Unmarshal error"</span>, err)</span><br><span class="line">            fmt.Printf(<span class="string">"Unmarshal error: %v\n"</span>, err)</span><br><span class="line">          &#125;</span><br><span class="line">          fmt.Printf(<span class="string">"%+v"</span>, Update)</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line">  fmt.Println(<span class="string">"Subscribe mqtt topic successfully"</span>)</span><br><span class="line"></span><br><span class="line">  &lt;-stopchan</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="built_in">panic</span>(err)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    fmt.Println(<span class="string">"Connection successfully"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意，需要将 <code>kubeedge</code> 官方代码正确添加到 GOPATH 下，正确配置到文件的 GOPATH，同时使用 <code>go get</code> 下载好相关的依赖。不要使用 <code>go mod</code> ，会出问题。编译好程序直接运行并保持运行状态。</p>
+<hr>
+<h2 id="检验"><a href="#检验" class="headerlink" title="检验"></a>检验</h2><p>主节点运行命令查看 pod 日志</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl logs -f kubeedge-web-app-76d4755f59-qbjpd</span><br></pre></td></tr></table></figure>
+<p>访问之前提到的页面，选择其中的一首歌点击播放，日志会有类似如下输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2020/06/16 11:00:04 PlayTrack: 7</span><br><span class="line">2020/06/16 11:00:04 Track [ 7 ] will be played on speaker speaker-01</span><br></pre></td></tr></table></figure>
+<p>而运行在边缘端的程序也会有类似如下输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&amp;&#123;BaseMessage:&#123;EventID:cd29c533-9c76-4c7f-b913-90310327526e Timestamp:1592305204859&#125; Twin:map[track:0xc0000aa4c0]&#125;</span><br></pre></td></tr></table></figure>
+<p>在边缘端安装 <code>sqlite3</code> ，执行 <code>sqlite3 /var/lib/kubeedge/edgecore.db</code> 进入交互节点，执行</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> device_twin;</span><br></pre></td></tr></table></figure>
+<p>会有类似如下输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2|speaker-01|track||7||&#123;&quot;timestamp&quot;:1592305204859&#125;||&#123;&quot;cloud&quot;:85047,&quot;edge&quot;:0&#125;||0|string|&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>至此，云边交互成功。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2020/06/16/KubeEdge-部署简单应用/" data-id="ckbhxbe4b0031a0vgiq6h2gb3" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KubeEdge/">KubeEdge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/边缘计算/">边缘计算</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/06/15/安装-KubeEdge/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">安装 KubeEdge</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.jpg">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>166</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>8</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>56</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy;2019 - 2020 Schwarzeni<br>
+      由 Hexo 强力驱动 | 
+      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
+      
+    </div>
+    
+  </div>
+</footer>
+
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
