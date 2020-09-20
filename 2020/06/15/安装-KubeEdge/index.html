@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="部署边缘计算框架 KubeEdge">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-06-15T12:24:15.607Z">
+<meta property="og:updated_time" content="2020-09-20T08:29:59.047Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="安装 KubeEdge">
 <meta name="twitter:description" content="部署边缘计算框架 KubeEdge">
@@ -163,7 +163,7 @@
 <hr>
 <h2 id="主节点部署"><a href="#主节点部署" class="headerlink" title="主节点部署"></a>主节点部署</h2><p>主节点上需要有 Kubernetes 相关组件以及容器运行时 Docker</p>
 <p>执行命令初始化 KubeEdge</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keadm init --kubeedge-version=1.3.1  --kube-config=/root/.kube/config</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keadm init --kubeedge-version=1.3.1  --kube-config=/root/.kube/config --interfacename=&lt;your interface name&gt;</span><br></pre></td></tr></table></figure>
 <p>初始化完毕后，执行以下命令获得秘钥，用于边缘节点和主节点通讯</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keadm gettoken</span><br></pre></td></tr></table></figure>
 <hr>
@@ -180,7 +180,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/06/15/安装-KubeEdge/" data-id="ckf3aw7dd00b87kvgjsbdv4mm" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/06/15/安装-KubeEdge/" data-id="ckfaubmtv00b4tuvgj9wofv7f" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KubeEdge/">KubeEdge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/边缘计算/">边缘计算</a></li></ul>
