@@ -3,15 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Schwarzeni&#39;s blog</title>
+  <title>TLS 学习笔记 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Schwarzeni&#39;s blog">
-<meta property="og:url" content="http://blog.schwarzeni.com/index.html">
+  <meta name="description" content="学习链接 k8sp/tls TLS完全指南 那些证书相关的玩意儿   流程 server 生成 public key 和 private key server 将 server public key 和 id（例如域名）合并为 CSR（Certificate Signing Request）提交给 CA CA 使用 CA private key 基于 CSR 生成 signature（数字签名）">
+<meta name="keywords" content="Golang,网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TLS 学习笔记">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="学习链接 k8sp/tls TLS完全指南 那些证书相关的玩意儿   流程 server 生成 public key 和 private key server 将 server public key 和 id（例如域名）合并为 CSR（Certificate Signing Request）提交给 CA CA 使用 CA private key 基于 CSR 生成 signature（数字签名）">
 <meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-09-21T09:10:48.541Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Schwarzeni&#39;s blog">
+<meta name="twitter:title" content="TLS 学习笔记">
+<meta name="twitter:description" content="学习链接 k8sp/tls TLS完全指南 那些证书相关的玩意儿   流程 server 生成 public key 和 private key server 将 server public key 和 id（例如域名）合并为 CSR（Certificate Signing Request）提交给 CA CA 使用 CA private key 基于 CSR 生成 signature（数字签名）">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
   
@@ -90,79 +95,7 @@
   </div>
 </div>
 
-        <section id="main">
-  
-    <article id="post-程序员宣言" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/10/29/程序员宣言/" class="article-date">
-  <time class="post-time" datetime="2019-10-29T05:46:11.000Z" itemprop="datePublished">
-    <span class="post-month">10月</span><br/>
-    <span class="post-day">29</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/10/29/程序员宣言/">💻 程序员宣言 📌</a>
-    </h1>
-  
-
-        <div>
-          
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="The-Programmer’s-Oath"><a href="#The-Programmer’s-Oath" class="headerlink" title="The Programmer’s Oath"></a><a href="https://blog.cleancoder.com/uncle-bob/2015/11/18/TheProgrammersOath.html" target="_blank" rel="noopener">The Programmer’s Oath</a></h2><p><strong>In order to defend and preserve the honor of the profession of computer programmers (为了捍卫和维护计算机程序员的职业荣誉，我承诺，尽我所能和判断力：)</strong></p>
-<ol>
-<li><p>I will not produce harmful code. (我不会产生有害的代码。)</p>
-</li>
-<li><p>The code that I produce will always be my best work. I will not knowingly allow code that is defective either in behavior or structure to accumulate. (我制作的代码永远是我最好的作品。我不会故意允许在行为或结构上有缺陷的代码。)</p>
-</li>
-<li><p>I will produce, with each release, a quick, sure, and repeatable proof that every element of the code works as it should. (每次发布时，我都会生成一个快速、可靠、可重复的证据，证明代码的每个元素都应该正常工作。)</p>
-</li>
-<li><p>I will make frequent, small, releases so that I do not impede the progress of others. (我将经常发布小版本，这样我就不会妨碍其他人的进展。)</p>
-</li>
-<li><p>I will fearlessly and relentlessly improve my creations at every opportunity. I will never degrade them. (我会抓住每一个机会，无畏地，不懈地改进我的代码。我永远不会损害它们。)</p>
-</li>
-<li><p>I will do all that I can to keep the productivity of myself, and others, as high as possible. I will do nothing that decreases that productivity. (我将尽我所能保持自己和他人的生产力。我不会做任何降低生产力的事情。)</p>
-</li>
-<li><p>I will continuously ensure that others can cover for me, and that I can cover for them. (我将继续确保支持其他人的工作，并且他们也可以支持我的工作。)</p>
-</li>
-<li><p>I will produce estimates that are honest both in magnitude and precision. I will not make promises without certainty. (我将对幅度和精度做出诚实的估计。我不会作出做不到的诺言。)</p>
-</li>
-<li><p>I will never stop learning and improving my craft. (我将永远不会停止学习和改进我的手艺。)</p>
-</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckfcb8drb00crdwvg9vvhyo5p" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-TLS-学习笔记" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-TLS-学习笔记" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/09/21/TLS-学习笔记/" class="article-date">
   <time class="post-time" datetime="2020-09-21T09:07:41.000Z" itemprop="datePublished">
@@ -178,8 +111,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/21/TLS-学习笔记/">TLS 学习笔记</a>
+    <h1 class="article-title" itemprop="name">
+      TLS 学习笔记
     </h1>
   
 
@@ -255,502 +188,39 @@
     </footer>
   </div>
   
+    
+<nav id="article-nav">
   
+  
+    <a href="/2020/09/13/简单算式字符串计算/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">简单算式字符串计算</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
     
 </article>
 
-
-
-  
-    <article id="post-简单算式字符串计算" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/13/简单算式字符串计算/" class="article-date">
-  <time class="post-time" datetime="2020-09-13T13:05:38.000Z" itemprop="datePublished">
-    <span class="post-month">9月</span><br/>
-    <span class="post-day">13</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/13/简单算式字符串计算/">简单算式字符串计算</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>给你一个简单的包含加减乘数括号的算式字符串，其中的数字都不小于0且做除法的时候去整即可，请算出该表达式的值</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/13/简单算式字符串计算/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/13/简单算式字符串计算/" data-id="ckfcb8drd00cydwvgk9vxfidv" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-Kubernetes-CRD-编写" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/09/Kubernetes-CRD-编写/" class="article-date">
-  <time class="post-time" datetime="2020-09-09T12:13:18.000Z" itemprop="datePublished">
-    <span class="post-month">9月</span><br/>
-    <span class="post-day">09</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/09/Kubernetes-CRD-编写/">Kubernetes CRD 编写</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>参照官方样例项目 <a href="https://github.com/kubernetes/sample-controller" target="_blank" rel="noopener">kubernetes/sample-controller</a> 中的部分内容编写，此文仅仅为一个流程记录，部分文件中 <code>import</code> 部分的相关依赖根据项目不用的命名情况需要作出相应的修改。</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/09/Kubernetes-CRD-编写/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/09/Kubernetes-CRD-编写/" data-id="ckfcb8dko001sdwvg91v05fyy" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-三十岁以前的往事-九" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/07/三十岁以前的往事-九/" class="article-date">
-  <time class="post-time" datetime="2020-09-07T08:17:37.000Z" itemprop="datePublished">
-    <span class="post-month">9月</span><br/>
-    <span class="post-day">07</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/07/三十岁以前的往事-九/">三十岁以前的往事（九）：打一辈子星际，做一辈子朋友</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/回忆录/">回忆录</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>今年是星际争霸二发售十周年纪念日。对于我而言，星际争霸一和星际争霸二陪伴着我从小学一直到大学毕业的十余载青春岁月，有很多关于它的难忘回忆。正好位于这个很有纪念意义的节点，遂作此文，仅以纪念那一段段难忘的往事。</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/07/三十岁以前的往事-九/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/07/三十岁以前的往事-九/" data-id="ckfcb8dp7007cdwvggnaj5ei6" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-三十岁以前的往事(八)" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/09/06/三十岁以前的往事(八)/" class="article-date">
-  <time class="post-time" datetime="2020-09-06T07:16:58.000Z" itemprop="datePublished">
-    <span class="post-month">9月</span><br/>
-    <span class="post-day">06</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/09/06/三十岁以前的往事(八)/">三十岁以前的往事（八）：新冠 2020</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/回忆录/">回忆录</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>结束研一第三学期的最后一门课程的在线期末考试，宣告着我的研一正式结束（如果考试能都及格的话）。如今离2021年的新年也只差一百多天了，也就是说今年已经过去了大半，我最近在想，如果在没有新冠疫情的情况下再过一次2020会怎么样呢？凡事没有如果，我也想象不出来。</p>
-<p>本片文章仅仅想以个人的视角，回顾和记录已经过去大半的2020年以及因为新冠疫情对我个人的生活种种所造成的改变。其中大部分都是只言片语，因为详细的细节都记不太清楚了。</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/09/06/三十岁以前的往事(八)/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/06/三十岁以前的往事(八)/" data-id="ckfcb8dp50078dwvg5a9arb85" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-Golang-中的-Pipe-使用" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/07/05/Golang-中的-Pipe-使用/" class="article-date">
-  <time class="post-time" datetime="2020-07-05T10:42:47.000Z" itemprop="datePublished">
-    <span class="post-month">7月</span><br/>
-    <span class="post-day">05</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/07/05/Golang-中的-Pipe-使用/">Golang 中的 Pipe 使用</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>主要记录一下 <code>io.Pipe</code> 和 <code>os.Pipe</code> 的使用</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/07/05/Golang-中的-Pipe-使用/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/07/05/Golang-中的-Pipe-使用/" data-id="ckfcb8dj3000mdwvgf13u1275" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-2020：来自2019的信件" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/07/02/2020：来自2019的信件/" class="article-date">
-  <time class="post-time" datetime="2020-07-02T11:00:59.000Z" itemprop="datePublished">
-    <span class="post-month">7月</span><br/>
-    <span class="post-day">02</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/07/02/2020：来自2019的信件/">2020：来自2019的信件</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/过去来信/">过去来信</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <a id="more"></a>
-<p>Dear FutureMe,</p>
-<p>一年后的我，你好！</p>
-<p>现在在给你写信的我正在苏州工业园区文萃公寓1号楼404房间的电脑前给你写信。蒙纳士大学的EDP课程已经开始三天了，我也在苏州呆了5天多了，第一次去除南京的地方读书真的有点小nervous，不过应该可以很快就适应的。</p>
-<p>今天白天在上英语课的时候，我突然问了自己一个问题：我到这里来到底干什么？其实之前我都是有一个明确的答案的：用三年的时间换一个985研究生的学历。但是呢，20多岁应该是程序员成长的黄金期，应该是在职场上不断地积累各种的经验，快速成长为可以独当一面的技术专家或者Team Leader，而我现在在干什么？学习如何essay和report有何区别、练习lecture听力、以group为单位做poster。暑假结束之后上一年的课，然后就到你现在的时间了，之后呢？是实习还是实验室我还没想好，但是住的地方要自己解决，然后研三上写论文，随后答辩找工作。明明是一眼就可以望见后三年的路，但是沿路会经历什么东西都还是未知的，而且走这条路到底值不值现在的我也不知道。</p>
-<p>如果我本科就是一所不错的学校的话现在也许已经开始工作，或者读了一所非常好的学校的研究生了吧。学生的素质真的可以和学校的层次成正比，就拿我现在的舍友而言，虽然宿舍不断电但是十一点半之前他们就会主动熄灯上床、玩游戏不怎么开语音也不会放外音、打电话都是出去打的，这样子宿舍就比较安静，学习环境也就非常好了。</p>
-<p>不扯这个了，我目前对未来一年的打算是在非常非常认真学好学校要求学习的内容的前提下，把Linux、Java和Golang这三个大类好好弄一弄，其中网络编程涉及到计算机网络相关的知识、高并发和Linux使用涉及到操作系统知识以及用着两个语言实现一些算法/数据结构所用到的知识也会带着复习一下，做一做笔记，当然还有软件设计、架构方面的知识。哈哈，任务有点重呀。</p>
-<p>老实说，东蒙这边的妹子真的好漂亮，虽然计算机专业的没几个，隔壁一些专业的挺多的。这次暑期英语课程我和一个小组做poster的两个小姐姐就都长的蛮好看的。但是呢，花超级贵的学费可不是让我来谈恋爱的，况且homebody是不可能找到女朋友的哈哈哈，有一台MacBook Pro外加一个iPad做拓展显示屏我就心满意足了。</p>
-<p>现在的你过的怎么样？一年前的自己立的Flag是否成功拔掉了呢？选好自己未来的方向了吗？一年的时光的尽头有什么是难以想象的，就像是一年前的我一样，根本想不到会跑到苏州来，但是如果真得可以一步一步脚踏实地的话不管终点是在哪里那也一定可以问心无愧了吧。过去的一年我问心有愧，在考研复习的过程中浪费了大量的时间，但是我也是蛮幸运的，以高昂学费的代价免于成为了2019年计算机考研中的炮灰。</p>
-<p>昨天刚看完了《企鹅公路》这本小说，正如小说里的男孩说的，输给别人不丢脸，输给昨天的自己才丢脸。现在的你过的好一点了吗 :-)</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/07/02/2020：来自2019的信件/" data-id="ckfcb8dio000adwvgr4o93pl4" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-KubeEdge-部署简单应用" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/06/16/KubeEdge-部署简单应用/" class="article-date">
-  <time class="post-time" datetime="2020-06-16T12:44:18.000Z" itemprop="datePublished">
-    <span class="post-month">6月</span><br/>
-    <span class="post-day">16</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/06/16/KubeEdge-部署简单应用/">KubeEdge 部署简单应用</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>KubeEdge 部署简单应用</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/06/16/KubeEdge-部署简单应用/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/06/16/KubeEdge-部署简单应用/" data-id="ckfcb8dkh001odwvgr77k2ov4" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KubeEdge/">KubeEdge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/边缘计算/">边缘计算</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-    <article id="post-安装-KubeEdge" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/06/15/安装-KubeEdge/" class="article-date">
-  <time class="post-time" datetime="2020-06-15T12:22:30.000Z" itemprop="datePublished">
-    <span class="post-month">6月</span><br/>
-    <span class="post-day">15</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/06/15/安装-KubeEdge/">安装 KubeEdge</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>部署边缘计算框架 <a href="https://github.com/kubeedge/kubeedge" target="_blank" rel="noopener">KubeEdge</a></p>
-        
-          <p class="article-more-link">
-            <a href="/2020/06/15/安装-KubeEdge/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/06/15/安装-KubeEdge/" data-id="ckfcb8dqs00bhdwvg8qrl3d3d" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KubeEdge/">KubeEdge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/边缘计算/">边缘计算</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-  
-
-
-  <nav id="page-nav">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="extend next" rel="next" href="/page/2/">next &raquo;</a>
-  </nav>
 
 </section>
         
