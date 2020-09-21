@@ -149,7 +149,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckfcb8drb00crdwvg9vvhyo5p" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckfcbcceq00cttovg4wqch1by" class="article-share-link">Share</a>
       
       
     </footer>
@@ -198,56 +198,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <a id="more"></a>
-<h2 id="学习链接"><a href="#学习链接" class="headerlink" title="学习链接"></a>学习链接</h2><ul>
-<li><a href="https://github.com/k8sp/tls/blob/master/tls.md" target="_blank" rel="noopener">k8sp/tls</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/26684020" target="_blank" rel="noopener">TLS完全指南</a></li>
-<li><a href="https://www.cnblogs.com/guogangj/p/4118605.html" target="_blank" rel="noopener">那些证书相关的玩意儿</a></li>
-</ul>
-<hr>
-<h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><ol>
-<li>server 生成 public key 和 private key</li>
-<li>server 将 server public key 和 id（例如域名）合并为 CSR（Certificate Signing Request）提交给 CA</li>
-<li>CA 使用 CA private key 基于 CSR 生成 signature（数字签名），并和 CSR 一起作为 CRT 发还给 server</li>
-<li>client 通过 tls 访问 server 时，server 将 server CRT 发给 client</li>
-<li>client 使用 [CA CRT].[CA CSR].[CA public key] 解密 [Server CRT].[Server Signature]，并将结果与 [Server CRT].[Server CSR] 比较，如果一致，则可以使用 [Server CRT].[Server CSR].[Server Public Key] 对发送的数据进行加密</li>
-</ol>
-<hr>
-<h2 id="自签名"><a href="#自签名" class="headerlink" title="自签名"></a>自签名</h2><p>公钥私钥对</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br></pre></td></tr></table></figure>
-<p>生成 CSR ：申请身份证</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -nodes -new -key server.key -subj <span class="string">"/CN=localhost"</span> -out server.csr</span><br></pre></td></tr></table></figure>
-<p>生成 CRT ：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -req -sha256 -days 365 -<span class="keyword">in</span> server.csr -signkey server.key -out server.crt</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="CA-签名"><a href="#CA-签名" class="headerlink" title="CA 签名"></a>CA 签名</h2><p>生成 CA 的 key 和 crt</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out ca.key 2048</span><br><span class="line">openssl req -x509 -new -nodes -key ca.key -days 10000 -out ca.crt -subj <span class="string">"/CN=self-ca"</span></span><br></pre></td></tr></table></figure>
-<p>生成 server 的相关信息</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line">openssl req -nodes -new -key server.key -subj <span class="string">"/CN=localhost"</span> -out server.csr</span><br><span class="line">openssl x509 -req -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="编写服务器"><a href="#编写服务器" class="headerlink" title="编写服务器"></a>编写服务器</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  http.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, req *http.Request)</span></span> &#123;</span><br><span class="line">    io.WriteString(w, <span class="string">"hello secure world!\n"</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">  _ = http.ListenAndServeTLS(<span class="string">":8080"</span>, <span class="string">"server.crt"</span>, <span class="string">"server.key"</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>使用 curl 访问：<code>curl --cacert ca.crt  https://localhost:8080</code></p>
-<hr>
-<h2 id="构建客户端访问"><a href="#构建客户端访问" class="headerlink" title="构建客户端访问"></a>构建客户端访问</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">loadCA</span><span class="params">(caFile <span class="keyword">string</span>)</span> *<span class="title">x509</span>.<span class="title">CertPool</span></span> &#123;</span><br><span class="line">  pool := x509.NewCertPool()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ca, e := ioutil.ReadFile(caFile); e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"ReadFile: "</span>, e)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pool.AppendCertsFromPEM(ca)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> pool</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  c := &amp;http.Client&#123;</span><br><span class="line">    Transport: &amp;http.Transport&#123;</span><br><span class="line">      TLSClientConfig: &amp;tls.Config&#123;RootCAs: loadCA(<span class="string">"ca.crt"</span>)&#125;,</span><br><span class="line">    &#125;&#125;</span><br><span class="line"></span><br><span class="line">  resp, e := c.Get(<span class="string">"https://localhost:8080"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"http.Client.Get: "</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">  _, _ = io.Copy(os.Stdout, resp.Body)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="双向验证"><a href="#双向验证" class="headerlink" title="双向验证"></a>双向验证</h2><p><a href="https://github.com/k8sp/tls/blob/master/tls.md#%E5%8F%8C%E6%96%B9tls%E8%AE%A4%E8%AF%81" target="_blank" rel="noopener">参考链接</a></p>
-<p>server:</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  s := &amp;http.Server&#123;</span><br><span class="line">    Addr: <span class="string">":8080"</span>,</span><br><span class="line">    Handler: http.HandlerFunc(<span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">      fmt.Fprintf(w, <span class="string">"Hello World!\n"</span>)</span><br><span class="line">    &#125;),</span><br><span class="line">    TLSConfig: &amp;tls.Config&#123;</span><br><span class="line">      ClientCAs:  loadCA(<span class="string">"ca.crt"</span>),</span><br><span class="line">      ClientAuth: tls.RequireAndVerifyClientCert,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  e := s.ListenAndServeTLS(<span class="string">"server.crt"</span>, <span class="string">"server.key"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"ListenAndServeTLS: "</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>client:</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  pair, e := tls.LoadX509KeyPair(<span class="string">"client.crt"</span>, <span class="string">"client.key"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"LoadX509KeyPair:"</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  client := &amp;http.Client&#123;</span><br><span class="line">    Transport: &amp;http.Transport&#123;</span><br><span class="line">      TLSClientConfig: &amp;tls.Config&#123;</span><br><span class="line">        RootCAs:      loadCA(<span class="string">"ca.crt"</span>),</span><br><span class="line">        Certificates: []tls.Certificate&#123;pair&#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;&#125;</span><br><span class="line"></span><br><span class="line">  resp, e := client.Get(<span class="string">"https://localhost:8080"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"http.Client.Get: "</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">  io.Copy(os.Stdout, resp.Body)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<hr>
-<h2 id="tcp-tls"><a href="#tcp-tls" class="headerlink" title="tcp + tls"></a>tcp + tls</h2><p><a href="https://colobu.com/2016/06/07/simple-golang-tls-examples/" target="_blank" rel="noopener">参考链接</a></p>
-<hr>
-<h2 id="websocket-tls"><a href="#websocket-tls" class="headerlink" title="websocket + tls"></a>websocket + tls</h2><p>使用的库为 <a href="https://github.com/gorilla/websocket" target="_blank" rel="noopener">gorilla/websocket</a>，样例修改自官网给出的样例 <a href="https://github.com/gorilla/websocket/tree/master/examples/echo" target="_blank" rel="noopener">echo</a></p>
-<p>server:</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  http.HandleFunc(<span class="string">"/echo"</span>, echo)</span><br><span class="line">  log.Fatal(http.ListenAndServeTLS(<span class="string">"localhost:8080"</span>, <span class="string">"server.crt"</span>, <span class="string">"server.key"</span>, <span class="literal">nil</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>client:</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">loadCA</span><span class="params">(caFile <span class="keyword">string</span>)</span> *<span class="title">x509</span>.<span class="title">CertPool</span></span> &#123;</span><br><span class="line">  pool := x509.NewCertPool()</span><br><span class="line">  <span class="keyword">if</span> ca, e := ioutil.ReadFile(caFile); e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"ReadFile: "</span>, e)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pool.AppendCertsFromPEM(ca)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> pool</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  u := url.URL&#123;Scheme: <span class="string">"wss"</span>, Host: <span class="string">"localhost:8080"</span>, Path: <span class="string">"/echo"</span>&#125;</span><br><span class="line">  log.Printf(<span class="string">"connecting to %s"</span>, u.String())</span><br><span class="line"></span><br><span class="line">  websocket.DefaultDialer.TLSClientConfig = &amp;tls.Config&#123;RootCAs: loadCA(<span class="string">"ca.crt"</span>)&#125;</span><br><span class="line">  c, _, err := websocket.DefaultDialer.Dial(u.String(), <span class="literal">nil</span>)</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+        <p>最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下</p>
+        
+          <p class="article-more-link">
+            <a href="/2020/09/21/TLS-学习笔记/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/" data-id="ckfcb8dnc0033dwvgrmd776p3" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/" data-id="ckfcbccas003gtovgv8mpyrhb" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/网络/">网络</a></li></ul>
@@ -307,7 +267,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/13/简单算式字符串计算/" data-id="ckfcb8drd00cydwvgk9vxfidv" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/09/13/简单算式字符串计算/" data-id="ckfcbccer00cwtovgyqbfpe99" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
@@ -367,7 +327,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/09/Kubernetes-CRD-编写/" data-id="ckfcb8dko001sdwvg91v05fyy" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/09/09/Kubernetes-CRD-编写/" data-id="ckfcbcc8d001stovgezt0i2sp" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -427,7 +387,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/07/三十岁以前的往事-九/" data-id="ckfcb8dp7007cdwvggnaj5ei6" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/09/07/三十岁以前的往事-九/" data-id="ckfcbcccm007gtovgy32mo8qh" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li></ul>
@@ -488,7 +448,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/06/三十岁以前的往事(八)/" data-id="ckfcb8dp50078dwvg5a9arb85" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/09/06/三十岁以前的往事(八)/" data-id="ckfcbcccj0078tovgqj437x6v" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li></ul>
@@ -548,7 +508,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/07/05/Golang-中的-Pipe-使用/" data-id="ckfcb8dj3000mdwvgf13u1275" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/07/05/Golang-中的-Pipe-使用/" data-id="ckfcbcc6g000ntovgdytl5afw" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
@@ -613,7 +573,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/07/02/2020：来自2019的信件/" data-id="ckfcb8dio000adwvgr4o93pl4" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/07/02/2020：来自2019的信件/" data-id="ckfcbcc5s000atovgh0g3i5c3" class="article-share-link">Share</a>
       
       
     </footer>
@@ -671,7 +631,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/06/16/KubeEdge-部署简单应用/" data-id="ckfcb8dkh001odwvgr77k2ov4" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/06/16/KubeEdge-部署简单应用/" data-id="ckfcbcc80001ptovgadzid7qj" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KubeEdge/">KubeEdge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/边缘计算/">边缘计算</a></li></ul>
@@ -731,7 +691,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/06/15/安装-KubeEdge/" data-id="ckfcb8dqs00bhdwvg8qrl3d3d" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/06/15/安装-KubeEdge/" data-id="ckfcbccea00bntovgim0auo1u" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/KubeEdge/">KubeEdge</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/边缘计算/">边缘计算</a></li></ul>
