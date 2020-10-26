@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-09-21T09:14:14.904Z">
+<meta property="og:updated_time" content="2020-10-26T07:54:39.300Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TLS 学习笔记">
 <meta name="twitter:description" content="最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下">
@@ -158,6 +158,9 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out ca.key 2048</span><br><span class="line">openssl req -x509 -new -nodes -key ca.key -days 10000 -out ca.crt -subj <span class="string">"/CN=self-ca"</span></span><br></pre></td></tr></table></figure>
 <p>生成 server 的相关信息</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line">openssl req -nodes -new -key server.key -subj <span class="string">"/CN=localhost"</span> -out server.csr</span><br><span class="line">openssl x509 -req -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365</span><br></pre></td></tr></table></figure>
+<p>注意，在执行最后一条命令的时候可能需要加上 server 的ip，否则可能会报 “x509: cannot validate certificate for x.x.x.x because it doesn’t contain any IP SANs”</p>
+<p>将最后一条命令替换如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server_ip=&lt;Your server ip&gt;</span><br><span class="line"><span class="built_in">echo</span> subjectAltName = IP:<span class="variable">$server_ip</span> &gt; extfile.cnf</span><br><span class="line">openssl x509 -req -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -extfile extfile.cnf</span><br></pre></td></tr></table></figure>
 <hr>
 <h2 id="编写服务器"><a href="#编写服务器" class="headerlink" title="编写服务器"></a>编写服务器</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  http.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, req *http.Request)</span></span> &#123;</span><br><span class="line">    io.WriteString(w, <span class="string">"hello secure world!\n"</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">  _ = http.ListenAndServeTLS(<span class="string">":8080"</span>, <span class="string">"server.crt"</span>, <span class="string">"server.key"</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>使用 curl 访问：<code>curl --cacert ca.crt  https://localhost:8080</code></p>
@@ -181,7 +184,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/" data-id="ckg958jq80039trvgz2czppi7" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/" data-id="ckgq8wssm0037jrvggswnbvp4" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/网络/">网络</a></li></ul>
