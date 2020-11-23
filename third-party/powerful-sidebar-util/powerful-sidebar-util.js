@@ -151,7 +151,16 @@ document.body.appendChild(powerfulPluginContainer);
  * 显示目录
  */
 (function () {
-  if (window.location.href.match(/[\w:\/\.]+[\d]+\/.*/) !== null || window.location.href.indexOf('plans') !== -1) {
+  function isArchive() {
+    return window.location.pathname.match(/\/tags\/.+/) !== null 
+      || window.location.pathname === '/archives/'
+      || window.location.pathname.match(/\/categories\/.+/) !== null
+  }
+  if (
+    window.location.href.match(/[\w:\/\.]+[\d]+\/.*/) !== null 
+      || window.location.href.indexOf('plans') !== -1
+      || isArchive()
+      ) {
 
     var articleMenuBtn = document.createElement('div')
     powerfulPluginContainer.appendChild(articleMenuBtn);
@@ -160,6 +169,10 @@ document.body.appendChild(powerfulPluginContainer);
 
     var rootElem = document.getElementsByClassName('article-entry')[0];
     var headerList = generateHeaderList(rootElem);
+    if (isArchive()) {
+      // 处理 archives 页的情况
+      headerList = Array.from(document.getElementsByClassName('archive-year-h'))
+    }
     // 如果没有标题则不生成
     if (!headerList || headerList.length === 0) {
       return;
