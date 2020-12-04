@@ -6,14 +6,14 @@
   <title>《自己动手写Docker》笔记x04：构建容器进阶(1) | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="也不是半途而废，主要是学到这里时由于编程环境的差异和个人知识水平的限制，本地代码和书上代码执行结果出现了非常大的差异，同时这一章牵涉到非常多的Linux系统调用和基础知识，而我对它们又不太熟悉，所以对本书的学习只能暂时放弃，先去补习相关的基础知识。">
-<meta name="keywords" content="Golang,Docker">
+<meta name="keywords" content="Golang,Docker,容器">
 <meta property="og:type" content="article">
 <meta property="og:title" content="《自己动手写Docker》笔记x04：构建容器进阶(1)">
 <meta property="og:url" content="http://blog.schwarzeni.com/2019/08/13/《自己动手写Docker》笔记x04：构建容器进阶-1/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="也不是半途而废，主要是学到这里时由于编程环境的差异和个人知识水平的限制，本地代码和书上代码执行结果出现了非常大的差异，同时这一章牵涉到非常多的Linux系统调用和基础知识，而我对它们又不太熟悉，所以对本书的学习只能暂时放弃，先去补习相关的基础知识。">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-08-13T01:19:35.092Z">
+<meta property="og:updated_time" content="2020-12-04T07:50:38.504Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="《自己动手写Docker》笔记x04：构建容器进阶(1)">
 <meta name="twitter:description" content="也不是半途而废，主要是学到这里时由于编程环境的差异和个人知识水平的限制，本地代码和书上代码执行结果出现了非常大的差异，同时这一章牵涉到非常多的Linux系统调用和基础知识，而我对它们又不太熟悉，所以对本书的学习只能暂时放弃，先去补习相关的基础知识。">
@@ -52,7 +52,7 @@
 		<!--	<div class="main-folder" id="main_folder"> -->
 		<!--	</div> -->
 	<div id="container">
-    <div id="wrap">
+    <div id="wrap" style="min-height:100%">
 			<div class="outer">
         <div class="widget-wrap mobile-header">
   <h3 class="widget-title"></h3>
@@ -61,9 +61,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>163</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>164</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>57</strong><br>标签</div></a>
+      <a href="/tags"><div><strong>58</strong><br>标签</div></a>
     </div>
     <ul class="blog-link">
      
@@ -146,10 +146,10 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/08/13/《自己动手写Docker》笔记x04：构建容器进阶-1/" data-id="ckhw282r700656kvgtmbcmcg4" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/08/13/《自己动手写Docker》笔记x04：构建容器进阶-1/" data-id="cki9zch1l006grbvgybsx0m2a" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
 
     </footer>
   </div>
@@ -244,9 +244,9 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>163</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>164</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
-      <a href="/tags"><div><strong>57</strong><br>标签</div></a>
+      <a href="/tags"><div><strong>58</strong><br>标签</div></a>
     </div>
 
 
@@ -307,19 +307,7 @@
 
         
       </div>
-      <footer id="footer" style="position: relative;width: 100%;">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      &copy;2019 - 2020 Schwarzeni<br>
-      由 Hexo 强力驱动 | 
-      主题-<a href="https://github.com/ShanaMaid/hexo-theme-shana">hexo-theme-shana(部分修改)</a>
       
-    </div>
-    
-  </div>
-</footer>
-
     </div>
     
 
