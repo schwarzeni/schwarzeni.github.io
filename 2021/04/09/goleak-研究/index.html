@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>goleak 研究 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="偶然在 gocn 上看到这么一篇博文 酷Go推荐 Goroutine 泄漏防治神器 goleak，觉得这个项目挺有意思的">
+<meta name="keywords" content="Golang,源码学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="goleak 研究">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/04/09/goleak-研究/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="偶然在 gocn 上看到这么一篇博文 酷Go推荐 Goroutine 泄漏防治神器 goleak，觉得这个项目挺有意思的">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2021-04-09T12:01:44.153Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="goleak 研究">
+<meta name="twitter:description" content="偶然在 gocn 上看到这么一篇博文 酷Go推荐 Goroutine 泄漏防治神器 goleak，觉得这个项目挺有意思的">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>166</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>59</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-goleak-研究" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/04/09/goleak-研究/" class="article-date">
+  <time class="post-time" datetime="2021-04-09T11:46:49.000Z" itemprop="datePublished">
+    <span class="post-month">4月</span><br/>
+    <span class="post-day">09</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      goleak 研究
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>偶然在 gocn 上看到这么一篇博文 <a href="https://gocn.vip/topics/11839" target="_blank" rel="noopener">酷Go推荐 Goroutine 泄漏防治神器 goleak</a>，觉得这个项目挺有意思的</p>
+<a id="more"></a>
+<p><a href="https://github.com/uber-go/goleak" target="_blank" rel="noopener">https://github.com/uber-go/goleak</a></p>
+<p>用于检测一个方法中创建的协程是否发生泄漏（在主方法退出后的一段时间还未退出）</p>
+<h2 id="使用："><a href="#使用：" class="headerlink" title="使用："></a>使用：</h2><p>被测函数</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fakeLeakFunc</span><span class="params">(ch <span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">   ch &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">leak</span><span class="params">()</span></span> &#123;</span><br><span class="line">   ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">   <span class="keyword">go</span> fakeLeakFunc(ch)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在单一测试用例中测试</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestLeak</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 自定义忽略的函数名</span></span><br><span class="line">   <span class="keyword">defer</span> goleak.VerifyNone(t, goleak.IgnoreTopFunction(<span class="string">"code-area/leaktest.fakeLeakFunc"</span>))</span><br><span class="line">   <span class="comment">// 对单个测试用例进行检测</span></span><br><span class="line">   <span class="keyword">defer</span> goleak.VerifyNone(t)</span><br><span class="line">   leak()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在当前文件中所有的测试用例结束之后测试</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestMain</span><span class="params">(m *testing.M)</span></span> &#123;</span><br><span class="line">   goleak.VerifyTestMain(m)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">TestLeak</span><span class="params">(t *testing.T)</span></span> &#123;</span><br><span class="line">   leak()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>检测当前运行的所有 goroutine 的栈信息来进行分析。</p>
+<p>利用 <code>runtime.Stack()</code> 方法来获取当前运行的所有 goroutine 的栈信息，随后定义一系列的 filter 过滤掉一些无用的 goroutine stack，判断是否还剩下其他的 goroutine。可以自定义 filter 来忽略特定的函数名 </p>
+<p>当然，它会检测多次，默认为 20 次，每次之间对多间隔 100ms</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">filterStacks</span><span class="params">(stacks []stack.Stack, skipID <span class="keyword">int</span>, opts *opts)</span> []<span class="title">stack</span>.<span class="title">Stack</span></span> &#123;</span><br><span class="line">  filtered := stacks[:<span class="number">0</span>]</span><br><span class="line">  <span class="keyword">for</span> _, stack := <span class="keyword">range</span> stacks &#123;</span><br><span class="line">    <span class="comment">// Always skip the running goroutine.</span></span><br><span class="line">    <span class="keyword">if</span> stack.ID() == skipID &#123;</span><br><span class="line">      <span class="keyword">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Run any default or user-specified filters.</span></span><br><span class="line">    <span class="keyword">if</span> opts.filter(stack) &#123;</span><br><span class="line">      <span class="keyword">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    filtered = <span class="built_in">append</span>(filtered, stack)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> filtered</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Find</span><span class="params">(options ...Option)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">  cur := stack.Current().ID()</span><br><span class="line"></span><br><span class="line">  opts := buildOpts(options...)</span><br><span class="line">  <span class="keyword">var</span> stacks []stack.Stack</span><br><span class="line">  retry := <span class="literal">true</span></span><br><span class="line">  <span class="keyword">for</span> i := <span class="number">0</span>; retry; i++ &#123;</span><br><span class="line">    stacks = filterStacks(stack.All(), cur, opts)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(stacks) == <span class="number">0</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    retry = opts.retry(i)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> fmt.Errorf(<span class="string">"found unexpected goroutines:\n%s"</span>, stacks)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">VerifyNone</span><span class="params">(t TestingT, options ...Option)</span></span> &#123;</span><br><span class="line">  <span class="keyword">if</span> err := Find(options...); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    t.Error(err)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="有意思的点"><a href="#有意思的点" class="headerlink" title="有意思的点"></a>有意思的点</h2><p>有个人提了 issue，说是检测不到 time.Tick 的泄漏，但是这个 time.Tick 并没有启动一个协程，而是向指定的协程中注册了一个计时器 </p>
+<p>项目中使用到了 functional options 的技巧</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Option <span class="keyword">interface</span> &#123;</span><br><span class="line">  apply(*opts)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> optionFunc <span class="function"><span class="keyword">func</span><span class="params">(*opts)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">func</span> <span class="params">(f optionFunc)</span> <span class="title">apply</span><span class="params">(opts *opts)</span></span> &#123; f(opts) &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">IgnoreTopFunction</span><span class="params">(f <span class="keyword">string</span>)</span> <span class="title">Option</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> addFilter(<span class="function"><span class="keyword">func</span><span class="params">(s stack.Stack)</span> <span class="title">bool</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> s.FirstFunction() == f</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">addFilter</span><span class="params">(f <span class="keyword">func</span>(stack.Stack)</span> <span class="title">bool</span>) <span class="title">Option</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> optionFunc(<span class="function"><span class="keyword">func</span><span class="params">(opts *opts)</span></span> &#123;</span><br><span class="line">    opts.filters = <span class="built_in">append</span>(opts.filters, f)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="小知识"><a href="#小知识" class="headerlink" title="小知识"></a>小知识</h2><h3 id="runtime-Stack-相关"><a href="#runtime-Stack-相关" class="headerlink" title="runtime.Stack 相关"></a>runtime.Stack 相关</h3><p>如果 runtime.Stack 中第二个参数设置为 true，则会首先答应当前 goroutine 的栈信息，然后再答应其他的栈信息</p>
+<p>想要读取 runtime.Stack 中的 byte 数据，使用一个循环来尝试读取：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getStackBuffer</span><span class="params">(all <span class="keyword">bool</span>)</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">   <span class="keyword">for</span> i := _defaultBufferSize; ; i *= <span class="number">2</span> &#123;</span><br><span class="line">      buf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, i)</span><br><span class="line">      <span class="keyword">if</span> n := runtime.Stack(buf, all); n &lt; i &#123;</span><br><span class="line">         <span class="keyword">return</span> buf[:n]</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>go 的 debug 库中是这样读取的：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Stack</span><span class="params">()</span> []<span class="title">byte</span></span> &#123;</span><br><span class="line">   buf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">1024</span>)</span><br><span class="line">   <span class="keyword">for</span> &#123;</span><br><span class="line">      n := runtime.Stack(buf, <span class="literal">false</span>)</span><br><span class="line">      <span class="keyword">if</span> n &lt; <span class="built_in">len</span>(buf) &#123;</span><br><span class="line">         <span class="keyword">return</span> buf[:n]</span><br><span class="line">      &#125;</span><br><span class="line">      buf = <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">2</span>*<span class="built_in">len</span>(buf))</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="打印stack"><a href="#打印stack" class="headerlink" title="打印stack"></a>打印stack</h3><p>除了上面的方法，还可以直接用 <code>debug.PrintStack()</code> 来打印当前协程的栈</p>
+<h3 id="打印出来的栈结构"><a href="#打印出来的栈结构" class="headerlink" title="打印出来的栈结构"></a>打印出来的栈结构</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">goroutine 1 [running]:</span><br><span class="line">main.getStackBuffer(0x1, 0x10d3950, 0xc00008c060, 0x1005285)</span><br><span class="line">        /Users/nizhenyang/Desktop/code-area/main.go:13 +0x78</span><br><span class="line">main.main()</span><br><span class="line">        /Users/nizhenyang/Desktop/code-area/main.go:24 +0x5b</span><br><span class="line"></span><br><span class="line">goroutine 18 [chan receive]:</span><br><span class="line">main.main.func1(0xc00008c060)</span><br><span class="line">        /Users/nizhenyang/Desktop/code-area/main.go:22 +0x34</span><br><span class="line">created by main.main</span><br><span class="line">        /Users/nizhenyang/Desktop/code-area/main.go:21 +0x52</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/04/09/goleak-研究/" data-id="ckna9fhjb0042ckvgbtvwrxr9" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/源码学习/">源码学习</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/12/28/网易云音乐2020年部分报告/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">网易云音乐2020年部分报告</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>166</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>59</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
