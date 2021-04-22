@@ -152,12 +152,12 @@ document.body.appendChild(powerfulPluginContainer);
  */
 (function () {
   function isArchive() {
-    return window.location.pathname.match(/\/tags\/.+/) !== null 
+    return window.location.pathname.match(/\/tags\/.+/) !== null
       || window.location.pathname === '/archives/'
       || window.location.pathname.match(/\/categories\/.+/) !== null
   }
   if (
-    window.location.href.match(/[\w:\/\.]+[\d]+\/.*/) !== null 
+    window.location.href.match(/[\w:\/\.]+[\d]+\/.*/) !== null
       || window.location.href.indexOf('plans') !== -1
       || isArchive()
       ) {
