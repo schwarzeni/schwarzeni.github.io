@@ -154,7 +154,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="cknsrur8n00dg9yvgzqpg8vay" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="cknssbfch00dds5vghd11sxx5" class="article-share-link">Share</a>
       
       
     </footer>
@@ -203,150 +203,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="个人简介"><a href="#个人简介" class="headerlink" title="个人简介"></a>个人简介</h1><ul>
-<li>普通本科，985硕，科班</li>
-<li>技能是 Go、Docker、Kubernetes</li>
-<li>之前无实习工作经验</li>
-<li>项目经验：一个信息搜集展示系统（本科毕设）<ul>
-<li>Go编写爬虫</li>
-<li>Java编写后台服务</li>
-<li>Angular编写Web管理界面</li>
-<li>Taro编写微信小程序</li>
-<li>Docker部署</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h2 id="字节"><a href="#字节" class="headerlink" title="字节"></a>字节</h2><ul>
-<li>岗位：基础架构后端开发实习生</li>
-<li>面试软件：牛客网</li>
-<li>面试代码编写环境：牛客网在线编辑器（面试时有代码补全以及代码纠错功能，笔试时没有）</li>
-</ul>
-<h3 id="笔试"><a href="#笔试" class="headerlink" title="笔试"></a>笔试</h3><p>2h，四道算法题，做出来前两道；通过率：100%/100%/90%/50%</p>
-<h3 id="一面"><a href="#一面" class="headerlink" title="一面"></a>一面</h3><p>60min</p>
-<ol>
-<li>自我介绍</li>
-<li>go 并发原子操作 atomic 包的使用，和用 mutex 有什么区别</li>
-<li>go mutex 如何使用，在多读的情况下应该如何使用</li>
-<li>有一个很大的map，并发读的时候如何提高效率</li>
-<li>进程线程区别，进程切换时有哪些操作，保存了什么上下文，为什么进程切换上下文开销高，go的协程实现原理是什么，协程是如何切换的，调度器如何处理 for{} 阻塞的情况</li>
-<li>用过哪些 linux 指令，ps指令有哪些输出，为什么进程会有僵尸状态，为什么需要父进程调用 wait 来回收退出的子进程，top指令中输出的系统负载的含义是什么</li>
-<li>对网络编程了解多少，应用层协议了解多少，http不同版本的区别，http头结构，http header 结构，有哪些字段，作用是什么；tcp/udp 区别，tcp/udp 的包大小有限制吗</li>
-<li>堆排序如何实现，介绍堆插入、弹出、建堆流程；</li>
-<li>快排是如何实现的，partition中的点如何选择，手写快速排序的代码（一时紧张没写出来，当时以为挂了）</li>
-</ol>
-<h3 id="二面"><a href="#二面" class="headerlink" title="二面"></a>二面</h3><p>70min</p>
-<ol>
-<li>自我介绍</li>
-<li>Kubernetes 简要介绍一下，各个模块</li>
-<li>Kubelet 的作用</li>
-<li>Service 的作用</li>
-<li>Kubernetes 如何处理 Pod 意外退出的</li>
-<li>对 Service Mesh 的理解</li>
-<li>对云原生的理解</li>
-<li>简要介绍一下容器</li>
-<li>为什么需要容器，Kubernetes 直接操作进程是否可以</li>
-<li>容器的ip如何配置，容器的ip是否可以冲突</li>
-<li>Kubernetes 如何做负载均衡的</li>
-<li>反向代理与正向代理</li>
-<li>四层负载与七层负载的区别</li>
-<li>数据库相关的了解什么，磕磕巴巴地背了一点 MVCC，然后面试官问我这些知识都是来自（八）课（股）本（文）的吧，然后就没细问</li>
-<li>对象存储有了解吗（我回答不了解，然后就没细问了）</li>
-<li>算法：LRU，可以使用 go 标准库中的双向链表 container/list</li>
-</ol>
-<h3 id="三面"><a href="#三面" class="headerlink" title="三面"></a>三面</h3><p>60min</p>
-<ol>
-<li>自我介绍</li>
-<li>进程与go协程的区别</li>
-<li>go中context的作用</li>
-<li>介绍一下闭包</li>
-<li>哈希冲突的解决方案；并发情况下如何实现无锁map；</li>
-<li>当go打开文件时，rm将文件删除会发生什么</li>
-<li>机器A向机器B发送数据时数据经历了几次拷贝</li>
-<li>两个进程同时读取一片存储区域时得到的值相同吗</li>
-<li>软链接硬链接的区别</li>
-<li>介绍一下 CDN （当时紧张，说成DNS了。。后来面试官提醒了我一下）</li>
-<li>https与http的区别</li>
-<li>https建立连接的过程</li>
-<li>介绍一下跨域，如何处理</li>
-<li>tcp中time_wait的作用</li>
-<li>linux查看目录下的问题，端口占用，查看进程的命令</li>
-<li>git都用过哪些命令</li>
-<li>Docker与虚拟机的区别</li>
-<li>Docker使用到了哪些隔离技术</li>
-<li>Kubernetes与容器的关系</li>
-<li>介绍项目（当时太紧张了，自己准备的一个亮点忘了说，感觉面试官也不太满意）</li>
-<li>算法：子数组最大和（想了一段时间没思路，太紧张，想放弃，然后面试官让我再想想，最后写出来了）</li>
-</ol>
-<h3 id="hr面"><a href="#hr面" class="headerlink" title="hr面"></a>hr面</h3><p>30min</p>
-<ol>
-<li>自我介绍</li>
-<li>为什么选择了计算机专业</li>
-<li>在校经历</li>
-<li>为什么读研究生</li>
-<li>将来是想留在南京工作吗？</li>
-<li>对今后的职业规划是什么</li>
-<li>介绍一个自己满意的项目，碰到了什么难点，收获了哪些</li>
-<li>有其它的offer吗，其它面试的流程走到哪一步了，最终会选择哪一家公司</li>
-<li>来这里实习希望有哪些收获</li>
-</ol>
-<hr>
-<h2 id="腾讯"><a href="#腾讯" class="headerlink" title="腾讯"></a>腾讯</h2><ul>
-<li>岗位：CSIG-腾讯云-软件开发-云计算开发方向-实习生</li>
-<li>面试软件：腾讯会议</li>
-<li>面试代码编写环境：本地IDE</li>
-</ul>
-<h3 id="一面-1"><a href="#一面-1" class="headerlink" title="一面"></a>一面</h3><p>40min</p>
-<p>被鸽了一次，之后联系hr重新约的时间</p>
-<ol>
-<li>自我介绍</li>
-<li>算法，口头说思路：链表中点、数字开方（没想出来，提示用二分）</li>
-<li>手写代码：go 两个协程，一个生产者一个消费者，生产者随机生成数字，消费者打印</li>
-<li>进程、线程、协程的区别</li>
-<li>用户态与内核态的区别，为什么要有内核态，如何进入内核态</li>
-<li>浏览器输入URL后发生了什么</li>
-<li>浏览器如何知道数据类型</li>
-<li>HTTPS加密的流程</li>
-<li>TCP三次握手中第三次的作用（没答出来）</li>
-</ol>
-<h3 id="二面-1"><a href="#二面-1" class="headerlink" title="二面"></a>二面</h3><p>20min</p>
-<ol>
-<li>自我介绍</li>
-<li>TCP四次挥手最后的 Time_Wait 的作用（面试官对答案不满意）</li>
-<li>Go TCP Server 如何写</li>
-<li>介绍一下 Go 的协程</li>
-<li>介绍一下 Docker 容器的网络通信是如何实现的</li>
-</ol>
-<h3 id="hr面-1"><a href="#hr面-1" class="headerlink" title="hr面"></a>hr面</h3><p>15min</p>
-<ol>
-<li>面试感觉如何</li>
-<li>自我介绍</li>
-<li>介绍一个项目</li>
-<li>老家哪里的</li>
-<li>有亲戚在腾讯吗</li>
-<li>进腾讯最大的竞争力是什么</li>
-<li>有留任的打算吗</li>
-<li>实习时长</li>
-<li>身体是否健康</li>
-</ol>
-<hr>
-<h2 id="备战资料"><a href="#备战资料" class="headerlink" title="备战资料"></a>备战资料</h2><ul>
-<li><a href="https://cyc2018.github.io/CS-Notes/#/" target="_blank" rel="noopener">CS-Notes</a></li>
-<li><a href="https://book.douban.com/subject/35144587/" target="_blank" rel="noopener">《Go 专家编程》</a></li>
-<li><a href="https://book.douban.com/subject/27082348/" target="_blank" rel="noopener">《自己动手写Docker》</a></li>
-<li><a href="https://book.douban.com/subject/30418855/" target="_blank" rel="noopener">《Kubernetes in Actions》</a></li>
-<li><a href="https://time.geekbang.org/column/intro/355" target="_blank" rel="noopener">极客时间 Go 并发编程实战课</a></li>
-<li><a href="https://time.geekbang.org/opencourse/intro/100069501" target="_blank" rel="noopener">极客时间 Go语言编程模式实战</a></li>
-</ul>
-<hr>
-<h2 id="备注"><a href="#备注" class="headerlink" title="备注"></a>备注</h2><p>其实还投了阿里云和b站的暑期实习，前者在一面后就没消息了，但是招聘系统上显示的状态依旧是”面试中“，已经持续三个多星期了，后者”简历筛选“状态已经持续了一个多月了</p>
-<p>因为我简历上写了熟悉 Docker 和 Kubernetes ，所以面试官就容器方面的问题问的比较多</p>
-<p>最后选择去了字节跳动</p>
-
+        <p>第一次面试，精神压力贼大</p>
+        
+          <p class="article-more-link">
+            <a href="/2021/04/22/2021暑期实习总结/#more">Read More</a>
+          </p>
+        
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/22/2021暑期实习总结/" data-id="cknsruqws00079yvgd7j59gdm" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/22/2021暑期实习总结/" data-id="cknssbf3z000as5vgxdet44c1" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -406,7 +272,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/18/如果删除程序正在打开的文件会发生什么/" data-id="cknsrur62008l9yvg3ot337ke" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/18/如果删除程序正在打开的文件会发生什么/" data-id="cknssbfav008qs5vg2sbvuido" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
@@ -466,7 +332,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/14/wait-waitpid-有什么用/" data-id="cknsrur3z005d9yvgru0j5n7s" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/14/wait-waitpid-有什么用/" data-id="cknssbf9f0059s5vgo1aqx7s2" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
@@ -526,7 +392,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/09/goleak-研究/" data-id="cknsrur3500449yvg48acgdsw" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/09/goleak-研究/" data-id="cknssbf8w0043s5vgcdy833ay" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/源码学习/">源码学习</a></li></ul>
@@ -586,7 +452,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/12/28/网易云音乐2020年部分报告/" data-id="cknsrur8u00du9yvgwrq7l417" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/12/28/网易云音乐2020年部分报告/" data-id="cknssbfcm00drs5vg5xc5l96p" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/日记/">日记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/音乐/">音乐</a></li></ul>
@@ -646,7 +512,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/12/04/容器镜像下载流程模拟/" data-id="cknsrur7x00c09yvgzlb28xsw" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/12/04/容器镜像下载流程模拟/" data-id="cknssbfc100c0s5vgpz8nawm7" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
@@ -706,7 +572,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/11/15/《龙族》笔记/" data-id="cknsrur5f00779yvg6x0clth9" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/11/15/《龙族》笔记/" data-id="cknssbfa2006us5vg1n2oizdr" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
@@ -766,7 +632,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/11/07/四层转发与七层转发时间消耗比较/" data-id="cknsrur5z008b9yvg7tawv020" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/11/07/四层转发与七层转发时间消耗比较/" data-id="cknssbfas008is5vg5l550fai" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/网络/">网络</a></li></ul>
@@ -826,7 +692,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/10/14/线段树学习笔记/" data-id="cknsrur8r00dn9yvgm5j4y6af" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2020/10/14/线段树学习笔记/" data-id="cknssbfcj00dks5vgru5cmtod" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/算法/">算法</a></li></ul>
