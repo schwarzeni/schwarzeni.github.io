@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Kubernetess 网络插件 CNI 初探 | Schwarzeni&#39;s blog</title>
+  <title>Kubernetes 网络插件 CNI 初探 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="仅仅是初步学习一下 CNI 的运作流程">
 <meta name="keywords" content="容器,CNI,containerd">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Kubernetess 网络插件 CNI 初探">
+<meta property="og:title" content="Kubernetes 网络插件 CNI 初探">
 <meta property="og:url" content="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="仅仅是初步学习一下 CNI 的运作流程">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2021-04-23T11:17:11.227Z">
+<meta property="og:updated_time" content="2021-04-23T11:27:15.015Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Kubernetess 网络插件 CNI 初探">
+<meta name="twitter:title" content="Kubernetes 网络插件 CNI 初探">
 <meta name="twitter:description" content="仅仅是初步学习一下 CNI 的运作流程">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
@@ -116,7 +116,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Kubernetess 网络插件 CNI 初探
+      Kubernetes 网络插件 CNI 初探
     </h1>
   
 
@@ -205,7 +205,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip link add eth0 <span class="built_in">type</span> veth peer name veth_ns-2</span><br><span class="line">ip link <span class="built_in">set</span> eth0 netns ns-2</span><br><span class="line">ifconfig veth_ns-2 up</span><br><span class="line">brctl addif cni0 veth_ns-2</span><br></pre></td></tr></table></figure>
 <p>然后进入到 ns-2 中配置 ip 和路由，这里忽略了调用 ipam 生成 ip 的过程</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip netns <span class="built_in">exec</span> ns-2 ifconfig eth0 10.22.0.6/16 up</span><br><span class="line">ip netns <span class="built_in">exec</span> ns-2 ip route add default via 10.22.0.1 dev eth0</span><br></pre></td></tr></table></figure>
-<p>随后对 iptables nat 的 masquerade 做配置，确保它能与宿主机外的节点通信</p>
+<p>随后对 iptables nat 的 masquerade 做配置，确保它能与外部网络通信</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A POSTROUTING -s 10.22.0.6/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
 <p>由于还添加了 firewalls 插件，它会允许同一节点上不同网络命名空间之前的通信</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -A FORWARD -s 10.22.0.6/16 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -d 10.22.0.6/16 -j ACCEPT</span><br></pre></td></tr></table></figure>
@@ -215,7 +215,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/" data-id="cknu7yos4001ob7vglbpnpv1a" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/" data-id="cknu8br2u001u4ovgepn20iqa" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/containerd/">containerd</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
