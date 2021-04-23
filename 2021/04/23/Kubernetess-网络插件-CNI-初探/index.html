@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kubernetess 网络插件 CNI 初探 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="仅仅是初步学习一下 CNI 的运作流程">
+<meta name="keywords" content="容器,CNI,containerd">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetess 网络插件 CNI 初探">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="仅仅是初步学习一下 CNI 的运作流程">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2021-04-23T11:10:02.380Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetess 网络插件 CNI 初探">
+<meta name="twitter:description" content="仅仅是初步学习一下 CNI 的运作流程">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>170</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>62</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Kubernetess-网络插件-CNI-初探" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/04/23/Kubernetess-网络插件-CNI-初探/" class="article-date">
+  <time class="post-time" datetime="2021-04-23T10:38:44.000Z" itemprop="datePublished">
+    <span class="post-month">4月</span><br/>
+    <span class="post-day">23</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kubernetess 网络插件 CNI 初探
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>仅仅是初步学习一下 CNI 的运作流程</p>
+<a id="more"></a>
+<h2 id="Ref"><a href="#Ref" class="headerlink" title="Ref"></a>Ref</h2><ul>
+<li><a href="https://github.com/containernetworking/cni/blob/master/SPEC.md" target="_blank" rel="noopener">https://github.com/containernetworking/cni/blob/master/SPEC.md</a></li>
+<li><a href="https://github.com/containernetworking/plugins" target="_blank" rel="noopener">https://github.com/containernetworking/plugins</a></li>
+<li><a href="https://github.com/containerd/containerd" target="_blank" rel="noopener">https://github.com/containerd/containerd</a></li>
+<li><a href="https://github.com/containerd/go-cni" target="_blank" rel="noopener">https://github.com/containerd/go-cni</a></li>
+<li><a href="https://github.com/eranyanay/cni-from-scratch" target="_blank" rel="noopener">https://github.com/eranyanay/cni-from-scratch</a></li>
+<li><a href="https://blog.hdls.me/16131164540989.html" target="_blank" rel="noopener">https://blog.hdls.me/16131164540989.html</a></li>
+<li><a href="https://morven.life/posts/write_your_own_cni_with_golang/" target="_blank" rel="noopener">https://morven.life/posts/write_your_own_cni_with_golang/</a></li>
+</ul>
+<hr>
+<h2 id="CNI-作用"><a href="#CNI-作用" class="headerlink" title="CNI 作用"></a>CNI 作用</h2><p>推荐这个视频 <a href="https://www.youtube.com/watch?v=zmYxdtFzK6s" target="_blank" rel="noopener">Youtube: Kubernetes Networking: How to Write a CNI Plugin From Scratch - Eran Yanay, Twistlock</a>  ，作者用 bash 写了一个 cni <a href="https://github.com/eranyanay/cni-from-scratch" target="_blank" rel="noopener">https://github.com/eranyanay/cni-from-scratch </a>。</p>
+<p>假设 Pod 中只有一个容器，我对于 Kubernetes 启动一个 Pod 的流程的理解如下：</p>
+<ol>
+<li>首先，会先启动一个 pause 容器，Pod 的各种命名空间都是由它来创建的。</li>
+<li>调用 CNI 插件为这个网络命名空间进行相关配置，例如 ip、路由，并确保之后各个网络命名空间之间可以互相通信。</li>
+<li>启动容器，将其将入到 pause 容器的网络命名空间中。</li>
+</ol>
+<p>所以我觉得，CNI 的本质作用是对一个网络命名空间做一些配置，并在后续管理容器流量，确保集群中各个网络命名空间之间可以互相通信。</p>
+<p>同一宿主机上不同网络命名空间通信最简单是采用 bridge 模式，也就是使用 veth pair 将所有的网络命名空间都与宿主机网络命名空间中的一个网桥连接，这个网络起到了一个交换机的作用。关于如何模拟这种行为的见我之前写过的一篇博文 <a href="https://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/">veth + iptables 模拟 Docker 网络 Bridge 模式</a>。</p>
+<p>CNI 的官方 Github 仓库给出了 CNI 的规范 <a href="https://github.com/containernetworking/cni/blob/master/SPEC.md" target="_blank" rel="noopener">https://github.com/containernetworking/cni/blob/master/SPEC.md</a>，主要内容大致分为两部分：</p>
+<ol>
+<li>CNI 网络插件与调用者交互的方式和输入输出格式</li>
+<li>CNI 网络插件需要实现的功能</li>
+</ol>
+<p>在仓库<a href="https://github.com/containernetworking/plugins" target="_blank" rel="noopener"> https://github.com/containernetworking/plugins</a> 中给出了一些样例插件，例如 bridge <a href="https://github.com/containernetworking/plugins/blob/master/plugins/main/bridge" target="_blank" rel="noopener"> https://github.com/containernetworking/plugins/blob/master/plugins/main/bridge</a>。网上还有一些供人学习的 CNI 样例插件，比如说这个用 Bash 实现的 <a href="https://github.com/eranyanay/cni-from-scratch" target="_blank" rel="noopener">https://github.com/eranyanay/cni-from-scratch</a>。</p>
+<hr>
+<h2 id="使用-CNI"><a href="#使用-CNI" class="headerlink" title="使用 CNI"></a>使用 CNI</h2><p>这里做一个实验，实验不需要搭建 Kubernetes 集群，流程如下：</p>
+<ol>
+<li>首先，创建两个网络命名空间 ns-2，ns-3</li>
+<li>使用 CNI 网络插件 bridge 对 ns-2，ns-3 进行配置</li>
+<li>使用 containerd 启动一个 nginx 容器并加入至 ns-2 中</li>
+<li>测试在宿主机以及 ns-3 中是否可以访问 ns-2 中的 nginx</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────┐</span><br><span class="line">│  ns-2                      ns-3             │</span><br><span class="line">│ ┌───────────────┐         ┌───────────────┐ │</span><br><span class="line">│ │  ┌─────────┐  │         │               │ │</span><br><span class="line">│ │  │ Nginx   │  │         │               │ │</span><br><span class="line">│ │  └─────────┘  │         │               │ │</span><br><span class="line">│ └───────────────┘         └───────────────┘ │</span><br><span class="line">└─────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+<p>环境：ubuntu 16.04，root用户</p>
+<h3 id="创建命名空间"><a href="#创建命名空间" class="headerlink" title="创建命名空间"></a>创建命名空间</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip netns add ns-2</span><br><span class="line">ip netns add ns-3</span><br></pre></td></tr></table></figure>
+<p>检查是否创建成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ip netns list</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">ls /var/run/netns/</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="使用-CNI-进行配置"><a href="#使用-CNI-进行配置" class="headerlink" title="使用 CNI 进行配置"></a>使用 CNI 进行配置</h3><p>编译 <a href="https://github.com/containernetworking/cni" target="_blank" rel="noopener">https://github.com/containernetworking/cni</a> 中的插件过程在链接仓库的 README.md 中有详细说明，这里不再赘述。这里 CNI 插件最终存放在 /opt/cni/bin 目录下</p>
+<p>这里使用 <a href="https://github.com/containerd/go-cni" target="_blank" rel="noopener">https://github.com/containerd/go-cni </a> 对 CNI 插件进行操作，代码如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"context"</span></span><br><span class="line">	<span class="string">"flag"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"log"</span></span><br><span class="line">	<span class="string">"os"</span></span><br><span class="line">	<span class="string">"os/signal"</span></span><br><span class="line">	<span class="string">"strconv"</span></span><br><span class="line"></span><br><span class="line">	gocni <span class="string">"github.com/containerd/go-cni"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> idF = flag.Int(<span class="string">"id"</span>, <span class="number">2</span>, <span class="string">"网络命名空间的编号"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">	flag.Parse()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	id := *idF</span><br><span class="line">	netns := fmt.Sprintf(<span class="string">"/var/run/netns/ns-%d"</span>, id)</span><br><span class="line"></span><br><span class="line">	l, err := gocni.New(</span><br><span class="line">		gocni.WithMinNetworkCount(<span class="number">2</span>),</span><br><span class="line">		gocni.WithPluginDir([]<span class="keyword">string</span>&#123;<span class="string">"/opt/cni/bin"</span>&#125;),</span><br><span class="line">		gocni.WithInterfacePrefix(<span class="string">"eth"</span>))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"failed to initialize cni library: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := l.Load(gocni.WithLoNetwork, gocni.WithConfListFile(<span class="string">"/etc/cni/net.d/10-c.conf"</span>)); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"failed to load cni configuration: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	ctx := context.Background()</span><br><span class="line">	<span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		<span class="keyword">if</span> err := l.Remove(ctx, strconv.Itoa(id), netns); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Fatalf(<span class="string">"failed to teardown network: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	result, err := l.Setup(ctx, strconv.Itoa(id), netns)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalf(<span class="string">"failed to setup network for namespace: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> key, iff := <span class="keyword">range</span> result.Interfaces &#123;</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(iff.IPConfigs) &gt; <span class="number">0</span> &#123;</span><br><span class="line">			IP := iff.IPConfigs[<span class="number">0</span>].IP.String()</span><br><span class="line">			fmt.Printf(<span class="string">"IP of the interface %s:%s\n"</span>, key, IP)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">	signal.Notify(ch, os.Interrupt)</span><br><span class="line">	&lt;-ch</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置文件 /etc/cni/net.d/10-c.conf 如下</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">        <span class="attr">"cniVersion"</span>: <span class="string">"0.4.0"</span>,</span><br><span class="line">        <span class="attr">"name"</span>: <span class="string">"hdls-net"</span>,</span><br><span class="line">        <span class="attr">"plugins"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="attr">"type"</span>: <span class="string">"bridge"</span>,</span><br><span class="line">                <span class="attr">"bridge"</span>: <span class="string">"cni0"</span>,</span><br><span class="line">                <span class="attr">"isGateway"</span>: <span class="literal">true</span>,</span><br><span class="line">                <span class="attr">"ipMasq"</span>: <span class="literal">true</span>,</span><br><span class="line">                <span class="attr">"ipam"</span>: &#123;</span><br><span class="line">                        <span class="attr">"type"</span>: <span class="string">"host-local"</span>,</span><br><span class="line">                        <span class="attr">"subnet"</span>: <span class="string">"10.22.0.0/16"</span>,</span><br><span class="line">                        <span class="attr">"routes"</span>: [</span><br><span class="line">                        &#123; <span class="attr">"dst"</span>: <span class="string">"0.0.0.0/0"</span> &#125;</span><br><span class="line">                        ]</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">                <span class="attr">"type"</span>: <span class="string">"firewall"</span>,</span><br><span class="line">                <span class="attr">"backend"</span>: <span class="string">"iptables"</span></span><br><span class="line">        &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打开两个终端分别执行如下命令对网络命名空间进行配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./program -id 2</span><br><span class="line">./program -id 3</span><br></pre></td></tr></table></figure>
+<p>会看到相关的 ip 输出，我这里输出的分别是是10.22.0.6 和 10.22.0.7</p>
+<p>上述配置文件中添加了 “filewall” 的原因是 <a href="https://serverfault.com/questions/162366/iptables-bridge-and-forward-chain" target="_blank" rel="noopener">https://serverfault.com/questions/162366/iptables-bridge-and-forward-chain </a> ，可以执行如下命令插件新增的 iptable filter 规则：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter -L -n</span><br></pre></td></tr></table></figure>
+<p>部分输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Chain FORWARD (policy ACCEPT)</span><br><span class="line">target     prot opt source               destination         </span><br><span class="line">CNI-FORWARD  all  --  0.0.0.0/0            0.0.0.0/0            /* CNI firewall plugin rules */</span><br><span class="line"></span><br><span class="line">Chain CNI-FORWARD (1 references)</span><br><span class="line">target     prot opt source               destination         </span><br><span class="line">CNI-ADMIN  all  --  0.0.0.0/0            0.0.0.0/0            /* CNI firewall plugin rules */</span><br><span class="line">ACCEPT     all  --  0.0.0.0/0            10.22.0.6            ctstate RELATED,ESTABLISHED</span><br><span class="line">ACCEPT     all  --  10.22.0.6            0.0.0.0/0           </span><br><span class="line">ACCEPT     all  --  0.0.0.0/0            10.22.0.7            ctstate RELATED,ESTABLISHED</span><br><span class="line">ACCEPT     all  --  10.22.0.7            0.0.0.0/0</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="创建容器"><a href="#创建容器" class="headerlink" title="创建容器"></a>创建容器</h3><p><a href="https://github.com/containerd/containerd" target="_blank" rel="noopener">containerd</a> 是一个容器运行时，它提供了相关的 SDK 供第三方程序与其交互。containerd 的二进制程序可以直接<a href="https://github.com/containerd/containerd/releases" target="_blank" rel="noopener">从 github 上下载它编译好的文件</a>，或者直接自己编译，具体过程不再赘述。</p>
+<p>启动容器的代码如下，注意，运行此代码时 containerd 需要启动，且这里已经写死了容器使用的网络命名空间是 “/var/run/netns/ns-2” 以及使用的容器镜像是 “docker.io/library/nginx:alpine”</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"context"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"os"</span></span><br><span class="line">	<span class="string">"os/signal"</span></span><br><span class="line">	<span class="string">"syscall"</span></span><br><span class="line">  </span><br><span class="line">	<span class="string">"github.com/containerd/containerd"</span></span><br><span class="line">	<span class="string">"github.com/containerd/containerd/cio"</span></span><br><span class="line">	<span class="string">"github.com/containerd/containerd/log"</span></span><br><span class="line">	<span class="string">"github.com/containerd/containerd/namespaces"</span></span><br><span class="line">	<span class="string">"github.com/containerd/containerd/oci"</span></span><br><span class="line">  <span class="string">"github.com/opencontainers/runtime-spec/specs-go"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := createAndRunContainer(<span class="string">"/var/run/netns/ns-2"</span>, <span class="string">"app1"</span>, <span class="string">"docker.io/library/nginx:alpine"</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.G(context.TODO()).Errorf(<span class="string">"%+v\n"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">createAndRunContainer</span><span class="params">(netNSPath <span class="keyword">string</span>, containerID <span class="keyword">string</span>, image <span class="keyword">string</span>)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		client      *containerd.Client</span><br><span class="line">		appImage    containerd.Image</span><br><span class="line">		app1        containerd.Container</span><br><span class="line">		task        containerd.Task</span><br><span class="line">		exitStatusC &lt;-<span class="keyword">chan</span> containerd.ExitStatus</span><br><span class="line">	)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> client, err = containerd.New(<span class="string">"/run/containerd/containerd.sock"</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> client.Close()</span><br><span class="line"></span><br><span class="line">	ctx := namespaces.WithNamespace(context.Background(), <span class="string">"example"</span>)</span><br><span class="line">	<span class="keyword">if</span> appImage, err = client.Pull(ctx, image, containerd.WithPullUnpack); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	app1, err = client.NewContainer(ctx, containerID,</span><br><span class="line">		containerd.WithImage(appImage),</span><br><span class="line">		containerd.WithNewSnapshot(fmt.Sprintf(<span class="string">"%s-snapshot"</span>, containerID), appImage),</span><br><span class="line">		containerd.WithNewSpec(</span><br><span class="line">			oci.WithImageConfig(appImage),</span><br><span class="line">			oci.WithLinuxNamespace(specs.LinuxNamespace&#123;</span><br><span class="line">				Type: specs.NetworkNamespace,</span><br><span class="line">				Path: netNSPath,</span><br><span class="line">			&#125;),</span><br><span class="line">		),</span><br><span class="line">	)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> app1.Delete(ctx, containerd.WithSnapshotCleanup)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> task, err = app1.NewTask(ctx, cio.NewCreator(cio.WithStdio)); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> task.Delete(ctx)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> exitStatusC, err = task.Wait(ctx); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		ch := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">		signal.Notify(ch, os.Interrupt, os.Kill)</span><br><span class="line">		&lt;-ch</span><br><span class="line">		_ = task.Kill(ctx, syscall.SIGTERM)</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err = task.Start(ctx); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	_, _, err = (&lt;-exitStatusC).Result()</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="网络连通性测试"><a href="#网络连通性测试" class="headerlink" title="网络连通性测试"></a>网络连通性测试</h3><p>从 ns-3 中访问 nginx</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">从 ns-3 中访问 nginx</span><br></pre></td></tr></table></figure>
+<p>从宿主机中访问 nginx</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl 10.22.0.6</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="CNI-都干了啥"><a href="#CNI-都干了啥" class="headerlink" title="CNI 都干了啥"></a>CNI 都干了啥</h2><p>这里跳过了处理输入和输出的步骤，仅仅是大致模拟一遍 bridge 模式的网络配置流程。需要使用到 ip、brctl 工具。仅模拟配置 ns-2 的过程（没有配置 DNS）</p>
+<p>首先，如果 cni0 不存在的话先要创建个 cni0 网桥，并将网桥配置为网关</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">brctl addbr cni0</span><br><span class="line">ip link <span class="built_in">set</span> cni0 up</span><br><span class="line">ip addr add 10.22.0.1/16 dev cni0</span><br><span class="line">route add -net 10.22.0.0/16 dev cni0</span><br></pre></td></tr></table></figure>
+<p>随后，创建 veth pair，一边放到 ns-2 网络命名空间中，另一端连在 cni0 网桥上</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ip link add eth0 <span class="built_in">type</span> veth peer name veth_ns-2</span><br><span class="line">ip link <span class="built_in">set</span> eth0 netns ns-2</span><br><span class="line">ifconfig veth_ns-2 up</span><br><span class="line">brctl addif cni0 veth_ns-2</span><br></pre></td></tr></table></figure>
+<p>然后进入到 ns-2 中配置 ip 和路由，这里忽略了调用 ipam 生成 ip 的过程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip netns <span class="built_in">exec</span> ns-2 ifconfig eth0 10.22.0.6/16 up</span><br><span class="line">ip netns <span class="built_in">exec</span> ns-2 ip route add default via 10.22.0.1 dev eth0</span><br></pre></td></tr></table></figure>
+<p>随后对 iptables nat 的 masquerade 做配置，确保它能与宿主机外的节点通信</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A POSTROUTING -s 10.22.0.6/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+<p>由于还添加了 firewalls 插件，它会允许同一节点上不同网络命名空间之前的通信</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -A FORWARD -s 10.22.0.6/16 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -d 10.22.0.6/16 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>对于 ns-3 同理，配置如下，不再详细介绍了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ip link add eth0 <span class="built_in">type</span> veth peer name veth_ns-3</span><br><span class="line">ip link <span class="built_in">set</span> eth0 netns ns-3</span><br><span class="line">ifconfig veth_ns-3 up</span><br><span class="line">brctl addif cni0 veth_ns-3</span><br><span class="line">ip netns <span class="built_in">exec</span> ns-3 ifconfig eth0 10.22.0.7/16 up</span><br><span class="line">ip netns <span class="built_in">exec</span> ns-3 ip route add default via 10.22.0.1 dev eth0</span><br><span class="line">iptables -t nat -A POSTROUTING -s 10.22.0.7/16 -j MASQUERADE</span><br><span class="line">iptables -A FORWARD -s 10.22.0.7/16 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -d 10.22.0.7/16 -j ACCEPT</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/" data-id="cknu7pk3p0020dqvg1iffi43v" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/containerd/">containerd</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/04/22/2021暑期实习总结/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2021暑期实习总结</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>170</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>62</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
