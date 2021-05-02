@@ -6,14 +6,14 @@
   <title>Kubernetes 网络插件 CNI 初探 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="仅仅是初步学习一下 CNI 的运作流程">
-<meta name="keywords" content="容器,CNI,containerd">
+<meta name="keywords" content="CNI,容器,containerd">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kubernetes 网络插件 CNI 初探">
-<meta property="og:url" content="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/index.html">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/04/23/Kubernetes-网络插件-CNI-初探/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="仅仅是初步学习一下 CNI 的运作流程">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2021-04-23T11:27:15.015Z">
+<meta property="og:updated_time" content="2021-04-23T11:54:03.679Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kubernetes 网络插件 CNI 初探">
 <meta name="twitter:description" content="仅仅是初步学习一下 CNI 的运作流程">
@@ -61,7 +61,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>170</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>171</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>62</strong><br>标签</div></a>
     </div>
@@ -99,9 +99,9 @@
   </div>
 </div>
 
-        <section id="main"><article id="post-Kubernetess-网络插件-CNI-初探" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-Kubernetes-网络插件-CNI-初探" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2021/04/23/Kubernetess-网络插件-CNI-初探/" class="article-date">
+    <a href="/2021/04/23/Kubernetes-网络插件-CNI-初探/" class="article-date">
   <time class="post-time" datetime="2021-04-23T10:38:44.000Z" itemprop="datePublished">
     <span class="post-month">4月</span><br/>
     <span class="post-day">23</span>
@@ -211,11 +211,13 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -A FORWARD -s 10.22.0.6/16 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -d 10.22.0.6/16 -j ACCEPT</span><br></pre></td></tr></table></figure>
 <p>对于 ns-3 同理，配置如下，不再详细介绍了</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ip link add eth0 <span class="built_in">type</span> veth peer name veth_ns-3</span><br><span class="line">ip link <span class="built_in">set</span> eth0 netns ns-3</span><br><span class="line">ifconfig veth_ns-3 up</span><br><span class="line">brctl addif cni0 veth_ns-3</span><br><span class="line">ip netns <span class="built_in">exec</span> ns-3 ifconfig eth0 10.22.0.7/16 up</span><br><span class="line">ip netns <span class="built_in">exec</span> ns-3 ip route add default via 10.22.0.1 dev eth0</span><br><span class="line">iptables -t nat -A POSTROUTING -s 10.22.0.7/16 -j MASQUERADE</span><br><span class="line">iptables -A FORWARD -s 10.22.0.7/16 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -d 10.22.0.7/16 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>跨节点还需要做额外的路由配置，例如</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip route add &lt;other node ns cidr&gt; via &lt;host ip&gt; dev &lt;host <span class="keyword">if</span>&gt;</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetess-网络插件-CNI-初探/" data-id="cknu8br2u001u4ovgepn20iqa" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetes-网络插件-CNI-初探/" data-id="cko6tg81p001ov6vg7hs1x65s" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/containerd/">containerd</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
@@ -225,6 +227,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2021/05/02/CNI-插件-flannel-vxlan-使用实操/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          CNI 插件 flannel-vxlan 使用实操
+        
+      </div>
+    </a>
   
   
     <a href="/2021/04/22/2021暑期实习总结/" id="article-nav-older" class="article-nav-link-wrap">
@@ -308,7 +319,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>170</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>171</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>62</strong><br>标签</div></a>
     </div>
