@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kubebuilder 初体验 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="基于 视频教程：k8s二次开发operator 学习 kubebuilder 的基础操作">
+<meta name="keywords" content="Kubernetes,Kubebuilder">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubebuilder 初体验">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/05/07/kubebuilder-初体验/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="基于 视频教程：k8s二次开发operator 学习 kubebuilder 的基础操作">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2021-05-07T06:04:09.773Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kubebuilder 初体验">
+<meta name="twitter:description" content="基于 视频教程：k8s二次开发operator 学习 kubebuilder 的基础操作">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>172</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>63</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kubebuilder-初体验" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/05/07/kubebuilder-初体验/" class="article-date">
+  <time class="post-time" datetime="2021-05-07T06:03:00.000Z" itemprop="datePublished">
+    <span class="post-month">5月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kubebuilder 初体验
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>基于 <a href="https://www.bilibili.com/video/BV1zE411j7ky" target="_blank" rel="noopener">视频教程：k8s二次开发operator</a> 学习 kubebuilder 的基础操作</p>
+<a id="more"></a>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>kubebuilder: v3.0.0</li>
+<li>kubernetes api: v1.19.2</li>
+</ul>
+<hr>
+<h2 id="项目初始化"><a href="#项目初始化" class="headerlink" title="项目初始化"></a>项目初始化</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始化 go mod</span></span><br><span class="line">go mod init github.com/schwarzeni/kubebuilder-imoocpo</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化项目骨架</span></span><br><span class="line">kubebuilder init --domain schwarzeni.github.com</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化 CRD，两个确认都是 y</span></span><br><span class="line">kubebuilder create api --group batch --version v1alpha1 --kind ImoocPod</span><br></pre></td></tr></table></figure>
+<p>此时 kubebuilder 已经生成了相关的项目骨架和代码文件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── Dockerfile</span><br><span class="line">├── Makefile</span><br><span class="line">├── PROJECT</span><br><span class="line">├── api</span><br><span class="line">│   └── v1alpha1</span><br><span class="line">│       ├── groupversion_info.go</span><br><span class="line">│       ├── imoocpod_types.go</span><br><span class="line">│       └── zz_generated.deepcopy.go</span><br><span class="line">├── bin</span><br><span class="line">│   └── controller-gen</span><br><span class="line">├── config</span><br><span class="line">│   ├── crd</span><br><span class="line">│   │   ├── kustomization.yaml</span><br><span class="line">│   │   ├── kustomizeconfig.yaml</span><br><span class="line">│   │   └── patches</span><br><span class="line">│   │       ├── cainjection_in_imoocpods.yaml</span><br><span class="line">│   │       └── webhook_in_imoocpods.yaml</span><br><span class="line">│   ├── default</span><br><span class="line">│   │   ├── kustomization.yaml</span><br><span class="line">│   │   ├── manager_auth_proxy_patch.yaml</span><br><span class="line">│   │   └── manager_config_patch.yaml</span><br><span class="line">│   ├── manager</span><br><span class="line">│   │   ├── controller_manager_config.yaml</span><br><span class="line">│   │   ├── kustomization.yaml</span><br><span class="line">│   │   └── manager.yaml</span><br><span class="line">│   ├── prometheus</span><br><span class="line">│   │   └── ...</span><br><span class="line">│   ├── rbac</span><br><span class="line">│   │   └── ...</span><br><span class="line">│   └── samples</span><br><span class="line">│       └── batch_v1alpha1_imoocpod.yaml</span><br><span class="line">├── controllers</span><br><span class="line">│   ├── imoocpod_controller.go</span><br><span class="line">│   └── suite_test.go</span><br><span class="line">├── go.mod</span><br><span class="line">├── go.sum</span><br><span class="line">├── hack</span><br><span class="line">│   └── ...</span><br><span class="line">└── main.go</span><br></pre></td></tr></table></figure>
+<p><code>api/v1alpha1/imoocpod_types.go</code> 定义了 ImoocPod 的 CRD，执行命令如下命令生成 CRD 定义的 yaml 文件，文件位置在 <code>config/crd/bases/batch.schwarzeni.github.com_imoocpods.yaml</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make manifests</span><br></pre></td></tr></table></figure>
+<p>之后使用 kubectl 将此 CRD 定义 apply 到 k8s 上</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f config/crd/bases/batch.schwarzeni.github.com_imoocpods.yaml</span><br></pre></td></tr></table></figure>
+<p>执行如下命令在本地运行 controller</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make run</span><br></pre></td></tr></table></figure>
+<p>执行如下命令构建 controller 镜像，第一次执行的时候需要下载相关依赖，所以速度比较慢</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALL_PROXY=http://xxx:xxx make docker-build docker-push IMG=10.211.55.2:10000/imooc-operator:v1</span><br></pre></td></tr></table></figure>
+<p>注1：这里使用了本地 registry，ip 为 10.211.55.2，由于不是 https 通信，所以需要对容器运行时做相应的设置，这里使用的是 Docker，相关 insecure-registry 的配置见官网文档：<a href="https://docs.docker.com/registry/insecure/" target="_blank" rel="noopener">https://docs.docker.com/registry/insecure/</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d -p 10000:5000 --restart always --name registry registry:2.7</span><br></pre></td></tr></table></figure>
+<p>注2：在构建时需要访问某些需要梯子的网络资源，这里使用了 ALL_PROXY 代理，最好也为 Docker 镜像仓库找一个国内的镜像仓库</p>
+<p>构建完毕后执行如下命名将 ImoocPod 的 Operator 部署至 k8s 集群</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ALL_PROXY=http://xxx:xxx  make deploy IMG=10.211.55.2:10000/imooc-operator:v1</span><br></pre></td></tr></table></figure>
+<p>部署结束后，查看集群相关信息。首先，查看集群命名空间，会发现多出了 <code>kubebuilder-imoocpod-system</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get ns</span><br></pre></td></tr></table></figure>
+<p>查看相关的 deployment，会发现已经成功部署了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get deployment -n kubebuilder-imoocpod-system</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE</span><br><span class="line">kubebuilder-imoocpod-controller-manager   1/1     1            1           115s</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="使用-CRD-与-Pod-关联"><a href="#使用-CRD-与-Pod-关联" class="headerlink" title="使用 CRD 与 Pod 关联"></a>使用 CRD 与 Pod 关联</h2><p>下面对 Controller 的对 CRD 的编排逻辑进行编码，效果为，每启动一个 ImoocPod，都会在相同的命名空间下启动一个 busybox 的 Pod。这里对 <code>controllers/imoocpod_controller.go</code> 中的 <code>ImoocPodReconciler.Reconcile</code> 进行编写</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *ImoocPodReconciler)</span> <span class="title">Reconcile</span><span class="params">(ctx context.Context, req ctrl.Request)</span> <span class="params">(ctrl.Result, error)</span></span> &#123;</span><br><span class="line">  logger := r.Log.WithValues(<span class="string">"imoocpod"</span>, req.NamespacedName)</span><br><span class="line">  logger.Info(<span class="string">"start reconcile"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// your logic here</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// fetch the ImoocPod instance</span></span><br><span class="line">  instance := &amp;batchv1alpha1.ImoocPod&#123;&#125;</span><br><span class="line">  <span class="keyword">if</span> err := r.Client.Get(ctx, req.NamespacedName, instance); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> errors.IsNotFound(err) &#123;</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Define a new Pod object</span></span><br><span class="line">  pod := newPodForCR(instance)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Set ImoocPod instance as the owner and controller</span></span><br><span class="line">  <span class="keyword">if</span> err := controllerutil.SetControllerReference(instance, pod, r.Scheme); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Check if this Pod already exists</span></span><br><span class="line">  found := &amp;corev1.Pod&#123;&#125;</span><br><span class="line">  logger.Info(<span class="string">"try to retrieve pods "</span> + pod.Name + <span class="string">" "</span> + pod.Namespace)</span><br><span class="line">  err := r.Client.Get(ctx, types.NamespacedName&#123;Name: pod.Name, Namespace: pod.Namespace&#125;, found)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &amp;&amp; errors.IsNotFound(err) &#123;</span><br><span class="line">    logger.Info(<span class="string">"Create a new Pod "</span> + pod.Name)</span><br><span class="line">    <span class="keyword">if</span> err := r.Client.Create(ctx, pod); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ctrl.Result&#123;&#125;, <span class="literal">nil</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  logger.Info(<span class="string">"skip reconcile: Pod already exists"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ctrl.Result&#123;&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newPodForCR</span><span class="params">(cr *batchv1alpha1.ImoocPod)</span> *<span class="title">corev1</span>.<span class="title">Pod</span></span> &#123;</span><br><span class="line">  labels := <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;<span class="string">"app"</span>: cr.Name&#125;</span><br><span class="line">  <span class="keyword">return</span> &amp;corev1.Pod&#123;</span><br><span class="line">    ObjectMeta: metav1.ObjectMeta&#123;</span><br><span class="line">      Name:      cr.Name + <span class="string">"-pod"</span>,</span><br><span class="line">      Namespace: cr.Namespace,</span><br><span class="line">      Labels:    labels,</span><br><span class="line">    &#125;,</span><br><span class="line">    Spec: corev1.PodSpec&#123;</span><br><span class="line">      Containers: []corev1.Container&#123;</span><br><span class="line">        &#123;</span><br><span class="line">          Name:    <span class="string">"busybox"</span>,</span><br><span class="line">          Image:   <span class="string">"busybox"</span>,</span><br><span class="line">          Command: []<span class="keyword">string</span>&#123;<span class="string">"sleep"</span>, <span class="string">"3600"</span>&#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同时，需要为其添加操作 Pod 相关的 RBAC 权限</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete</span></span><br><span class="line"><span class="comment">//+kubebuilder:rbac:groups="",resources=pods/status,verbs=get</span></span><br></pre></td></tr></table></figure>
+<p>再次将其部署至 k8s 集群中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make docker-build docker-push IMG=10.211.55.2:10000/imooc-operator:v2</span><br><span class="line">make deploy IMG=10.211.55.2:10000/imooc-operator:v2</span><br></pre></td></tr></table></figure>
+<p>尝试部署一个 CRD</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f config/samples/batch_v1alpha1_imoocpod.yaml  -n kubebuilder-imoocpod-system</span><br></pre></td></tr></table></figure>
+<p>查看相关的 Pod</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods -n kubebuilder-imoocpod-system</span><br></pre></td></tr></table></figure>
+<p>输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NAME                                                      READY   STATUS    RESTARTS   AGE</span><br><span class="line">imoocpod-sample-pod                                       1/1     Running   0          56s</span><br><span class="line">kubebuilder-imoocpod-controller-manager-665768c6b-v4xlk   2/2     Running   0          2m8s</span><br></pre></td></tr></table></figure>
+<p>清空相关的部署</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl delete -f config/samples/batch_v1alpha1_imoocpod.yaml  -n kubebuilder-imoocpod-system</span><br><span class="line">make undeploy IMG=10.211.55.2:10000/imooc-operator:v2</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="使用-CRD-与多个-Pod-关联"><a href="#使用-CRD-与多个-Pod-关联" class="headerlink" title="使用 CRD 与多个 Pod 关联"></a>使用 CRD 与多个 Pod 关联</h2><p>尝试实现这样的功能：CRD 指定 busybox Pod 的个数，当 CRD 更新时，Pod 的个数也会做相应的更新。</p>
+<p>CRD 结构设计如下: <code>api/v1alpha1/imoocpod_types.go</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ImoocPodSpec defines the desired state of ImoocPod</span></span><br><span class="line"><span class="keyword">type</span> ImoocPodSpec <span class="keyword">struct</span> &#123;</span><br><span class="line">        <span class="comment">// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster</span></span><br><span class="line">        <span class="comment">// Important: Run "make" to regenerate code after modifying this file</span></span><br><span class="line"></span><br><span class="line">        Replicas <span class="keyword">int</span> <span class="string">`json:"replicas"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ImoocPodStatus defines the observed state of ImoocPod</span></span><br><span class="line"><span class="keyword">type</span> ImoocPodStatus <span class="keyword">struct</span> &#123;</span><br><span class="line">        <span class="comment">// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster</span></span><br><span class="line">        <span class="comment">// Important: Run "make" to regenerate code after modifying this file</span></span><br><span class="line"></span><br><span class="line">        Replicas <span class="keyword">int</span>      <span class="string">`json:"replicas"`</span></span><br><span class="line">        PodNames []<span class="keyword">string</span> <span class="string">`json:"podNames"`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ImoocPodSpec 表示预期的状态，而 ImoocPodStatus 表示系统的真实状态</p>
+<p>执行命令更新 CRD 定义的 yaml 文件 <code>config/crd/bases/batch.schwarzeni.github.com_imoocpods.yaml</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make manifests</span><br></pre></td></tr></table></figure>
+<p>对 <code>controllers/imoocpod_controller.go</code> 中的 <code>ImoocPodReconciler.Reconcile</code> 进行编写</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *ImoocPodReconciler)</span> <span class="title">Reconcile</span><span class="params">(ctx context.Context, req ctrl.Request)</span> <span class="params">(ctrl.Result, error)</span></span> &#123;</span><br><span class="line">  logger := r.Log.WithValues(<span class="string">"imoocpod"</span>, req.NamespacedName)</span><br><span class="line">  logger.Info(<span class="string">"start reconcile"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// fetch the ImoocPod instance</span></span><br><span class="line">  instance := &amp;batchv1alpha1.ImoocPod&#123;&#125;</span><br><span class="line">  <span class="keyword">if</span> err := r.Client.Get(ctx, req.NamespacedName, instance); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> errors.IsNotFound(err) &#123;</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, <span class="literal">nil</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 1. 获取 name 对应的所有的 pod 的列表</span></span><br><span class="line">  lbls := labels.Set&#123;<span class="string">"app"</span>: instance.Name&#125;</span><br><span class="line">  existingPods := &amp;corev1.PodList&#123;&#125;</span><br><span class="line">  <span class="keyword">if</span> err := r.Client.List(ctx, existingPods, &amp;client.ListOptions&#123;</span><br><span class="line">    Namespace: req.Namespace, LabelSelector: labels.SelectorFromSet(lbls)&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    logger.Error(err, <span class="string">"fetching existing pods failed"</span>)</span><br><span class="line">    <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 获取 pod 列表中的 pod name</span></span><br><span class="line">  <span class="keyword">var</span> existingPodNames []<span class="keyword">string</span></span><br><span class="line">  <span class="keyword">for</span> _, pod := <span class="keyword">range</span> existingPods.Items &#123;</span><br><span class="line">    <span class="keyword">if</span> pod.GetObjectMeta().GetDeletionTimestamp() != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> pod.Status.Phase == corev1.PodRunning || pod.Status.Phase == corev1.PodPending &#123;</span><br><span class="line">      existingPodNames = <span class="built_in">append</span>(existingPodNames, pod.GetObjectMeta().GetName())</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 更新当前状态信息</span></span><br><span class="line">  currStatus := batchv1alpha1.ImoocPodStatus&#123;</span><br><span class="line">    Replicas: <span class="built_in">len</span>(existingPodNames),</span><br><span class="line">    PodNames: existingPodNames,</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> !reflect.DeepEqual(instance.Status, currStatus) &#123;</span><br><span class="line">    instance.Status = currStatus</span><br><span class="line">    <span class="keyword">if</span> err := r.Client.Status().Update(ctx, instance); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      logger.Error(err, <span class="string">"update pod failed"</span>)</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 4. pod.Spec.Replicas &gt; 运行中的 len(pod.replicas)，比期望值小，需要 scale up create</span></span><br><span class="line">  <span class="keyword">if</span> instance.Spec.Replicas &gt; <span class="built_in">len</span>(existingPodNames) &#123;</span><br><span class="line">    logger.Info(fmt.Sprintf(<span class="string">"creating pod, current and expected num: %d %d"</span>, <span class="built_in">len</span>(existingPodNames), instance.Spec.Replicas))</span><br><span class="line">    pod := newPodForCR(instance)</span><br><span class="line">    <span class="keyword">if</span> err := controllerutil.SetControllerReference(instance, pod, r.Scheme); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      logger.Error(err, <span class="string">"scale up failed: SetControllerReference"</span>)</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> err := r.Client.Create(ctx, pod); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      logger.Error(err, <span class="string">"scale up failed: create pod"</span>)</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5. pod.Spec.Replicas &lt; 运行中的 len(pod.replicas)，比期望值大，需要 scale down delete</span></span><br><span class="line">  <span class="keyword">if</span> instance.Spec.Replicas &lt; <span class="built_in">len</span>(existingPodNames) &#123;</span><br><span class="line">    logger.Info(fmt.Sprintf(<span class="string">"deleting pod, current and expected num: %d %d"</span>, <span class="built_in">len</span>(existingPodNames), instance.Spec.Replicas))</span><br><span class="line">    pod := existingPods.Items[<span class="number">0</span>]</span><br><span class="line">    existingPods.Items = existingPods.Items[<span class="number">1</span>:]</span><br><span class="line">    <span class="keyword">if</span> err := r.Client.Delete(ctx, &amp;pod); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      logger.Error(err, <span class="string">"scale down faled"</span>)</span><br><span class="line">      <span class="keyword">return</span> ctrl.Result&#123;&#125;, err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ctrl.Result&#123;Requeue: <span class="literal">true</span>&#125;, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newPodForCR</span><span class="params">(cr *batchv1alpha1.ImoocPod)</span> *<span class="title">corev1</span>.<span class="title">Pod</span></span> &#123;</span><br><span class="line">  labels := <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;<span class="string">"app"</span>: cr.Name&#125;</span><br><span class="line">  <span class="keyword">return</span> &amp;corev1.Pod&#123;</span><br><span class="line">    ObjectMeta: metav1.ObjectMeta&#123;</span><br><span class="line">      GenerateName: cr.Name + <span class="string">"-pod"</span>,</span><br><span class="line">      Namespace:    cr.Namespace,</span><br><span class="line">      Labels:       labels,</span><br><span class="line">    &#125;,</span><br><span class="line">    Spec: corev1.PodSpec&#123;</span><br><span class="line">      Containers: []corev1.Container&#123;</span><br><span class="line">        &#123;</span><br><span class="line">          Name:    <span class="string">"busybox"</span>,</span><br><span class="line">          Image:   <span class="string">"busybox"</span>,</span><br><span class="line">          Command: []<span class="keyword">string</span>&#123;<span class="string">"sleep"</span>, <span class="string">"3600"</span>&#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意，由于要创建多个 Pod，方法 <code>newPodForCR</code> 中 Pod 的名字改成了 <code>GenerateName</code></p>
+<p>再次将其部署至 k8s 集群中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make docker-build docker-push IMG=10.211.55.2:10000/imooc-operator:v3</span><br><span class="line">make deploy IMG=10.211.55.2:10000/imooc-operator:v3</span><br></pre></td></tr></table></figure>
+<p>更新 crd 定义</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f config/crd/bases/batch.schwarzeni.github.com_imoocpods.yaml</span><br></pre></td></tr></table></figure>
+<p>部署一个 crd 实例</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config/samples/batch_v1alpha1_imoocpod.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">batch.schwarzeni.github.com/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ImoocPod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">imoocpod-sample</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">5</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f config/samples/batch_v1alpha1_imoocpod.yaml  -n kubebuilder-imoocpod-system</span><br></pre></td></tr></table></figure>
+<p>查看 pod 的个数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl get pods -n kubebuilder-imoocpod-system</span><br><span class="line">NAME                                                       READY   STATUS    RESTARTS   AGE</span><br><span class="line">imoocpod-sample-pod4bvch                                   1/1     Running   0          33s</span><br><span class="line">imoocpod-sample-podk2nzs                                   1/1     Running   0          33s</span><br><span class="line">imoocpod-sample-podlrcm2                                   1/1     Running   0          33s</span><br><span class="line">imoocpod-sample-podwl4hh                                   1/1     Running   0          33s</span><br><span class="line">imoocpod-sample-podxl8hh                                   1/1     Running   0          33s</span><br><span class="line">kubebuilder-imoocpod-controller-manager-69cc4f6ff5-lllbs   2/2     Running   0          73s</span><br></pre></td></tr></table></figure>
+<p>将 <code>config/samples/batch_v1alpha1_imoocpod.yaml</code> 中 replicas 改为 2，apply 一下，再查看 pod 的个数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; kubectl get pods -n kubebuilder-imoocpod-system</span><br><span class="line">NAME                                                       READY   STATUS    RESTARTS   AGE</span><br><span class="line">imoocpod-sample-pod4bvch                                   1/1     Running   0          4m11s</span><br><span class="line">imoocpod-sample-podk2nzs                                   1/1     Running   0          4m11s</span><br><span class="line">kubebuilder-imoocpod-controller-manager-69cc4f6ff5-lllbs   2/2     Running   0          4m51s</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/05/07/kubebuilder-初体验/" data-id="ckodwy7z9004nhxvg2axk1ehu" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubebuilder/">Kubebuilder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/05/02/CNI-插件-flannel-vxlan-使用实操/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">CNI 插件 flannel-vxlan 使用实操</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>172</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>63</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
