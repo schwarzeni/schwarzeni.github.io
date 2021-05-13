@@ -56,7 +56,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>173</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>174</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>63</strong><br>标签</div></a>
     </div>
@@ -154,9 +154,69 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckofeibd200izravg20cusw5u" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckomfay0200dqd3vgy2z6i1ak" class="article-share-link">Share</a>
       
       
+    </footer>
+  </div>
+  
+  
+    
+</article>
+
+
+
+
+<article id="post-k8s-debug-cli-最初版" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/05/13/k8s-debug-cli-最初版/" class="article-date">
+  <time class="post-time" datetime="2021-05-13T04:58:14.000Z" itemprop="datePublished">
+    <span class="post-month">5月</span><br/>
+    <span class="post-day">13</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/05/13/k8s-debug-cli-最初版/">k8s debug cli 最初版</a>
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>一次偶然的机会看到了这篇文章 <a href="https://aleiwu.com/post/kubectl-debug-intro/" target="_blank" rel="noopener">《简化 Pod 故障诊断: kubectl-debug 介绍》</a>，感觉这个实现挺有意思的，准备自己实现一个。这里借鉴了文章中工具的<a href="https://aleiwu.com/post/kubectl-debug-intro/#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86" target="_blank" rel="noopener">大体设计思路</a>以及<a href="https://github.com/aylei/kubectl-debug/blob/24842b00e65449fb35bb33900f5c32d05bbac7a9/pkg/plugin/cmd.go#L762" target="_blank" rel="noopener">获取容器 ID 的方式</a>，其他的大体都是自己思考和实现的，同时，实现的功能比较粗糙，比如诊断容器写死为 busybox、只能进入 exec -it 风格的交互模式等、数据传输过程未加密、执行加入 Pod 中第一个容器的命名空间、容器运行时只能使用 docker 不兼容 containerd 等。</p>
+        
+          <p class="article-more-link">
+            <a href="/2021/05/13/k8s-debug-cli-最初版/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/" data-id="ckomfaxw6004kd3vgidrc0wuy" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
+
     </footer>
   </div>
   
@@ -214,7 +274,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/08/kubebuilder-构建-deployment-service/" data-id="ckofeib06004gravgbjrqx3pa" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/08/kubebuilder-构建-deployment-service/" data-id="ckomfaxw7004nd3vgqtb5fk59" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubebuilder/">Kubebuilder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -275,7 +335,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/07/kubebuilder-初体验/" data-id="ckofeib030049ravgyev8np7a" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/07/kubebuilder-初体验/" data-id="ckomfaxw8004rd3vgbln592vd" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubebuilder/">Kubebuilder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -335,7 +395,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/02/CNI-插件-flannel-vxlan-使用实操/" data-id="ckofeiatw000bravgcopaue7s" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/02/CNI-插件-flannel-vxlan-使用实操/" data-id="ckomfaxqa000bd3vgy19zsxvj" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
@@ -395,7 +455,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetes-网络插件-CNI-初探/" data-id="ckofeiawn001zravgycu21zif" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetes-网络插件-CNI-初探/" data-id="ckomfaxth0022d3vgcwl37z3r" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/containerd/">containerd</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
@@ -455,7 +515,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/22/2021暑期实习总结/" data-id="ckofeiats0009ravg9fe3g9wh" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/22/2021暑期实习总结/" data-id="ckomfaxq30006d3vg4pidpu4w" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -515,7 +575,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/18/如果删除程序正在打开的文件会发生什么/" data-id="ckofeib5500epravgauqyk5bf" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/18/如果删除程序正在打开的文件会发生什么/" data-id="ckomfaxy0008zd3vgnyjdgq2i" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
@@ -575,7 +635,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/14/wait-waitpid-有什么用/" data-id="ckofeib0s0061ravgkdib3cba" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/14/wait-waitpid-有什么用/" data-id="ckomfaxwl005md3vg0sxg5b0a" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
@@ -635,70 +695,10 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/09/goleak-研究/" data-id="ckofeib07004kravgqcy2nh4i" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/09/goleak-研究/" data-id="ckomfaxw3004dd3vgv7s04wxw" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/源码学习/">源码学习</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-
-<article id="post-网易云音乐2020年部分报告" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/12/28/网易云音乐2020年部分报告/" class="article-date">
-  <time class="post-time" datetime="2020-12-28T06:19:04.000Z" itemprop="datePublished">
-    <span class="post-month">12月</span><br/>
-    <span class="post-day">28</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/12/28/网易云音乐2020年部分报告/">网易云音乐2020年部分报告</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/日常/">日常</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>2019 年的居然忘记做记录了。。。</p>
-        
-          <p class="article-more-link">
-            <a href="/2020/12/28/网易云音乐2020年部分报告/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2020/12/28/网易云音乐2020年部分报告/" data-id="ckofeibdk00jyravgw9k5gt6o" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/日记/">日记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/音乐/">音乐</a></li></ul>
 
     </footer>
   </div>
@@ -767,7 +767,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>173</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>174</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>63</strong><br>标签</div></a>
     </div>
