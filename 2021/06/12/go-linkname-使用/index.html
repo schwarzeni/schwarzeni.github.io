@@ -3,15 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Archives: 2020/12 | Schwarzeni&#39;s blog</title>
+  <title>go linkname 使用 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Schwarzeni&#39;s blog">
-<meta property="og:url" content="http://blog.schwarzeni.com/archives/2020/12/index.html">
+  <meta name="description" content="在 go 中如果希望调用某些模块的私有方法，可以使用 //go:linkname 来实现，过程很简单，以调用 runtime.fastrand 为例">
+<meta name="keywords" content="Golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go linkname 使用">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/06/12/go-linkname-使用/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="在 go 中如果希望调用某些模块的私有方法，可以使用 //go:linkname 来实现，过程很简单，以调用 runtime.fastrand 为例">
 <meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2021-06-12T02:26:54.537Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Schwarzeni&#39;s blog">
+<meta name="twitter:title" content="go linkname 使用">
+<meta name="twitter:description" content="在 go 中如果希望调用某些模块的私有方法，可以使用 //go:linkname 来实现，过程很简单，以调用 runtime.fastrand 为例">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
   
@@ -94,75 +99,94 @@
   </div>
 </div>
 
-        <section id="main">
+        <section id="main"><article id="post-go-linkname-使用" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/06/12/go-linkname-使用/" class="article-date">
+  <time class="post-time" datetime="2021-06-12T02:26:04.000Z" itemprop="datePublished">
+    <span class="post-month">6月</span><br/>
+    <span class="post-day">12</span>
+  </time>
+</a>
 
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      go linkname 使用
+    </h1>
+  
 
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
 
+          
+              
 
-
-
-<section class="trick-trick archives-wrap">
-  <!--
-        <div style="margin: 0 0 20px;">
-          <img src="/images/archives-img-1.png" width="100%">
+          
         </div>
-        -->
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在 go 中如果希望调用某些模块的私有方法，可以使用 <code>//go:linkname</code> 来实现，过程很简单，以调用 <code>runtime.fastrand</code> 为例</p>
+<a id="more"></a>
+<p>首先，在文件中写入如下内容，注意，<code>//</code> 和 <code>go:linkname ...</code> 之间不能有空格！！</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> _ <span class="string">"unsafe"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//go:linkname fastrand runtime.fastrand</span></span><br><span class="line"><span class="comment">//go:nosplit</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fastrand</span><span class="params">()</span> <span class="title">uint32</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">//<span class="title">go</span>:<span class="title">nosplit</span></span></span><br><span class="line"><span class="function"><span class="title">func</span> <span class="title">fastrandn</span><span class="params">(n <span class="keyword">uint32</span>)</span> <span class="title">uint32</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">uint32</span>(<span class="keyword">uint64</span>(fastrand()) * <span class="keyword">uint64</span>(n) &gt;&gt; <span class="number">32</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，同级目录下创建一个空的汇编文件 <code>i.s</code> ，这样 go build 的时候就不会报错了。</p>
+<p>大功告成，测试一下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  _ <span class="string">"unsafe"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">//go:linkname fastrand runtime.fastrand</span></span><br><span class="line"><span class="comment">//go:nosplit</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fastrand</span><span class="params">()</span> <span class="title">uint32</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">//<span class="title">go</span>:<span class="title">nosplit</span></span></span><br><span class="line"><span class="function"><span class="title">func</span> <span class="title">fastrandn</span><span class="params">(n <span class="keyword">uint32</span>)</span> <span class="title">uint32</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">uint32</span>(<span class="keyword">uint64</span>(fastrand()) * <span class="keyword">uint64</span>(n) &gt;&gt; <span class="number">32</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  fmt.Println(fastrandn(<span class="number">100</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; tree</span><br><span class="line"></span><br><span class="line">.</span><br><span class="line">├── cmd.go</span><br><span class="line">└── i.s</span><br><span class="line"></span><br><span class="line">&gt; go run cmd.go</span><br><span class="line"></span><br><span class="line">28</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/06/12/go-linkname-使用/" data-id="ckpt51gd000473qvgqdwn8te3" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
+
+    </footer>
+  </div>
   
-  <div class="archive-year-wrap">
-    <!-- TODO: edit here title color -->
-    <a href="/archives/2020" class="archive-year" style="color:#555;font-size:20px;text-decoration: underline;">
-      <h2 id="2020" class="archive-year-h">2020</h2>
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/06/08/go-http-中间件/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">go http 中间件</div>
     </a>
-  </div>
-  <div class="archives" style="column-count: 1;">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2020/12/28/网易云音乐2020年部分报告/" class="archive-article-date">
-  <time class="post-time" datetime="2020-12-28T06:19:04.000Z" itemprop="datePublished">
-    <span class="post-month">12月</span><br/>
-    <span class="post-day">28</span>
-  </time>
-</a>
-      
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/12/28/网易云音乐2020年部分报告/">网易云音乐2020年部分报告</a>
-    </h1>
-  
+</nav>
 
-    </header>
-  </div>
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
 </article>
-    
-
-
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2020/12/04/容器镜像下载流程模拟/" class="archive-article-date">
-  <time class="post-time" datetime="2020-12-04T07:41:18.000Z" itemprop="datePublished">
-    <span class="post-month">12月</span><br/>
-    <span class="post-day">04</span>
-  </time>
-</a>
-      
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/12/04/容器镜像下载流程模拟/">容器镜像下载流程模拟</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-    
-    
-  </div>
-</section>
-
-
 
 
 </section>
