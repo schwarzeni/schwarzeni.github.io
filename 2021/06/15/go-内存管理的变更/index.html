@@ -3,15 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Archives: 2021/6 | Schwarzeni&#39;s blog</title>
+  <title>go 内存管理的变更 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Schwarzeni&#39;s blog">
-<meta property="og:url" content="http://blog.schwarzeni.com/archives/2021/06/index.html">
+  <meta name="description" content="在 Linux 环境中，Go 的版本 1.12 - 1.15 由于使用到 Linux 的 MADV_FREE 特性，对内存进行 ”懒释放“ ，造成了 RSS （Resident Set Size，常驻内存集）虚高，容易出 OOM 的错误。可以采用设置 GODEBUG=madvdontneed=1 来解决。到 1.16 后，又改回了原有的 MADV_DONTNEED 。 参考文章如下：  Go 1.">
+<meta name="keywords" content="Golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go 内存管理的变更">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/06/15/go-内存管理的变更/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="在 Linux 环境中，Go 的版本 1.12 - 1.15 由于使用到 Linux 的 MADV_FREE 特性，对内存进行 ”懒释放“ ，造成了 RSS （Resident Set Size，常驻内存集）虚高，容易出 OOM 的错误。可以采用设置 GODEBUG=madvdontneed=1 来解决。到 1.16 后，又改回了原有的 MADV_DONTNEED 。 参考文章如下：  Go 1.">
 <meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2021-06-15T13:33:18.387Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Schwarzeni&#39;s blog">
+<meta name="twitter:title" content="go 内存管理的变更">
+<meta name="twitter:description" content="在 Linux 环境中，Go 的版本 1.12 - 1.15 由于使用到 Linux 的 MADV_FREE 特性，对内存进行 ”懒释放“ ，造成了 RSS （Resident Set Size，常驻内存集）虚高，容易出 OOM 的错误。可以采用设置 GODEBUG=madvdontneed=1 来解决。到 1.16 后，又改回了原有的 MADV_DONTNEED 。 参考文章如下：  Go 1.">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
   
@@ -94,119 +99,94 @@
   </div>
 </div>
 
-        <section id="main">
-
-
-
-
-
-
-<section class="trick-trick archives-wrap">
-  <!--
-        <div style="margin: 0 0 20px;">
-          <img src="/images/archives-img-1.png" width="100%">
-        </div>
-        -->
-  
-  <div class="archive-year-wrap">
-    <!-- TODO: edit here title color -->
-    <a href="/archives/2021" class="archive-year" style="color:#555;font-size:20px;text-decoration: underline;">
-      <h2 id="2021" class="archive-year-h">2021</h2>
-    </a>
-  </div>
-  <div class="archives" style="column-count: 1;">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/06/15/go-内存管理的变更/" class="archive-article-date">
+        <section id="main"><article id="post-go-内存管理的变更" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/06/15/go-内存管理的变更/" class="article-date">
   <time class="post-time" datetime="2021-06-15T13:32:38.000Z" itemprop="datePublished">
     <span class="post-month">6月</span><br/>
     <span class="post-day">15</span>
   </time>
 </a>
-      
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/06/15/go-内存管理的变更/">go 内存管理的变更</a>
+    <h1 class="article-title" itemprop="name">
+      go 内存管理的变更
     </h1>
   
 
-    </header>
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
   </div>
-</article>
+
+          
+              
+
+          
+        </div>
+      </header>
     
-
-
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/06/12/go-linkname-使用/" class="archive-article-date">
-  <time class="post-time" datetime="2021-06-12T02:26:04.000Z" itemprop="datePublished">
-    <span class="post-month">6月</span><br/>
-    <span class="post-day">12</span>
-  </time>
-</a>
+    <div class="article-entry" itemprop="articleBody">
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/06/12/go-linkname-使用/">go linkname 使用</a>
-    </h1>
-  
+        <p>在 Linux 环境中，Go 的版本 1.12 - 1.15 由于使用到 Linux 的 MADV_FREE 特性，对内存进行 ”懒释放“ ，造成了 RSS （Resident Set Size，常驻内存集）虚高，容易出 OOM 的错误。可以采用设置 <code>GODEBUG=madvdontneed=1</code> 来解决。到 1.16 后，又改回了原有的 MADV_DONTNEED 。</p>
+<p>参考文章如下：</p>
+<ul>
+<li><a href="https://ms2008.github.io/2019/06/30/golang-madvfree/" target="_blank" rel="noopener">Go 1.12 关于内存释放的一个改进</a></li>
+<li><a href="https://segmentfault.com/a/1190000022472459" target="_blank" rel="noopener">踩坑记：go服务内存暴涨</a></li>
+<li><a href="https://colobu.com/2019/08/28/go-memory-leak-i-dont-think-so/" target="_blank" rel="noopener">Go内存泄漏？不是那么简单!</a></li>
+<li><a href="https://segmentfault.com/a/1190000039359866" target="_blank" rel="noopener">Go1.16 新特性：详解内存管理机制的变更，你需要了解</a></li>
+</ul>
 
-    </header>
-  </div>
-</article>
-    
-
-
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/06/08/go-http-中间件/" class="archive-article-date">
-  <time class="post-time" datetime="2021-06-08T14:45:02.000Z" itemprop="datePublished">
-    <span class="post-month">6月</span><br/>
-    <span class="post-day">08</span>
-  </time>
-</a>
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/06/08/go-http-中间件/">go http 中间件</a>
-    </h1>
-  
-
-    </header>
-  </div>
-</article>
-    
-
-
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2021/06/03/go-I-O-的限流与计数/" class="archive-article-date">
-  <time class="post-time" datetime="2021-06-03T14:29:32.000Z" itemprop="datePublished">
-    <span class="post-month">6月</span><br/>
-    <span class="post-day">03</span>
-  </time>
-</a>
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/06/15/go-内存管理的变更/" data-id="ckpy35y0y0041sdvgbaamunfn" class="article-share-link">Share</a>
       
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/06/03/go-I-O-的限流与计数/">Goland I/O 的限流与计数</a>
-    </h1>
-  
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
 
-    </header>
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/06/12/go-linkname-使用/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">go linkname 使用</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
 </article>
-    
-    
-  </div>
-</section>
-
-
 
 
 </section>

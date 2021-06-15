@@ -56,7 +56,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>177</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>178</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>63</strong><br>标签</div></a>
     </div>
@@ -154,9 +154,72 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckpwi9d5y00e3bevgacy5q3i2" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2019/10/29/程序员宣言/" data-id="ckpy35ydy00k6sdvg825fdrlf" class="article-share-link">Share</a>
       
       
+    </footer>
+  </div>
+  
+  
+    
+</article>
+
+
+
+
+<article id="post-go-内存管理的变更" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/06/15/go-内存管理的变更/" class="article-date">
+  <time class="post-time" datetime="2021-06-15T13:32:38.000Z" itemprop="datePublished">
+    <span class="post-month">6月</span><br/>
+    <span class="post-day">15</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/06/15/go-内存管理的变更/">go 内存管理的变更</a>
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在 Linux 环境中，Go 的版本 1.12 - 1.15 由于使用到 Linux 的 MADV_FREE 特性，对内存进行 ”懒释放“ ，造成了 RSS （Resident Set Size，常驻内存集）虚高，容易出 OOM 的错误。可以采用设置 <code>GODEBUG=madvdontneed=1</code> 来解决。到 1.16 后，又改回了原有的 MADV_DONTNEED 。</p>
+<p>参考文章如下：</p>
+<ul>
+<li><a href="https://ms2008.github.io/2019/06/30/golang-madvfree/" target="_blank" rel="noopener">Go 1.12 关于内存释放的一个改进</a></li>
+<li><a href="https://segmentfault.com/a/1190000022472459" target="_blank" rel="noopener">踩坑记：go服务内存暴涨</a></li>
+<li><a href="https://colobu.com/2019/08/28/go-memory-leak-i-dont-think-so/" target="_blank" rel="noopener">Go内存泄漏？不是那么简单!</a></li>
+<li><a href="https://segmentfault.com/a/1190000039359866" target="_blank" rel="noopener">Go1.16 新特性：详解内存管理机制的变更，你需要了解</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/06/15/go-内存管理的变更/" data-id="ckpy35y0y0041sdvgbaamunfn" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
+
     </footer>
   </div>
   
@@ -212,7 +275,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/06/12/go-linkname-使用/" data-id="ckpwi9d2e004gbevg3ldixqrf" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/06/12/go-linkname-使用/" data-id="ckpy35y12004csdvgrrwpt002" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
@@ -272,7 +335,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/06/08/go-http-中间件/" data-id="ckpwi9d2d004dbevgnty6ie5e" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/06/08/go-http-中间件/" data-id="ckpy35y0t003rsdvgsvwzzck9" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
@@ -332,7 +395,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/" data-id="ckpwi9d2a0046bevg1ompzt78" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/" data-id="ckpy35y0v003usdvgn20ymghs" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
@@ -392,7 +455,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/" data-id="ckpwi9d2l0051bevgac7lkdj7" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/" data-id="ckpy35y16004psdvgck10favq" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -454,7 +517,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/08/kubebuilder-构建-deployment-service/" data-id="ckpwi9d2j004ubevg8phzcw6w" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/08/kubebuilder-构建-deployment-service/" data-id="ckpy35y1a0050sdvgc1shfz7j" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubebuilder/">Kubebuilder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -515,7 +578,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/07/kubebuilder-初体验/" data-id="ckpwi9d2k004xbevgsub9eqlf" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/07/kubebuilder-初体验/" data-id="ckpy35y18004tsdvg73bqg3cm" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubebuilder/">Kubebuilder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -575,7 +638,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/02/CNI-插件-flannel-vxlan-使用实操/" data-id="ckpwi9cxq000gbevghjndcuhb" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/02/CNI-插件-flannel-vxlan-使用实操/" data-id="ckpy35xve0006sdvgckbvq269" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
@@ -635,70 +698,10 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetes-网络插件-CNI-初探/" data-id="ckpwi9d080024bevgz4qpx4y5" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/04/23/Kubernetes-网络插件-CNI-初探/" data-id="ckpy35xxw001rsdvgkebr9bx4" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CNI/">CNI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/containerd/">containerd</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-
-<article id="post-2021暑期实习总结" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2021/04/22/2021暑期实习总结/" class="article-date">
-  <time class="post-time" datetime="2021-04-22T10:55:41.000Z" itemprop="datePublished">
-    <span class="post-month">4月</span><br/>
-    <span class="post-day">22</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2021/04/22/2021暑期实习总结/">2021暑期实习总结</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>第一次面试，精神压力贼大</p>
-        
-          <p class="article-more-link">
-            <a href="/2021/04/22/2021暑期实习总结/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/04/22/2021暑期实习总结/" data-id="ckpwi9cxj0009bevgrh6mb6zb" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
 
     </footer>
   </div>
@@ -767,7 +770,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>177</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>178</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>63</strong><br>标签</div></a>
     </div>
