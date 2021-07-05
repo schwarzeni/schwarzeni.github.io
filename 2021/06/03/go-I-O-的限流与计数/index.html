@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Goland I/O 的限流与计数 | Schwarzeni&#39;s blog</title>
+  <title>Golang I/O 的限流与计数 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="这里的限流指，对于某个 I/O 接口，例如 HTTP handler 的 resp.Body，实现一个方法实现限流，比如限制这个接口的传输速度是 5MB/s 。而计数指，对于某个 I/O 接口，例如 io.Reader，实现一个方式实现对其 Read 方法读取数据速率的实时计算，这样子在实现 http get 的时候就可以实时打印下载速度了。">
 <meta name="keywords" content="Golang">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Goland I&#x2F;O 的限流与计数">
+<meta property="og:title" content="Golang I&#x2F;O 的限流与计数">
 <meta property="og:url" content="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="这里的限流指，对于某个 I/O 接口，例如 HTTP handler 的 resp.Body，实现一个方法实现限流，比如限制这个接口的传输速度是 5MB/s 。而计数指，对于某个 I/O 接口，例如 io.Reader，实现一个方式实现对其 Read 方法读取数据速率的实时计算，这样子在实现 http get 的时候就可以实时打印下载速度了。">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/限流-流程图.jpg">
-<meta property="og:updated_time" content="2021-06-03T14:36:50.603Z">
+<meta property="og:updated_time" content="2021-07-05T14:11:35.125Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Goland I&#x2F;O 的限流与计数">
+<meta name="twitter:title" content="Golang I&#x2F;O 的限流与计数">
 <meta name="twitter:description" content="这里的限流指，对于某个 I/O 接口，例如 HTTP handler 的 resp.Body，实现一个方法实现限流，比如限制这个接口的传输速度是 5MB/s 。而计数指，对于某个 I/O 接口，例如 io.Reader，实现一个方式实现对其 Read 方法读取数据速率的实时计算，这样子在实现 http get 的时候就可以实时打印下载速度了。">
 <meta name="twitter:image" content="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/限流-流程图.jpg">
   
@@ -118,7 +118,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Goland I/O 的限流与计数
+      Golang I/O 的限流与计数
     </h1>
   
 
@@ -161,7 +161,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/" data-id="ckqi5lps00047mrvgznxyrnab" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/06/03/go-I-O-的限流与计数/" data-id="ckqqpc6nh004a6vvgfcbaz83z" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li></ul>
