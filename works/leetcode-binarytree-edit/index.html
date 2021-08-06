@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
+    <title>二叉树可视化编辑</title>
     <style>
         .mask {
             border: 1px solid #000;
@@ -25,6 +25,10 @@
     </style>
 </head>
 <body>
+<div>
+    <a href="https://github.com/schwarzeni/leetcode-binarytree-edit" target="_blank">源代码</a>
+</div>
+<hr>
 <div>
     <textarea style="width: 400px" id="raw_node_list" type="text"></textarea>
     <button id="raw_node_list_btn">submit</button>
@@ -52,9 +56,9 @@
 <script>
     (function () {
         const treeGraphConfig = {
-            r: 20,
-            iw: 12,
-            ih: 70,
+            r: 20, // 圆的半径
+            iw: 25, // elem 左右间隔（圆心之间）
+            ih: 70, // elem 上下间隔
             canvasW: 1200,
             canvasH: 600,
             $container: document.getElementById("canvas_elem_container")
@@ -160,6 +164,7 @@
 
         function Tree() {
             this.root = null
+            this.nodeCount = 0
             this.nodeMap = {}
         }
 
@@ -199,6 +204,7 @@
 
         Tree.prototype.addNode = function (newNode) {
             this.nodeMap[newNode.id] = newNode
+            this.nodeCount ++
         }
 
         Tree.prototype.removeNode = function (node) {
@@ -215,6 +221,7 @@
                 }
             }
             delete this.nodeMap[node.id]
+            this.nodeCount --
             if (this.root === node) {
                 this.root = null
             }
@@ -236,6 +243,7 @@
             if (!nodeList || nodeList.length === 0 || !nodeList[0]) {
                 return newT
             }
+            newT.nodeCount = 1
             var root = NewNode(null, nodeList.shift())
             newT.root = root
             newT.nodeMap[root.id] = root
@@ -252,6 +260,7 @@
                     if (lnodeV) {
                         lnode = NewNode(pNode, lnodeV)
                         newT.nodeMap[lnode.id] = lnode
+                        newT.nodeCount ++
                         pNode.left = lnode
                         currList.push(lnode)
                     }
@@ -264,6 +273,7 @@
                         newT.nodeMap[rnode.id] = rnode
                         pNode.right = rnode
                         currList.push(rnode)
+                        newT.nodeCount ++
                     }
                 }
                 parentList = currList
@@ -324,28 +334,50 @@
                 }
             }
 
-            function drawNode(parentNode, parentPos, currNode, currPos, height) {
-                if (!currNode) {
-                    return
+            // { "prevPos": {x, y}, "childPos": {x, y}}, currNode not nil
+            function drawNode(currNode, height, prevPos) {
+                var leftNodePos
+                var rightNodePos
+                if (currNode.left != null) {
+                    var val = drawNode(currNode.left, height+1, prevPos)
+                    prevPos = val.prevPos
+                    leftNodePos = val.childPos
                 }
-                // draw line to parent
-                if (parentNode) {
-                    if (parentNode.left === currNode) {
-                        drawLine(NewPosition(parentPos.x, parentPos.y), NewPosition(currPos.x, currPos.y))
-                    } else {
-                        drawLine(NewPosition(parentPos.x, parentPos.y), NewPosition(currPos.x, currPos.y))
-                    }
-                }
-                // drawCircle(currPos)
+
+                var currPos = NewPosition(config.iw, config.ih*height + config.ih)
+                // handle currNode
+                if (prevPos != null) {
+                    currPos.x = prevPos.x+config.iw
+                } 
                 addElem(currNode, currPos)
-                drawNode(currNode, currPos, currNode.left, NewPosition(currPos.x - config.iw * 2 ** (height - 1), currPos.y + config.ih), height - 1)
-                drawNode(currNode, currPos, currNode.right, NewPosition(currPos.x + config.iw * 2 ** (height - 1), currPos.y + config.ih), height - 1)
+                // set prevPos
+                prevPos = currPos
+
+                if (currNode.right != null) {
+                    var val = drawNode(currNode.right, height+1, prevPos)
+                    prevPos = val.prevPos 
+                    rightNodePos = val.childPos
+                }
+
+                // draw line
+                if (leftNodePos != null ) {
+                    drawLine(leftNodePos, currPos)
+                }
+                if (rightNodePos != null) {
+                    drawLine(rightNodePos, currPos)
+                }
+
+                return {"prevPos": prevPos, "childPos": currPos}
             }
 
+            if (tree.root == null) {
+                return
+            }
             var height = tree.getHeight()
-            document.getElementById("canvas").setAttribute("width", 2 ** height * config.iw * 2 + "px")
+            document.getElementById("canvas").setAttribute("width", config.iw * (tree.nodeCount + 1) + "px")
             document.getElementById("canvas").setAttribute("height", config.ih * (height + 1) + "px")
-            drawNode(null, null, tree.root, NewPosition(2 ** height * config.iw, config.ih), height)
+            lastNodePos = drawNode(tree.root, 0, null)
+
         }
         // TODO: just for test
         updateInputVal([5, 4, 7, 3, null, 2, null, -1, null, 9])
