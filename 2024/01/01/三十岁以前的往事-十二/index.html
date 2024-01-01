@@ -44,7 +44,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2024/01/01/三十岁以前的往事-十二/13mbp.jpg">
 <meta property="og:image" content="http://blog.schwarzeni.com/2024/01/01/三十岁以前的往事-十二/16mbp.jpg">
 <meta property="og:image" content="http://blog.schwarzeni.com/2024/01/01/三十岁以前的往事-十二/截屏2024-01-01%2020.13.22.png">
-<meta property="og:updated_time" content="2024-01-01T13:50:41.285Z">
+<meta property="og:updated_time" content="2024-01-01T14:04:14.123Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="三十岁以前的往事（十二）：我在百度这一年">
 <meta name="twitter:description" content="不算好的一年 …">
@@ -211,7 +211,7 @@
 <p>好不容易编译通过了，这个时候不能高兴的太早，因为有可能一运行就 coredump。好不容易让程序 run 起来了，这个时候还是不能提前开香槟，因为有可能一处理数据就 coredump，甚至会出现偶发性 coredump，这种现象在我升级一个上古模块时就出现了，这个模块就是我之前提到的，最早的可追溯到 2010 年之前，一个 cpp 文件有好几千行 c 风格的代码，并且运行环境比较难搭建。升级这个代码库断断续续大概耗了我两个月的时间，解决了大大小小四五个问题，当最终模块上线运行正常时，我心里直呼 what a miracle ！我甚至感觉我 debug c++ 和分析 coredump 的能力因为这次经历提升了许多，期间输出了一篇如何用 icoding debug c++ 程序的内部博文，获得了不少人的点赞。（icoding 可以理解为 vscode + 公司自研插件）</p>
 <p>还有一个代码库的升级也让我非常头疼，这个代码库是一个 Kafka client 的基础库，有非常多的代码库依赖。公司对于这种代码库，在跑流水线的时候会要求反向编译大部分依赖这个代码库的库，如果编译失败也不允许你合入。一开始有二三十个反向编译失败的代码库，后面发现有不少共性的问题，反复修了多次后降低到了两三个，然后有找到了这两三个代码库也有共性的问题，在编译配置中加了一段 tick 逻辑来解决。虽然现在说的比较轻巧，但是实际上当时我感觉真的像是在摸着石头过河，走一步看一步心里完全没谱，这个代码库也断断续续地搞了大约两周的时间。</p>
 <p>后来我也了解到，其实现在 c++ 增加了许多很 nb 的特性，比如 lambda 表达式、shared_ptr，用这些特性可以使写出来的代码更优雅更可读，但是这些特性需要更高版本的编译器的支持，所以由此看来 gcc 版本的升级带来的收益还是挺多的。</p>
-<h2 id="mobs-2-0"><a href="#mobs-2-0" class="headerlink" title="mobs 2.0"></a>mobs 2.0</h2><p>之前提到的纳海计算系统有一个简称叫 mobs ，全称叫 micro building service。在 q4 时启动了 mobs2.0 项目，准备迁移大搜的一些库种，包含 se 和 ext。听 t6 说这个迁移计划其实早在 q3 就开始讨论了。估计是因为这个迁移计划是写在 t8 的 okr 里的，所以推的凶，基本上从 11 月中旬开始音乐迁移的计划就 pending 了，让我来支持这个迁移，涉及到了北京上海的同学大概有十几名，上海这边本来下班就晚，基本九点半往后了，参加到这个项目的同学基本上后面都是十一点往后才下班，搞到十二点之后的情况也时有出现，连续两周周末加一天班，最夸张的一次，某个周日我跟 t6 干到凌晨两点才走，当时我叫不到车，只能搭 t6 打到的车先到我住的地方拐一下。工作日每天晚上七点都要开始日会同步进展，前一段时间是全员都要参加，后来变成了各个方向的负责人参加。</p>
+<h3 id="mobs-2-0"><a href="#mobs-2-0" class="headerlink" title="mobs 2.0"></a>mobs 2.0</h3><p>之前提到的纳海计算系统有一个简称叫 mobs ，全称叫 micro building service。在 q4 时启动了 mobs2.0 项目，准备迁移大搜的一些库种，包含 se 和 ext。听 t6 说这个迁移计划其实早在 q3 就开始讨论了。估计是因为这个迁移计划是写在 t8 的 okr 里的，所以推的凶，基本上从 11 月中旬开始音乐迁移的计划就 pending 了，让我来支持这个迁移，涉及到了北京上海的同学大概有十几名，上海这边本来下班就晚，基本九点半往后了，参加到这个项目的同学基本上后面都是十一点往后才下班，搞到十二点之后的情况也时有出现，连续两周周末加一天班，最夸张的一次，某个周日我跟 t6 干到凌晨两点才走，当时我叫不到车，只能搭 t6 打到的车先到我住的地方拐一下。工作日每天晚上七点都要开始日会同步进展，前一段时间是全员都要参加，后来变成了各个方向的负责人参加。</p>
 <p>这次迁移涉及到的库种有十几个，每个库种的配置不同，所以配置基本上是需要依赖程序二次生成，采用的是 shell 调 python 的形式，后面据说除了特定的逻辑，例如 json 解析，之外，其余的逻辑都要迁成 shell。配置文件使用的是 json 格式。这个在实际的开发过程中有两个问题，一是由于时间很紧，所以设计和开发是并行的，不同模块间的配置修改也是并行的，这就导致常常第一天写好的 shell 第二天就不能用了，因为有人变更了配置文件的目录层级或文件/配置命名，二是由于采用 json 格式，许多人在提交代码前没有做 json 格式校验，配置文件的内容要么写了注释要么多了结尾多了逗号，导致配置文件生成过程中 json 解析失败。</p>
 <p>在本地自测时，由于需要测试的库种太多了，有十几个，人工 check diff 的成本很高，可能有 70% 的时间都花在了这个地方，而 check diff 的人只有 t6 和我，因为我对这些 diff 项不是很熟悉，基本还是依赖那个 t6。有一天晚上为了尽快把 diff 结果搞出来这样第二天可以确认，一直干到了凌晨四点多。</p>
 <p>本地自测时需要编写脚本批量处理这些库种的数据，我感觉我写 shell 脚本的功力突飞猛进，例如了解到可以用 wait 实现命令并行执行、使用 mkfifo 创建命名管道来传输数据以及 shell function 传 map 参数的 trick 逻辑。</p>
@@ -305,7 +305,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2024/01/01/三十岁以前的往事-十二/" data-id="clquzhs0u00a1ywvg0w6m8nnp" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2024/01/01/三十岁以前的往事-十二/" data-id="clquzs786009qavvg9g7z9auh" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
