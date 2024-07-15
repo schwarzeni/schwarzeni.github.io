@@ -6,14 +6,14 @@
   <title>最近遇到的一些坑 &amp; 知识汇总 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="忙里偷闲把最近遇到的一些问题总结一下 ^^">
-<meta name="keywords" content="Golang,c++,Python">
+<meta name="keywords" content="c++,Golang,Python">
 <meta property="og:type" content="article">
 <meta property="og:title" content="最近遇到的一些坑 &amp; 知识汇总">
 <meta property="og:url" content="http://blog.schwarzeni.com/2024/07/15/最近遇到的一些坑-知识汇总/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="忙里偷闲把最近遇到的一些问题总结一下 ^^">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2024-07-15T14:31:32.310Z">
+<meta property="og:updated_time" content="2024-07-15T14:37:51.308Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="最近遇到的一些坑 &amp; 知识汇总">
 <meta name="twitter:description" content="忙里偷闲把最近遇到的一些问题总结一下 ^^">
@@ -137,7 +137,7 @@
       
         <p>忙里偷闲把最近遇到的一些问题总结一下 ^^</p>
 <a id="more"></a>
-<h2 id="golang-序列化-json-时自动-urlencode-特殊字符"><a href="#golang-序列化-json-时自动-urlencode-特殊字符" class="headerlink" title="golang 序列化 json 时自动 urlencode 特殊字符"></a>golang 序列化 json 时自动 urlencode 特殊字符</h2><p>在使用 json.Marshal 时，会自动对其中的特殊字符进行 url encode，例如会将 &amp; 替换为 <code>\u0026</code> 。一般情况下应该问题不大，但是需要知道它在这儿把数据内容做了转化。另外，golang 还会自动将 <code>\b</code> 转为 <code>\u0008</code> ，也需要注意一下。</p>
+<h2 id="golang-序列化-json-时自动转换特殊字符"><a href="#golang-序列化-json-时自动转换特殊字符" class="headerlink" title="golang 序列化 json 时自动转换特殊字符"></a>golang 序列化 json 时自动转换特殊字符</h2><p>在使用 json.Marshal 时，会自动对其中的特殊字符进行转换，例如会将 &amp; 替换为 <code>\u0026</code> 。一般情况下应该问题不大，但是需要知道它在这儿把数据内容做了转化。另外，golang 还会自动将 <code>\b</code> 转为 <code>\u0008</code> ，也需要注意一下。</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"bytes"</span></span><br><span class="line">	<span class="string">"encoding/json"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	json_content := <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;</span><br><span class="line">		<span class="string">"url"</span>: <span class="string">"http://www.baidu.com?tag=search&amp;data1=1&amp;data2=2&amp;data3=\b"</span>,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 直接序列化</span></span><br><span class="line">	raw_content, _ := json.Marshal(json_content)</span><br><span class="line">	<span class="comment">// 输出：&#123;"url":"http://www.baidu.com?tag=search\u0026data1=1\u0026data2=2\u0026data3=\u0008"&#125;</span></span><br><span class="line">	fmt.Println(<span class="keyword">string</span>(raw_content))</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 关闭 SetEscapeHTML</span></span><br><span class="line">	buf := &amp;bytes.Buffer&#123;&#125;</span><br><span class="line">	enc := json.NewEncoder(buf)</span><br><span class="line">	enc.SetEscapeHTML(<span class="literal">false</span>)</span><br><span class="line">	_ = enc.Encode(json_content) <span class="comment">// end with \n</span></span><br><span class="line">	<span class="comment">// 输出：&#123;"url":"http://www.baidu.com?tag=search&amp;data1=1&amp;data2=2&amp;data3=\u0008"&#125;</span></span><br><span class="line">	fmt.Print(buf.String())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <hr>
 <h2 id="golang-和-python-在序列化-array-时的差异"><a href="#golang-和-python-在序列化-array-时的差异" class="headerlink" title="golang 和 python 在序列化 array 时的差异"></a>golang 和 python 在序列化 array 时的差异</h2><p>golang 序列化数组时，数据各 item 之间不会添加空格，但是默认情况下 python 会。一般情况下不会造成啥影响，但是需要知道有这个差异。</p>
@@ -260,7 +260,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2024/07/15/最近遇到的一些坑-知识汇总/" data-id="clyn341wg00f9vtjijk7mc4hy" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2024/07/15/最近遇到的一些坑-知识汇总/" data-id="clyn3bijp00f6dxjivtvrcspw" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c++</a></li></ul>
