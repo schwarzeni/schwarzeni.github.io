@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>最近遇到的一些坑 &amp; 知识汇总 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="忙里偷闲把最近遇到的一些问题总结一下 ^^">
+<meta name="keywords" content="Golang,c++,Python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="最近遇到的一些坑 &amp; 知识汇总">
+<meta property="og:url" content="http://blog.schwarzeni.com/2024/07/15/最近遇到的一些坑-知识汇总/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="忙里偷闲把最近遇到的一些问题总结一下 ^^">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2024-07-15T14:31:32.310Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="最近遇到的一些坑 &amp; 知识汇总">
+<meta name="twitter:description" content="忙里偷闲把最近遇到的一些问题总结一下 ^^">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>193</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>65</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-最近遇到的一些坑-知识汇总" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2024/07/15/最近遇到的一些坑-知识汇总/" class="article-date">
+  <time class="post-time" datetime="2024-07-15T14:29:57.000Z" itemprop="datePublished">
+    <span class="post-month">7月</span><br/>
+    <span class="post-day">15</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      最近遇到的一些坑 &amp; 知识汇总
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>忙里偷闲把最近遇到的一些问题总结一下 ^^</p>
+<a id="more"></a>
+<h2 id="golang-序列化-json-时自动-urlencode-特殊字符"><a href="#golang-序列化-json-时自动-urlencode-特殊字符" class="headerlink" title="golang 序列化 json 时自动 urlencode 特殊字符"></a>golang 序列化 json 时自动 urlencode 特殊字符</h2><p>在使用 json.Marshal 时，会自动对其中的特殊字符进行 url encode，例如会将 &amp; 替换为 <code>\u0026</code> 。一般情况下应该问题不大，但是需要知道它在这儿把数据内容做了转化。另外，golang 还会自动将 <code>\b</code> 转为 <code>\u0008</code> ，也需要注意一下。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"bytes"</span></span><br><span class="line">	<span class="string">"encoding/json"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	json_content := <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;</span><br><span class="line">		<span class="string">"url"</span>: <span class="string">"http://www.baidu.com?tag=search&amp;data1=1&amp;data2=2&amp;data3=\b"</span>,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 直接序列化</span></span><br><span class="line">	raw_content, _ := json.Marshal(json_content)</span><br><span class="line">	<span class="comment">// 输出：&#123;"url":"http://www.baidu.com?tag=search\u0026data1=1\u0026data2=2\u0026data3=\u0008"&#125;</span></span><br><span class="line">	fmt.Println(<span class="keyword">string</span>(raw_content))</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 关闭 SetEscapeHTML</span></span><br><span class="line">	buf := &amp;bytes.Buffer&#123;&#125;</span><br><span class="line">	enc := json.NewEncoder(buf)</span><br><span class="line">	enc.SetEscapeHTML(<span class="literal">false</span>)</span><br><span class="line">	_ = enc.Encode(json_content) <span class="comment">// end with \n</span></span><br><span class="line">	<span class="comment">// 输出：&#123;"url":"http://www.baidu.com?tag=search&amp;data1=1&amp;data2=2&amp;data3=\u0008"&#125;</span></span><br><span class="line">	fmt.Print(buf.String())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="golang-和-python-在序列化-array-时的差异"><a href="#golang-和-python-在序列化-array-时的差异" class="headerlink" title="golang 和 python 在序列化 array 时的差异"></a>golang 和 python 在序列化 array 时的差异</h2><p>golang 序列化数组时，数据各 item 之间不会添加空格，但是默认情况下 python 会。一般情况下不会造成啥影响，但是需要知道有这个差异。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"encoding/json"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	arr_content := []<span class="keyword">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">	raw_content, _ := json.Marshal(arr_content)</span><br><span class="line">	<span class="comment">// 输出为 [1,2,3]</span></span><br><span class="line">	fmt.Println(<span class="keyword">string</span>(raw_content))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#! /usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding: utf-8</span></span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">    <span class="comment"># 输出：[1, 2, 3]</span></span><br><span class="line">    print(json.dumps(arr))</span><br><span class="line">    <span class="comment"># 输出：[1,2,3]</span></span><br><span class="line">    print(json.dumps(arr, separators=(<span class="string">','</span>, <span class="string">':'</span>)))</span><br></pre></td></tr></table></figure>
+<p>对于 separators 参数的解释，gpt 的解释如下</p>
+<blockquote>
+<p>用于指定序列化时元素之间以及键值对之间的分隔符。这个参数接受一个包含两个元素的元组，第一个元素是用于分隔字典中的键值对的字符串，第二个元素是用于分隔列表或者字典中的元素的字符串。默认值为 <code>(&#39;, &#39;, &#39;: &#39;)</code> ，这意味着字典中的键值对之间以及列表或者字典中的元素之间都会有一个空格</p>
+</blockquote>
+<hr>
+<h2 id="错误使用-awk-导致数据内容被误改"><a href="#错误使用-awk-导致数据内容被误改" class="headerlink" title="错误使用 awk 导致数据内容被误改"></a>错误使用 awk 导致数据内容被误改</h2><p>数据样例如下，按照空格分割，需要把第一列删除。注意，后面列中存在多个空格</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">url1 &#123;&quot;key&quot;:&quot;value  123&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>按照 gpt 的回答，使用如果 awk 命令处理</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">'&#123; $1=""; sub(/^ /, ""); print $0 &#125;'</span> file.txt</span><br></pre></td></tr></table></figure>
+<p>但是结果中，后面列中多余的空格被删掉了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;key&quot;:&quot;value 123&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>可以使用如下 awk 命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">awk <span class="string">'&#123;sub($1 FS, ""); print&#125;'</span> file.txt</span><br></pre></td></tr></table></figure>
+<p>gpt 对这个命令的解释如下</p>
+<ul>
+<li><p><code>sub($1 FS, &quot;&quot;)</code></p>
+<ul>
+<li><p><code>$1</code> 表示第一个字段</p>
+</li>
+<li><p><code>FS</code> 是字段分隔符</p>
+</li>
+<li><p><code>$1 FS</code> 组合起来就是第一个字段加上紧随其后的制表符</p>
+</li>
+<li><p><code>sub()</code> 函数将 <code>$1 FS</code> 替换为空字符串 <code>&quot;&quot;</code>，effectively 删除它们</p>
+</li>
+</ul>
+</li>
+<li><p><code>print</code>: 打印处理后的行</p>
+</li>
+</ul>
+<p>但其实最保险的方式还是写个 python 脚本来处理，或者用 sed 命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed <span class="string">'s/^[^ ]* //'</span> file.txt</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="将-map-作为-bash-function-的参数"><a href="#将-map-作为-bash-function-的参数" class="headerlink" title="将 map 作为 bash function 的参数"></a>将 map 作为 bash function 的参数</h2><p>去年年末在写一个 bash 脚本的时候，有一个需求是将 map 作为 function 的入参，实现起来比较麻烦，记录一下。bash 的版本为 GNU bash(bdsh), version 4.1.17(2)-release (x86_64-unknown-linux-gnu)</p>
+<h3 id="实现代码"><a href="#实现代码" class="headerlink" title="实现代码"></a>实现代码</h3><p>ref: <a href="https://stackoverflow.com/questions/31307210/what-does-1-mean-in-bash" target="_blank" rel="noopener">https://stackoverflow.com/questions/31307210/what-does-1-mean-in-bash</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> -eux</span><br><span class="line"></span><br><span class="line"><span class="built_in">declare</span> -A weapons=(</span><br><span class="line">  [<span class="string">'Straight Sword'</span>]=75</span><br><span class="line">  [<span class="string">'Tainted Dagger'</span>]=54</span><br><span class="line">  [<span class="string">'Imperial Sword'</span>]=90</span><br><span class="line">  [<span class="string">'Edged Shuriken'</span>]=25</span><br><span class="line"></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> print_array &#123;</span><br><span class="line">    input_map_raw=<span class="string">"<span class="variable">$(declare -p $&#123;1&#125;)</span>"</span></span><br><span class="line">    <span class="built_in">eval</span> <span class="string">"declare -A arg_array="</span><span class="variable">$&#123;input_map_raw#*=&#125;</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="string">"<span class="variable">$&#123;!arg_array[@]&#125;</span>"</span>; <span class="keyword">do</span></span><br><span class="line">       <span class="built_in">printf</span> <span class="string">"%s\t%s\n"</span> <span class="string">"<span class="variable">$i</span> ==&gt; <span class="variable">$&#123;arg_array[$i]&#125;</span>"</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 传入变量名，而非变量的值</span></span><br><span class="line">print_array weapons</span><br></pre></td></tr></table></figure>
+<h3 id="参数解析流程分析"><a href="#参数解析流程分析" class="headerlink" title="参数解析流程分析"></a>参数解析流程分析</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">input_map_raw=<span class="string">"<span class="variable">$(declare -p $&#123;1&#125;)</span>"</span></span><br></pre></td></tr></table></figure>
+<p>declare -p 的作用是 “print the attributes and options of the variables” ，ref <a href="https://linuxhint.com/bash_declare_command/" target="_blank" rel="noopener">https://linuxhint.com/bash_declare_command/</a>。作用可以理解为将参数的定义展开，感觉类似于 sql 的 show create table，这里的结果是</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">declare</span> -A weapons=<span class="string">'(["Imperial Sword"]="90" ["Tainted Dagger"]="54" ["Edged Shuriken"]="25" ["Straight Sword"]="75" )'</span></span><br></pre></td></tr></table></figure>
+<p>现在 input_map_raw 变量的值就是上面的表达式。随后第二行， eval 命令会执行一遍其后的命令，将一些变量进行替换，生成第二次执行的命令，随后再次执行，ref <a href="https://www.cnblogs.com/itcomputer/p/5035387.html" target="_blank" rel="noopener">https://www.cnblogs.com/itcomputer/p/5035387.html</a>，在这里，${input_map_raw#*=} 是一个删除表达式，格式是 ${xxx#pattern}，会根据 pattern 删除 xxx 中的值，ref <a href="https://stackoverflow.com/questions/31307210/what-does-1-mean-in-bash" target="_blank" rel="noopener">https://stackoverflow.com/questions/31307210/what-does-1-mean-in-bash</a> ，这里是根据 *= 进行匹配，匹配到的值是 <code>declare -A weapons=</code> ，然后将其删除</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># eval 生成的命令</span></span><br><span class="line"><span class="built_in">declare</span> -A arg_array=<span class="string">'(["Imperial Sword"]="90" ["Tainted Dagger"]="54" ["Edged Shuriken"]="25" ["Straight Sword"]="75" )'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 上面生成的命令会被执行，作用是声明了 map arg_array</span></span><br></pre></td></tr></table></figure>
+<p>此时 arg_array 的值和外部传入的 weapons 保持一致了。不得不说，太 trick 了，希望后面可以加一些语法糖</p>
+<hr>
+<h2 id="python2-amp-python3-字符串编码差异"><a href="#python2-amp-python3-字符串编码差异" class="headerlink" title="python2 &amp; python3 字符串编码差异"></a>python2 &amp; python3 字符串编码差异</h2><h3 id="知识介绍"><a href="#知识介绍" class="headerlink" title="知识介绍"></a>知识介绍</h3><p><a href="https://reata.github.io/blog/how-python-does-unicode/" target="_blank" rel="noopener">https://reata.github.io/blog/how-python-does-unicode/</a></p>
+<ul>
+<li><p>python2：</p>
+<ul>
+<li><p>str 和 unicode 两种类型</p>
+</li>
+<li><p>str 实际上是 “字节串”（byte string/sequence of bytes），<strong>某种特定编码</strong>的字节序列，默认为 ascii</p>
+</li>
+<li><p>unicode 表示是 “unicode字符”</p>
+</li>
+<li><p>str 创建方式：str() 或 “xxx”</p>
+</li>
+<li><p>unicode 创建方式：unicode() 或 u”xxxxx”</p>
+</li>
+</ul>
+</li>
+<li><p>python3</p>
+<ul>
+<li><p>一种字符串类型：str，是 unicode</p>
+</li>
+<li><p>字节串用 bytes 数据结构表示</p>
+</li>
+</ul>
+</li>
+<li><p>何为 unicode</p>
+<ul>
+<li><p>不是一种编码，和 ascii、gbk、utf-8 不是一种类型</p>
+</li>
+<li><p>本质上是一种字符集，每个字符对应一个唯一 id</p>
+</li>
+<li><p>基本单元：码位（code point），一个字符对应一个或者多个码位，或一个码位能对应多个字符</p>
+</li>
+<li><p>unicode 是字符集（码位集）</p>
+<ul>
+<li><p>规定了一个码位的二进制代码</p>
+</li>
+<li><p>没有规定这个二进制代码该如何存储</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>总结：</p>
+<ul>
+<li><p>字节流 – [ decode ] –&gt; unicode</p>
+</li>
+<li><p>字节流 &lt;– [ encode ] – unicode</p>
+</li>
+<li><p>对于 py2，默认的 str 为字节流，需要转为 unicode 需要用 unicode() 包一下</p>
+</li>
+<li><p>对于 py3，默认的 str 为 unicode，字节流为 bytes</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="代码样例"><a href="#代码样例" class="headerlink" title="代码样例"></a>代码样例</h3><p>样例1 （gb18030 编码文件转 utf8）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># python2</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">'gb18030.txt'</span>, <span class="string">'r'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    s = f.read()</span><br><span class="line">    ff = open(<span class="string">'utf8_output.txt'</span>, <span class="string">'w'</span>)</span><br><span class="line">    <span class="comment"># 读出来的 str，为字节流类型，用 gb18030 解码为 unicode，然后在用 utf8 编码</span></span><br><span class="line">    <span class="comment"># bytes - [decode] -&gt; unicode - [encode] -&gt; bytes</span></span><br><span class="line">    ff.write(s.decode(<span class="string">'gb18030'</span>).encode(<span class="string">'utf8'</span>))</span><br><span class="line">    ff.close()</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># python3</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">'gb18030.txt'</span>, <span class="string">'r'</span>, encoding=<span class="string">'gb18030'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    s = f.read()</span><br><span class="line">    <span class="comment"># 读出来的是 str，为 unicode，直接制定 open 的编码即可</span></span><br><span class="line">    ff = open(<span class="string">'utf8_output.txt'</span>, <span class="string">'w'</span>, encoding=<span class="string">'utf8'</span>)</span><br><span class="line">    ff.write(s)</span><br><span class="line">    ff.close()</span><br></pre></td></tr></table></figure>
+<p>样例2：（读取一个 gb18030 编码的json：{“a”:”運動”}）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># python2</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">'gb18030_2.txt'</span>, <span class="string">'r'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    str = f.read()</span><br><span class="line">    print(type(str)) <span class="comment"># str &lt;- 实际上是字节流</span></span><br><span class="line">    obj = json.loads(str.decode(<span class="string">'gb18030'</span>).encode(<span class="string">'utf8'</span>))</span><br><span class="line">    print(type(obj[<span class="string">'a'</span>])) <span class="comment"># unicode</span></span><br><span class="line">    print(type(obj[<span class="string">'a'</span>].encode(<span class="string">'utf8'</span>))) <span class="comment"># str</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># python3</span></span><br><span class="line"><span class="keyword">with</span> open(<span class="string">'gb18030_2.txt'</span>, <span class="string">'r'</span>, encoding=<span class="string">'gb18030'</span>) <span class="keyword">as</span> f:</span><br><span class="line">    str = f.read()</span><br><span class="line">    print(type(str)) <span class="comment"># str &lt;- 实际上是 unicode</span></span><br><span class="line">    obj = json.loads(str)</span><br><span class="line">    print(type(obj[<span class="string">'a'</span>])) <span class="comment"># str &lt;- 实际上是 unicode</span></span><br><span class="line">    print(type(obj[<span class="string">'a'</span>].encode(<span class="string">'utf8'</span>))) <span class="comment"># bytes</span></span><br></pre></td></tr></table></figure>
+<p>从上可以看出，json.loads 生成的 json 字段默认为 unicode</p>
+<hr>
+<h2 id="c-map-emplace-amp-insert-注意事项"><a href="#c-map-emplace-amp-insert-注意事项" class="headerlink" title="c++ map emplace &amp; insert 注意事项"></a>c++ map emplace &amp; insert 注意事项</h2><p>这个问题是从内部的一个 case study 里了解到的，这个错误用法引起了比较严重的线上事故。</p>
+<p>使用 insert 或 emplace 不会更新已有 key 的值，需要使用 <code>m[k]=v</code> 来更新，代码样例如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;map&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">map</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>, <span class="built_in">std</span>::<span class="built_in">string</span>&gt; my_map = &#123;</span><br><span class="line">        &#123;<span class="string">"k1"</span>, <span class="string">"v1"</span>&#125;,</span><br><span class="line">        &#123;<span class="string">"k2"</span>, <span class="string">"v2"</span>&#125;,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    my_map.insert(<span class="built_in">std</span>::make_pair(<span class="string">"k1"</span>, <span class="string">"new-v1"</span>));</span><br><span class="line">    my_map.emplace(<span class="built_in">std</span>::make_pair(<span class="string">"k2"</span>, <span class="string">"new-v2"</span>));</span><br><span class="line">    <span class="comment">// 输出：v1, v2</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; my_map[<span class="string">"k1"</span>] &lt;&lt; <span class="string">", "</span> &lt;&lt; my_map[<span class="string">"k2"</span>] &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    my_map[<span class="string">"k1"</span>] = <span class="string">"new-v1"</span>;</span><br><span class="line">    my_map[<span class="string">"k2"</span>] = <span class="string">"new-v2"</span>;</span><br><span class="line">    <span class="comment">// 输出：new-v1, new-v2</span></span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; my_map[<span class="string">"k1"</span>] &lt;&lt; <span class="string">", "</span> &lt;&lt; my_map[<span class="string">"k2"</span>] &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>gpt 的解释是：</p>
+<blockquote>
+<p><code>std::map</code> 的 <code>insert</code> 和 <code>emplace</code> 方法设计的目的是保持 map 中的键的唯一性。当你试图插入一个已经存在的键时，<code>insert</code> 和 <code>emplace</code> 方法不会替换现有的键值对，而是简单地忽略你的插入请求。这是因为 <code>std::map</code> 是一个关联容器，它通过键进行查找和访问值，所以需要保证键的唯一性。</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2024/07/15/最近遇到的一些坑-知识汇总/" data-id="clyn341wg00f9vtjijk7mc4hy" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Python/">Python</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c++</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/05/25/kafka-controller-启动失败案例一则/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka controller 启动失败案例一则</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>193</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>65</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
