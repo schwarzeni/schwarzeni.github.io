@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>使用 map-reduce 按行比较两组数据的 diff | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="对于大批量的数据，使用本地的 diff 命令比较速度慢，推荐采用 map-reduce 的方式来进行。本文的主要内容为 mr 相关脚本的实现及分析。">
+<meta name="keywords" content="hadoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 map-reduce 按行比较两组数据的 diff">
+<meta property="og:url" content="http://blog.schwarzeni.com/2024/10/12/使用-map-reduce-按行比较两组数据的-diff/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="对于大批量的数据，使用本地的 diff 命令比较速度慢，推荐采用 map-reduce 的方式来进行。本文的主要内容为 mr 相关脚本的实现及分析。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2024-10-12T03:52:16.903Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 map-reduce 按行比较两组数据的 diff">
+<meta name="twitter:description" content="对于大批量的数据，使用本地的 diff 命令比较速度慢，推荐采用 map-reduce 的方式来进行。本文的主要内容为 mr 相关脚本的实现及分析。">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>198</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-使用-map-reduce-按行比较两组数据的-diff" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2024/10/12/使用-map-reduce-按行比较两组数据的-diff/" class="article-date">
+  <time class="post-time" datetime="2024-10-12T03:50:15.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">12</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      使用 map-reduce 按行比较两组数据的 diff
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>对于大批量的数据，使用本地的 diff 命令比较速度慢，推荐采用 map-reduce 的方式来进行。本文的主要内容为 mr 相关脚本的实现及分析。</p>
+<a id="more"></a>
+<p>脚本如下：</p>
+<ul>
+<li><p>run.sh : 用于提交 mr 任务</p>
+</li>
+<li><p>mapper.sh : mr 任务的 mapper 脚本</p>
+</li>
+<li><p>reducer.sh : mr 任务的 reducer 脚本</p>
+</li>
+</ul>
+<p>代码是抄同事的，分析是抄博客的（滑稽</p>
+<h2 id="run-sh"><a href="#run-sh" class="headerlink" title="run.sh"></a>run.sh</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> -x</span><br><span class="line">HADOOP_BIN=xxxxx <span class="comment"># hadoop bin 路径</span></span><br><span class="line">TIME_STAMP=`date +%s`</span><br><span class="line">JOB_UGI=xxxxx <span class="comment"># 密码</span></span><br><span class="line">FS_NAME=xxxx <span class="comment"># 集群名称</span></span><br><span class="line">JOB_QUEUE=xxxx <span class="comment"># 队列名称</span></span><br><span class="line">JOB_GROUP=xxxx <span class="comment"># 队列组</span></span><br><span class="line">JOB_TRACKER=xxxx <span class="comment"># 队列 tracker</span></span><br><span class="line">JOB_NAME=xxxxx <span class="comment"># 任务名称</span></span><br><span class="line">REDUCE_NUM=100</span><br><span class="line">context1=xxxxx <span class="comment"># 第一组数据 hdfs 存储路径中特有的字符串，作为表示其的 id</span></span><br><span class="line">context2=xxxxx <span class="comment"># 第二组数据 hdfs 存储路径中特有的字符串，作为表示其的 id</span></span><br><span class="line">INPUT1=xxxxx <span class="comment"># 第一组数据存储在 hdfs 上的绝对路径</span></span><br><span class="line">INPUT2=xxxxx <span class="comment"># 第二组数据存储在 hdfs 上的绝对路径</span></span><br><span class="line">OUTPUT=xxxxx <span class="comment"># 结果输出的 hdfs 上的绝对路径</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$&#123;HADOOP_BIN&#125;</span> fs -D hadoop.job.ugi=<span class="string">"<span class="variable">$&#123;JOB_UGI&#125;</span>"</span> -rmr <span class="variable">$&#123;OUTPUT&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="variable">$&#123;HADOOP_BIN&#125;</span> streaming \</span><br><span class="line">    -D hadoop.job.ugi=<span class="string">"<span class="variable">$&#123;JOB_UGI&#125;</span>"</span> \</span><br><span class="line">    -D fs.default.name=<span class="string">"<span class="variable">$&#123;FS_NAME&#125;</span>"</span> \</span><br><span class="line">    -D mapred.job.queue.name=<span class="string">"<span class="variable">$&#123;JOB_QUEUE&#125;</span>"</span> \</span><br><span class="line">    -D mapred.job.groups=<span class="string">"<span class="variable">$&#123;JOB_GROUP&#125;</span>"</span> \</span><br><span class="line">    -D mapred.job.tracker=<span class="string">"<span class="variable">$&#123;JOB_TRACKER&#125;</span>"</span> \</span><br><span class="line">    -D mapred.job.name=<span class="string">"<span class="variable">$&#123;JOB_NAME&#125;</span>"</span> \</span><br><span class="line">    -D mapred.job.priority=<span class="string">"VERY_HIGH"</span> \</span><br><span class="line">    -D mapred.job.map.capacity=10000 \</span><br><span class="line">    -D mapred.job.reduce.capacity=2000 \</span><br><span class="line">    -D mapred.reduce.tasks=<span class="variable">$&#123;REDUCE_NUM&#125;</span> \</span><br><span class="line">    -D stream.num.map.output.key.fields=2 \</span><br><span class="line">    -D num.key.fields.for.partition=1 \</span><br><span class="line">    -D mapred.output.key.comparator.class=org.apache.hadoop.mapred.lib.KeyFieldBasedComparator \</span><br><span class="line">    -D mapred.text.key.comparator.options=<span class="string">"-k1,2"</span> \</span><br><span class="line">    -D stream.memory.limit=10240 \</span><br><span class="line">    -D abaci.job.map.child.memory.mb=10240 \</span><br><span class="line">    -D abaci.job.reduce.child.memory.mb=10240 \</span><br><span class="line">    -D mapred.map.max.attempts=10 \</span><br><span class="line">    -D mapred.reduce.max.attempts=10 \</span><br><span class="line">    -D dce.shuffle.enable=<span class="literal">true</span> \</span><br><span class="line">    -input <span class="variable">$&#123;INPUT1[@]&#125;</span> \</span><br><span class="line">    -input <span class="variable">$&#123;INPUT2&#125;</span> \</span><br><span class="line">    -output <span class="variable">$&#123;OUTPUT&#125;</span> \</span><br><span class="line">    -mapper <span class="string">"sh -x mapper.sh <span class="variable">$&#123;context1&#125;</span> <span class="variable">$&#123;context2&#125;</span>"</span> \</span><br><span class="line">    -reducer <span class="string">"sh -x reducer.sh"</span> \</span><br><span class="line">    -partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner \</span><br><span class="line">    -outputformat org.apache.hadoop.mapred.lib.SuffixMultipleTextOutputFormat \</span><br><span class="line">    -file mapper.sh \</span><br><span class="line">    -file reducer.sh</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [[ $? != 0 ]]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">exit</span> -1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>stream.num.map.output.key.fields</p>
+<ul>
+<li><p>设置分割符的位置，位置之前为 key，后面为 value，例如 “1,2,3,4,5” ，如果为 4，则 key 为 “1,2,3,4”，value 为 “5”。</p>
+</li>
+<li><p>参考：<a href="https://blog.csdn.net/xhu_eternalcc/article/details/47147425" target="_blank" rel="noopener">https://blog.csdn.net/xhu_eternalcc/article/details/47147425</a></p>
+</li>
+</ul>
+</li>
+<li><p>num.key.fields.for.partition</p>
+<ul>
+<li><p>指定 key 中前几部分用来分片，例如 key 为 “1,2,3,4”，如果为 2，则用来分片的为 “1,2”</p>
+</li>
+<li><p>参考：<a href="https://blog.csdn.net/xhu_eternalcc/article/details/47147425" target="_blank" rel="noopener">https://blog.csdn.net/xhu_eternalcc/article/details/47147425</a></p>
+</li>
+</ul>
+</li>
+<li><p>mapred.output.key.comparator.class</p>
+<ul>
+<li><p>指定对 key 进行分片时进行排序的 class</p>
+</li>
+<li><p>参考：<a href="https://hadoop.apache.org/docs/r1.2.1/streaming.html" target="_blank" rel="noopener">https://hadoop.apache.org/docs/r1.2.1/streaming.html</a></p>
+</li>
+</ul>
+</li>
+<li><p>org.apache.hadoop.mapred.lib.KeyFieldBasedComparator</p>
+<ul>
+<li><p>排序类，类似于 GUN sort</p>
+</li>
+<li><p>参考：<a href="https://hadoop.apache.org/docs/r2.7.2/api/org/apache/hadoop/mapred/lib/KeyFieldBasedComparator.html" target="_blank" rel="noopener">https://hadoop.apache.org/docs/r2.7.2/api/org/apache/hadoop/mapred/lib/KeyFieldBasedComparator.html</a></p>
+</li>
+</ul>
+</li>
+<li><p>mapred.text.key.comparator.options</p>
+<ul>
+<li><p>_-n_ specifies that the sorting is numerical sorting and _-r_ specifies that the result should be reversed；-k 开始,结束 index（默认从 1 开始）。例如 “-k2,2nr” ，对第二列视为数字类型进行逆序排序</p>
+</li>
+<li><p>参考：<a href="https://hadoop.apache.org/docs/r1.2.1/streaming.html" target="_blank" rel="noopener">https://hadoop.apache.org/docs/r1.2.1/streaming.html</a></p>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">11.12.1.2</span><br><span class="line">11.14.2.3</span><br><span class="line">11.11.4.1</span><br><span class="line">11.12.1.1</span><br><span class="line">11.14.2.2</span><br><span class="line"></span><br><span class="line">===&gt;</span><br><span class="line"></span><br><span class="line">11.14.2.3</span><br><span class="line">11.14.2.2</span><br><span class="line">11.12.1.2</span><br><span class="line">11.12.1.1</span><br><span class="line">11.11.4.1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner</p>
+<ul>
+<li><p>允许你根据 key 的一部分（也就是字段）来进行 partition ，需要配置 mapreduce.partition.keypartitioner.options </p>
+</li>
+<li><p>参考：<a href="https://hadoop.apache.org/docs/r2.7.2/api/org/apache/hadoop/mapred/lib/KeyFieldBasedPartitioner.html" target="_blank" rel="noopener">https://hadoop.apache.org/docs/r2.7.2/api/org/apache/hadoop/mapred/lib/KeyFieldBasedPartitioner.html</a></p>
+</li>
+</ul>
+</li>
+<li><p>org.apache.hadoop.mapred.lib.SuffixMultipleTextOutputFormat</p>
+<ul>
+<li><p>hadoop 支持 reduce 多路输出的功能，一个reduce可以输出到多个 <code>part-xxxxx-X</code> 文件中，其中 <code>X</code> 是 <code>A-Z</code> 的字母之一，程序在输出 <code>&lt;key,value&gt;</code> 对的时候，在 <code>value</code> 的后面追加 <code>#X</code> 后缀，比如 <code>#A</code>，输出的文件就是 <code>part-00000-A</code> ，不同的后缀可以把 <code>&lt;key,value&gt;</code> 输出到不同的文件中，方便做输出类型分类， <code>#X</code> 仅仅用做指定输出文件后缀，不会体现到输出的内容中</p>
+</li>
+<li><p>参考：<a href="https://www.cnblogs.com/shapherd/archive/2012/12/21/2827860.html" target="_blank" rel="noopener">https://www.cnblogs.com/shapherd/archive/2012/12/21/2827860.html</a></p>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="mapper-sh"><a href="#mapper-sh" class="headerlink" title="mapper.sh"></a>mapper.sh</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> -x</span><br><span class="line">context1=<span class="variable">$1</span></span><br><span class="line">context2=<span class="variable">$2</span></span><br><span class="line"><span class="built_in">type</span>=$(<span class="built_in">echo</span> <span class="variable">$&#123;map_input_file&#125;</span> |</span><br><span class="line">    awk -F<span class="string">"\t"</span> <span class="string">'&#123;</span></span><br><span class="line"><span class="string">        if (index($0, "'</span><span class="variable">$&#123;context1&#125;</span><span class="string">'") &gt; 0) &#123;</span></span><br><span class="line"><span class="string">            print "1"</span></span><br><span class="line"><span class="string">        &#125; else if (index($0, "'</span><span class="variable">$&#123;context2&#125;</span><span class="string">'") &gt; 0) &#123;</span></span><br><span class="line"><span class="string">            print "2"</span></span><br><span class="line"><span class="string">        &#125; else &#123;</span></span><br><span class="line"><span class="string">            print "-1"</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125;'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$&#123;type&#125;</span> == <span class="string">"1"</span> ]]; <span class="keyword">then</span></span><br><span class="line">    awk -F <span class="string">'\t'</span> <span class="string">'&#123;print $1"\t1"&#125;'</span></span><br><span class="line"><span class="keyword">elif</span> [[ <span class="variable">$&#123;type&#125;</span> == <span class="string">"2"</span> ]]; <span class="keyword">then</span></span><br><span class="line">    awk -F <span class="string">'\t'</span> <span class="string">'&#123;print $1"\t2"&#125;'</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">exit</span> -1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<p>在 run.sh 里指定了执行命令：<code>-mapper &quot;sh -x mapper.sh ${context1} ${context2}&quot;</code></p>
+<p>对于 hadoop 路径中包含 context1 的文件，会在其每行url后添加 <code>\t1</code>，例如 <code>url1 \t 1</code>，然后输出</p>
+<p>对于 hadoop 路径中包含 context2 的文件，会在其每行url后添加 <code>\t2</code>，例如 <code>url2 \t 2</code>，然后输出</p>
+<p>之后 hadoop 会根据这两个列进行排序（ -D mapred.text.key.comparator.options=”-k1,2”）</p>
+<h2 id="reducer-sh"><a href="#reducer-sh" class="headerlink" title="reducer.sh"></a>reducer.sh</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> -x</span><br><span class="line"></span><br><span class="line">awk -F <span class="string">'\t'</span> <span class="string">'BEGIN &#123;</span></span><br><span class="line"><span class="string">    only1_cnt = 0</span></span><br><span class="line"><span class="string">    only2_cnt = 0</span></span><br><span class="line"><span class="string">    comm_cnt = 0</span></span><br><span class="line"><span class="string">&#125; &#123;</span></span><br><span class="line"><span class="string">    url = $1</span></span><br><span class="line"><span class="string">    type = $2</span></span><br><span class="line"><span class="string">    if (url != last_url) &#123;</span></span><br><span class="line"><span class="string">        if (last_type == 1) &#123;</span></span><br><span class="line"><span class="string">            ++only1_cnt</span></span><br><span class="line"><span class="string">            print "file1 only: "last_line &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">            print last_url"\t#A"</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">        if (type == 2) &#123;</span></span><br><span class="line"><span class="string">            ++only2_cnt</span></span><br><span class="line"><span class="string">            print "file2 only: "$0 &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">            print url"\t#B"</span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">    &#125; else &#123;</span></span><br><span class="line"><span class="string">        ++comm_cnt</span></span><br><span class="line"><span class="string">        print url"\t#C"</span></span><br><span class="line"><span class="string">        print "comm: "$0 &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    last_url = url</span></span><br><span class="line"><span class="string">    last_type = type</span></span><br><span class="line"><span class="string">    last_line = $0</span></span><br><span class="line"><span class="string">&#125; END &#123;</span></span><br><span class="line"><span class="string">    if (type == 1)&#123;</span></span><br><span class="line"><span class="string">        ++only1_cnt</span></span><br><span class="line"><span class="string">        print "file1 only: "last_line &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">        print url"\t#A"</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">    printf "reporter:counter:counts,file1_only,%ld\n", only1_cnt &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">    printf "reporter:counter:counts,file2_only,%ld\n", only2_cnt &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">    printf "reporter:counter:counts,common,%ld\n", comm_cnt &gt; "/dev/stderr"</span></span><br><span class="line"><span class="string">&#125;'</span></span><br></pre></td></tr></table></figure>
+<p>这个脚本接受的输入大致如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">url1 1</span><br><span class="line">url1 2</span><br><span class="line">url2 1</span><br><span class="line">url3 2</span><br></pre></td></tr></table></figure>
+<p>url1 在 1 和 2 中都存在，则输出 <code>url1#C</code></p>
+<p>url2 只在 1 中存在，则输出 <code>url2#A</code></p>
+<p>url3 只在 2 中存在，则输出 <code>url3#B</code></p>
+<p><code>org.apache.hadoop.mapred.lib.SuffixMultipleTextOutputFormat</code> 会根据 # 后的值，将 url 输出到不同的 xxx-X 的文件中，X 对应 A、B 或 C</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2024/10/12/使用-map-reduce-按行比较两组数据的-diff/" data-id="cm25mf4oo009xbfjhnk8jav0u" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/">hadoop</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/10/09/使用-awk-命令按行的第一列取两个文件的交集/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">使用 awk 命令按行的第一列取两个文件的交集</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>198</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
