@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>《自己动手写Docker》笔记x02：基础容器构建 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="这是《自己动手写Docker》的读书笔记，本篇为第三章的笔记，主要的内容为如何使用GO语言构建一个简单的容器，实现进程隔离、资源控制">
+<meta name="keywords" content="容器,Golang,Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《自己动手写Docker》笔记x02：基础容器构建">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="这是《自己动手写Docker》的读书笔记，本篇为第三章的笔记，主要的内容为如何使用GO语言构建一个简单的容器，实现进程隔离、资源控制">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/image3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/image4.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/image5.png">
+<meta property="og:updated_time" content="2020-12-04T07:49:48.902Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《自己动手写Docker》笔记x02：基础容器构建">
+<meta name="twitter:description" content="这是《自己动手写Docker》的读书笔记，本篇为第三章的笔记，主要的内容为如何使用GO语言构建一个简单的容器，实现进程隔离、资源控制">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-《自己动手写Docker》笔记x02-基础容器构建" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/" class="article-date">
+  <time class="post-time" datetime="2019-08-06T13:24:27.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">06</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      《自己动手写Docker》笔记x02：基础容器构建
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这是《自己动手写Docker》的读书笔记，本篇为第三章的笔记，主要的内容为如何使用GO语言构建一个简单的容器，实现进程隔离、资源控制</p>
+<a id="more"></a>
+<p>实验环境参数如下</p>
+<ul>
+<li>虚拟机 Parallel14</li>
+<li>Ubuntu 16.04</li>
+<li>Linux内核 4.10.0-28-generic</li>
+<li>Golang v1.12.4</li>
+</ul>
+<hr>
+<p>这本书从这一章开始就出现了大量的代码了，我也照着作者给出的代码手敲了部分，并对代码做了相应的注释，实现了在本地机器上的运行，我把代码上传到了Github上了<a href="https://github.com/schwarzeni/write-your-own-docker-learning" target="_blank" rel="noopener">schwarzeni/write-your-own-docker-learning</a></p>
+<p>在这里就记录一些重点或者注意点吧。</p>
+<hr>
+<h2 id="Linux-proc-文件系统"><a href="#Linux-proc-文件系统" class="headerlink" title="Linux proc 文件系统"></a>Linux proc 文件系统</h2><p><code>/proc</code> 文件系统是由内核提供的，它并不是一个真正的文件系统，只包含了系统运行时的信息，只存在于内存中。列出这个目录下的文件，会发现有很多都是数字，这些都是进程的 <code>PID</code></p>
+<p>关于 <code>/proc/&lt;PID&gt;</code> 下的文件作用列举如下</p>
+<table>
+<thead>
+<tr>
+<th>文件路径</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/proc/[PID]</td>
+<td>PID为N的进程信息</td>
+</tr>
+<tr>
+<td>/proc/[PID]/cmdline</td>
+<td>进程启动命令</td>
+</tr>
+<tr>
+<td>/proc/[PID]/cwd</td>
+<td>链接到进程当前工作目录</td>
+</tr>
+<tr>
+<td>/proc/[PID]/environ</td>
+<td>进程环境变量列表</td>
+</tr>
+<tr>
+<td>/proc/[PID]/fd</td>
+<td>包含进程相关的所有文件描述符</td>
+</tr>
+<tr>
+<td>/proc/[PID]/maps</td>
+<td>与进程相关的内存映射信息</td>
+</tr>
+<tr>
+<td>/proc/[PID]/mem</td>
+<td>指代进程持有的内存，不可读</td>
+</tr>
+<tr>
+<td>/proc/[PID]/root</td>
+<td>链接到进程的根目录</td>
+</tr>
+<tr>
+<td>/proc/[PID]/stat</td>
+<td>进程的状态</td>
+</tr>
+<tr>
+<td>/proc/[PID]/statm</td>
+<td>进程使用的内存状态</td>
+</tr>
+<tr>
+<td>/proc/[PID]/status</td>
+<td>比前两者更具可读性的信息</td>
+</tr>
+<tr>
+<td>/proc/self</td>
+<td>链接到当前正在运行的进程</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="初步启动容器"><a href="#初步启动容器" class="headerlink" title="初步启动容器"></a>初步启动容器</h2><p>对应在代码在 <code>cpt3/cpt3-1-run</code> 下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cpt3/cpt3-1-run</span><br><span class="line">├── container</span><br><span class="line">│   ├── container_process.go     生成子进程的命令</span><br><span class="line">│   └── init.go                  子进程需要执行的命令</span><br><span class="line">├── main_command.go              命令行的命令，run和init</span><br><span class="line">├── main.go</span><br><span class="line">└── run.go                       克隆进程操作</span><br></pre></td></tr></table></figure>
+<p>在挂载proc之前有一个注意点，如果使用原书中的代码会出现问题。参看这里<a href="https://github.com/xianlubird/mydocker/issues/41#issuecomment-478799767" target="_blank" rel="noopener">链接给出的解决方案</a>。</p>
+<p><code>systemd</code> 加入linux之后, mount namespace 就变成 <code>shared by default</code>, 所以你必须显示，声明你要这个新的mount namespace独立。</p>
+<p>需要做如下修改</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/init.go</span></span><br><span class="line"><span class="comment">// 子进程需要执行的内容</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RunContainerInitProgress</span><span class="params">(cmd <span class="keyword">string</span>, args []<span class="keyword">string</span>)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// https://github.com/xianlubird/mydocker/issues/41#issuecomment-478799767</span></span><br><span class="line">	<span class="comment">// systemd 加入linux之后, mount namespace 就变成 shared by default, 所以你必须显示</span></span><br><span class="line">	<span class="comment">//声明你要这个新的mount namespace独立。</span></span><br><span class="line">	<span class="keyword">if</span> err = syscall.Mount(<span class="string">""</span>, <span class="string">"/"</span>, <span class="string">""</span>, syscall.MS_PRIVATE | syscall.MS_REC, <span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也是在这个函数中，声明时需要加一些参数</p>
+<ul>
+<li><code>MS_NOEXEC</code> 本文件系统不允许执行其他程序</li>
+<li><code>MS_NOSUID</code> 不允许 set-user-ID 和 set-group-ID</li>
+<li><code>MS_NODEV</code>  默认参数</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/init.go</span></span><br><span class="line"><span class="comment">// 子进程需要执行的内容</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RunContainerInitProgress</span><span class="params">(cmd <span class="keyword">string</span>, args []<span class="keyword">string</span>)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">	defaultMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV</span><br><span class="line">	<span class="keyword">if</span> err = syscall.Mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="keyword">uintptr</span>(defaultMountFlags), <span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后还需要使用到 <code>syscall.Exec</code>，将当前进程的PID置为1。它调用了Kernel的 <code>int execve(const char *filename, char *const argv[], char *const envp[])</code>，覆盖当前进程的镜像，数据和堆栈信息</p>
+<hr>
+<p>在 <code>container/container_process.go</code> 中，它还使用到了 <code>/proc/self/exe</code> 来调用自身来启动子进程</p>
+<p>偷个懒直接截书上的图了，时序图如下</p>
+<p><img src="image1.png" alt=""></p>
+<hr>
+<h2 id="改进"><a href="#改进" class="headerlink" title="改进"></a>改进</h2><p>这部分代码在 <code>cpt3/cpt3-23-cgroup</code> 下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">├── cgroup</span><br><span class="line">│   ├── cgroup_manger.go     cgroup控制器对外接口</span><br><span class="line">│   └── subsystems           不同的资源</span><br><span class="line">│       ├── cpu.go           </span><br><span class="line">│       ├── cpuset.go       </span><br><span class="line">│       ├── memory.go</span><br><span class="line">│       ├── subsystems.go    定义的通用的接口</span><br><span class="line">│       └── util.go          用于读取相关的资源信息</span><br><span class="line">├── container</span><br><span class="line">│   ├── container_process.go</span><br><span class="line">│   └── init.go</span><br><span class="line">├── main_command.go</span><br><span class="line">├── main.go</span><br><span class="line">└── run.go</span><br></pre></td></tr></table></figure>
+<h3 id="使用CGroups来控制资源使用"><a href="#使用CGroups来控制资源使用" class="headerlink" title="使用CGroups来控制资源使用"></a>使用CGroups来控制资源使用</h3><p>先复习一下Cgroups的概念</p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cgroup</code></td>
+<td><code>hierarchy</code> 中的节点，用于管理进程和 <code>subsystem</code> 的关系</td>
+</tr>
+<tr>
+<td><code>subsystem</code></td>
+<td>作用于 <code>hierarchy</code> 上的 <code>cgroup</code> 节点，并控制节点中进程的资源占用</td>
+</tr>
+<tr>
+<td><code>hierarchy</code></td>
+<td>将 <code>cgroup</code> 通过树状结构串起来，并通过虚拟文件系统的方式暴露给用户</td>
+</tr>
+</tbody>
+</table>
+<p>先定义一下资源配置信息结构体</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cgroup/subsystems/subsystems.go</span></span><br><span class="line"><span class="comment">// 传递资源配置信息的结构体</span></span><br><span class="line"><span class="keyword">type</span> ResourceConfig <span class="keyword">struct</span> &#123;</span><br><span class="line">	MemoryLimit <span class="keyword">string</span> <span class="comment">// 内存限制</span></span><br><span class="line">	CpuShare    <span class="keyword">string</span> <span class="comment">// CPU时间片权重</span></span><br><span class="line">	CpuSet      <span class="keyword">string</span> <span class="comment">// CPU核心数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再定义一下通用的接口</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cgroup/subsystems/subsystems.go</span></span><br><span class="line"><span class="comment">// 将cgroup抽象成path，原因是cgroup为hierarchy的路径 --&gt;  虚拟文件系统中的虚拟路径</span></span><br><span class="line"><span class="keyword">type</span> Subsystem <span class="keyword">interface</span> &#123;</span><br><span class="line">	Name() <span class="keyword">string</span></span><br><span class="line">	Set(path <span class="keyword">string</span>, res *ResourceConfig) error <span class="comment">// 设置某个cgroup在这个subsystem中的资源限制</span></span><br><span class="line">	Apply(path <span class="keyword">string</span>, pid <span class="keyword">int</span>) error           <span class="comment">// 添加进程至某个cgroup中</span></span><br><span class="line">	Remove(path <span class="keyword">string</span>) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样，<code>CpuSet</code>、<code>Memory</code>、<code>CpuSub</code> 实现以上的接口就行了</p>
+<hr>
+<p>还有一个问题需要解决：如果找到subsystem的挂载目录的绝对路径</p>
+<p>比如说想要找到memory的，那么就在 <code>/proc/self/mountinfo</code> 中，如下</p>
+<p><img src="image2.png" alt=""></p>
+<p>将其按照空格分割，需要的数据就在第5位，所以就有了如下的代码</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// cgroup/subsystems/util.go</span></span><br><span class="line"><span class="comment">// 找到挂载了subsystem的hierarchy的挂载目录</span></span><br><span class="line"><span class="comment">// 执行 cat /proc/self/mountinfo，分析其中的内容即可获取</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">FindCgroupMountpoint</span><span class="params">(subsystem <span class="keyword">string</span>)</span> <span class="title">string</span></span> &#123;</span><br><span class="line">	f, err := os.Open(<span class="string">"/proc/self/mountinfo"</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> f.Close()</span><br><span class="line"></span><br><span class="line">	scanner := bufio.NewScanner(f)</span><br><span class="line">	<span class="keyword">for</span> scanner.Scan() &#123;</span><br><span class="line">		txt := scanner.Text()</span><br><span class="line">		fields := strings.Split(txt, <span class="string">" "</span>)</span><br><span class="line">		<span class="keyword">for</span> _, opt := <span class="keyword">range</span> strings.Split(fields[<span class="built_in">len</span>(fields)<span class="number">-1</span>], <span class="string">","</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> opt == subsystem &#123;</span><br><span class="line">				<span class="keyword">return</span> fields[<span class="number">4</span>]</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := scanner.Err(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>总的流程图如下</p>
+<p><img src="image3.png" alt=""></p>
+<hr>
+<h3 id="通过管道实现进程间通信"><a href="#通过管道实现进程间通信" class="headerlink" title="通过管道实现进程间通信"></a>通过管道实现进程间通信</h3><p><code>管道</code> 为两个进程间通讯的一种方式，半双工通讯。它是Linux支持的IPC的其中一种方式。一类为<code>无名管道</code> ，用于有亲缘关系的进程之间通讯；另一类为 <code>有名管道</code>，也叫 <code>FIFO管道</code>，是一种存在于文件系统中的管道。</p>
+<p>管道是文件的一种，有一个固定的缓冲区，一般的大小为4K；当管道写满时，写进程阻塞；当管道为空时，读进程阻塞。</p>
+<p>使用GO来创建一个管道</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/container_process.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewPipe</span><span class="params">()</span> <span class="params">(*os.File, *os.File, error)</span></span> &#123;</span><br><span class="line">	read, write, err := os.Pipe()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> read, write, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>随后使用 <code>cmd.ExtraFiles</code>将管道文件的文件描述符添加至子进程中，如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/container_process.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewParentProcess</span><span class="params">(tty <span class="keyword">bool</span>)</span> <span class="params">(*exec.Cmd, *os.File)</span></span> &#123;</span><br><span class="line">	readPipe, writePipe, err := NewPipe()</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">	cmd := exec.Command(<span class="string">"/proc/self/exe"</span>, <span class="string">"init"</span>)</span><br><span class="line">	cmd.SysProcAttr = &amp;syscall.SysProcAttr&#123;</span><br><span class="line">		Cloneflags: syscall.CLONE_NEWUTS |</span><br><span class="line">        <span class="comment">// ....</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// .....</span></span><br><span class="line"></span><br><span class="line">	cmd.ExtraFiles = []*os.File&#123;readPipe&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> cmd, writePipe</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样，子进程就可以使用如下方法来获得管道中的内容了</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/init.go</span></span><br><span class="line"><span class="comment">// 从管道中读取参数</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readUserCommand</span><span class="params">()</span> []<span class="title">string</span></span> &#123;</span><br><span class="line">	pipe := os.NewFile(<span class="keyword">uintptr</span>(<span class="number">3</span>), <span class="string">"pipe"</span>)</span><br><span class="line">	<span class="keyword">if</span> msg, err := ioutil.ReadAll(pipe); err!= <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于进程默认携带三个文件描述符，如下图前三项</p>
+<p><img src="image4.png" alt=""></p>
+<p>也就是stdin、stdout、stderr，所以 <code>uintptr(3)</code> 是获取其第四个文件描述符</p>
+<hr>
+<p>整体的流程图如下</p>
+<p><img src="image5.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/" data-id="cm2q61t07008jdqjh7akjqzx3" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          《自己动手写Docker》笔记x03：构建镜像
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/08/05/《自己动手写Docker》笔记x01：基础知识/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《自己动手写Docker》笔记x01：基础知识</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

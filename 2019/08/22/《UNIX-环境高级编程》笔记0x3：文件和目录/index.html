@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>《UNIX 环境高级编程》笔记0x3：文件和目录 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="此为第四章笔记。讲了好多的API啊，根本记不住，烦死了啊。对于文件系统那一部分我觉得我还是需要再看几遍的，有一点难度。">
+<meta name="keywords" content="Linux,操作系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《UNIX 环境高级编程》笔记0x3：文件和目录">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="此为第四章笔记。讲了好多的API啊，根本记不住，烦死了啊。对于文件系统那一部分我觉得我还是需要再看几遍的，有一点难度。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/image2.png">
+<meta property="og:updated_time" content="2021-04-14T11:24:58.500Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《UNIX 环境高级编程》笔记0x3：文件和目录">
+<meta name="twitter:description" content="此为第四章笔记。讲了好多的API啊，根本记不住，烦死了啊。对于文件系统那一部分我觉得我还是需要再看几遍的，有一点难度。">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-《UNIX-环境高级编程》笔记0x3：文件和目录" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/" class="article-date">
+  <time class="post-time" datetime="2019-08-22T04:59:26.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">22</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      《UNIX 环境高级编程》笔记0x3：文件和目录
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/UNIX-环境高级编程/">UNIX 环境高级编程</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>此为第四章笔记。讲了好多的API啊，根本记不住，烦死了啊。对于文件系统那一部分我觉得我还是需要再看几遍的，有一点难度。</p>
+<a id="more"></a>
+<hr>
+<h2 id="函数-stat、fstat、fstatat和lstat"><a href="#函数-stat、fstat、fstatat和lstat" class="headerlink" title="函数 stat、fstat、fstatat和lstat"></a>函数 stat、fstat、fstatat和lstat</h2><p>函数原型分别如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">stat</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *<span class="keyword">restrict</span> pathname, struct stat *<span class="keyword">restrict</span> buf)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fstae</span><span class="params">(<span class="keyword">int</span> fd, struct stat *buf)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">lstat</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *<span class="keyword">restrict</span> pathname, struct stat *<span class="keyword">restrict</span> buf)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">fstatat</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">const</span> <span class="keyword">char</span> *<span class="keyword">restrict</span> pathname, struct stat *<span class="keyword">restrict</span> buf, <span class="keyword">int</span> flag)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>这里使用 <code>stat</code> 做一个实验</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">sb</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">    <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Usage: %s &lt;pathname&gt;\n"</span>, argv[<span class="number">0</span>]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (stat(argv[<span class="number">1</span>], &amp;sb) == <span class="number">-1</span>) &#123;</span><br><span class="line">    perror(<span class="string">"stat"</span>);</span><br><span class="line">    <span class="built_in">exit</span>(EXIT_FAILURE);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"File type:\t"</span>);</span><br><span class="line">  <span class="keyword">switch</span> (sb.st_mode &amp; S_IFMT) &#123;</span><br><span class="line">    <span class="keyword">case</span> S_IFDIR: <span class="built_in">printf</span>(<span class="string">"directionary\n"</span>);   <span class="keyword">break</span>;</span><br><span class="line">    <span class="comment">// mutiply file types ...</span></span><br><span class="line">    <span class="keyword">case</span> S_IFREG: <span class="built_in">printf</span>(<span class="string">"regular file\n"</span>);   <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:      <span class="built_in">printf</span>(<span class="string">"unknown\n"</span>);        <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Preferred I/O block size: %ld bytes\n"</span>, (<span class="keyword">long</span>)sb.st_blksize);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"File size:                %lld bytes\n"</span>, (<span class="keyword">long</span> <span class="keyword">long</span>)sb.st_size);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Blocks allocated:         %lld\n"</span>, (<span class="keyword">long</span> <span class="keyword">long</span>) sb.st_blocks);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Last status change:       %s"</span>, ctime(&amp;sb.st_ctime));</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Last file access:         %s"</span>, ctime(&amp;sb.st_atime));</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"Last file modification:   %s"</span>, ctime(&amp;sb.st_mtime));</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; ./a.out ls_test.c</span><br><span class="line">File type:      regular file</span><br><span class="line">Preferred I/O block size: 4096 bytes</span><br><span class="line">File size:                1008 bytes</span><br><span class="line">Blocks allocated:         8</span><br><span class="line">Last status change:       Wed Aug 21 08:53:08 2019</span><br><span class="line">Last file access:         Wed Aug 21 08:53:14 2019</span><br><span class="line">Last file modification:   Wed Aug 21 08:53:08 2019</span><br></pre></td></tr></table></figure>
+<p>这个函数可以获取文件的大部分状态信息，并存放至结构体 <code>stat</code> 中。全部的信息如下</p>
+<p><img src="image1.png" alt="image1.png"></p>
+<p><img src="image2.png" alt="image2.png"></p>
+<p>当然，还有另外一个方式判断文件类型：使用其预定义的宏（PDFp96）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">buf</span>;</span></span><br><span class="line">  <span class="keyword">char</span> *ptr;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">1</span>; i &lt; argc; i++) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s: "</span>, argv[i]);</span><br><span class="line">    <span class="keyword">if</span> (lstat(argv[i], &amp;buf) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">      err_ret(<span class="string">"lstat error"</span>);</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (S_ISREG(buf.st_mode))</span><br><span class="line">      ptr = <span class="string">"regular"</span>;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (S_ISDIR(buf.st_mode))</span><br><span class="line">      ptr = <span class="string">"directory"</span>;</span><br><span class="line">    <span class="comment">// ...... many file types</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (S_ISLNK(buf.st_mode))</span><br><span class="line">      ptr = <span class="string">"symbolic link"</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      ptr = <span class="string">"** unknown node **"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s\n"</span>, ptr);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; ./a.out /dev/cdrom /etc/passwd /etc</span><br><span class="line">/dev/cdrom: symbolic link</span><br><span class="line">/etc/passwd: regular</span><br><span class="line">/etc: directory</span><br></pre></td></tr></table></figure>
+<p>其实宏中定义就像第一种方法</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	__S_ISTYPE(mode, mask)	(((mode) &amp; __S_IFMT) == (mask))</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>	S_ISDIR(mode)	 __S_ISTYPE((mode), __S_IFDIR)</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="和进程相关的ID"><a href="#和进程相关的ID" class="headerlink" title="和进程相关的ID"></a>和进程相关的ID</h2><ul>
+<li>当前用户<ul>
+<li>实际用户          ID</li>
+<li>实际组            ID</li>
+</ul>
+</li>
+<li>文件访问权限<ul>
+<li>有效用户          ID</li>
+<li>有效组            ID</li>
+<li>附属组            ID</li>
+</ul>
+</li>
+<li>保存时的设置<ul>
+<li>保存的设置用户    ID</li>
+<li>保存的设置组      ID</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="文件访问权限"><a href="#文件访问权限" class="headerlink" title="文件访问权限"></a>文件访问权限</h2><p>每个文件有9个访问权限位，常量定义在 <code>&lt;sys/stat.h&gt;</code></p>
+<ul>
+<li>用户 <code>u</code><ul>
+<li><code>S_IRUSER</code> 读</li>
+<li><code>S_IWUSER</code> 写</li>
+<li><code>S_IXUSER</code> 执行</li>
+</ul>
+</li>
+<li>组 <code>g</code><ul>
+<li><code>S_IRGRP</code> 读</li>
+<li><code>S_IWGRP</code> 写</li>
+<li><code>S_IXGRP</code> 执行</li>
+</ul>
+</li>
+<li>其他 <code>o</code><ul>
+<li><code>S_IROTH</code> 读</li>
+<li><code>S_IWOTH</code> 写</li>
+<li><code>S_IXOTH</code> 执行</li>
+</ul>
+</li>
+</ul>
+<p>可以使用系统调用 <code>access</code> 或 <code>faccessat</code> 来验证当前用户能否访问</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">access</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *pathname, <span class="keyword">int</span> mode)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">faccessat</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">const</span> <span class="keyword">char</span> *pathname, <span class="keyword">int</span> mode, <span class="keyword">int</span> flag)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>mode 列表如下</p>
+<table>
+<thead>
+<tr>
+<th>mode</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R_OK</td>
+<td>测试读权限</td>
+</tr>
+<tr>
+<td>W_OK</td>
+<td>测试写权限</td>
+</tr>
+<tr>
+<td>X_OK</td>
+<td>测试执行权限</td>
+</tr>
+</tbody>
+</table>
+<p>第二的函数的 <code>flag</code> 若为 <code>AT_EACCESS</code>，则测试的是调用进程的有效用户ID和有效组ID，而不是实际用户ID和实际组ID</p>
+<p>第二个函数在下列几种情况下和第一个函数作用相同</p>
+<ul>
+<li><code>pathname</code> 为绝对路径</li>
+<li><code>fd</code> 为 <code>AT_FDCWD</code> 当前工作路径、<code>pathname</code> 为相对路径</li>
+</ul>
+<p>否则其计算的是相对于打开目录（ <code>fd</code> 参数指向）的 <code>pathname</code></p>
+<hr>
+<h2 id="使用屏蔽词umask"><a href="#使用屏蔽词umask" class="headerlink" title="使用屏蔽词umask"></a>使用屏蔽词umask</h2><p>通过设置屏蔽词来关闭文件 <code>mode</code> 中的相应位</p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RWRWRW (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="comment">// 设置屏蔽词</span></span><br><span class="line">  umask(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (creat(<span class="string">"foo"</span>, RWRWRW) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"creat error for foo"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 修改屏蔽词</span></span><br><span class="line">  umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (creat(<span class="string">"bar"</span>, RWRWRW) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"creat error for bar"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行此程序后，发现 <code>bar</code> 文件的全部和设置的并不一致，这是因为设置了 <code>umask</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-rw------- 1 parallels parallels   0 8月  21 13:45 bar</span><br><span class="line">-rw-rw-rw- 1 parallels parallels   0 8月  21 13:45 foo</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="命令行用法"><a href="#命令行用法" class="headerlink" title="命令行用法"></a>命令行用法</h3><p>umask的文件访问位</p>
+<table>
+<thead>
+<tr>
+<th>屏蔽位</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>0400</td>
+<td>读</td>
+</tr>
+<tr>
+<td>0200</td>
+<td>写</td>
+</tr>
+<tr>
+<td>0100</td>
+<td>执行</td>
+</tr>
+<tr>
+<td>组</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>0040</td>
+<td>读</td>
+</tr>
+<tr>
+<td>0020</td>
+<td>写</td>
+</tr>
+<tr>
+<td>0010</td>
+<td>执行</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>-</td>
+<td></td>
+</tr>
+<tr>
+<td>0004</td>
+<td>读</td>
+</tr>
+<tr>
+<td>0002</td>
+<td>写</td>
+</tr>
+<tr>
+<td>0001</td>
+<td>执行</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt; <span class="built_in">umask</span></span><br><span class="line">002</span><br><span class="line"></span><br><span class="line">&gt; <span class="built_in">umask</span> 027</span><br><span class="line">&gt; <span class="built_in">umask</span> -S</span><br><span class="line">u=rwx,g=rx,o=</span><br></pre></td></tr></table></figure>
+<p>常用的umask组合</p>
+<ul>
+<li><code>002</code> 阻止其他用户写入你的文件</li>
+<li><code>022</code> 阻止其他用户以及同组用户写入你的文件</li>
+<li><code>027</code> 阻止同组用户写入你的文件，以及其他用户读、写或执行你的文件</li>
+</ul>
+<hr>
+<h2 id="粘着位"><a href="#粘着位" class="headerlink" title="粘着位"></a>粘着位</h2><p>如果执行如下指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ls -dl /tmp</span><br><span class="line"><span class="comment"># drwxrwxrwt 14 root root 4096 8月  21 14:48 /tmp</span></span><br></pre></td></tr></table></figure>
+<p>输出的权限位列表中有一个 <code>t</code>，这个就是 <code>粘着位 (sticky bit)</code>。对于 <code>/tmp</code>：</p>
+<ul>
+<li>任何用户都可以在其中创建文件。任一用户对此目录的权限都是读、写和执行。</li>
+<li>任何用户（除了root）都不可以删除或重命名属于其他人的文件。</li>
+</ul>
+<p>命令行创建</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod o+t   tmp</span><br><span class="line">chmod +t    tmp</span><br><span class="line">chmod 1757  tmp</span><br></pre></td></tr></table></figure>
+<p>代码创建 <code>S_ISVTX</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">statbuf</span>;</span></span><br><span class="line">  <span class="keyword">char</span>* dirname = <span class="string">"tmp"</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (stat(dirname, &amp;statbuf) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"stat error for %s"</span>, dirname);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (chmod(dirname, (statbuf.st_mode | S_ISVTX)) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"chmod error for %s"</span>, dirname);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h2><p>PDFp111</p>
+<hr>
+<h2 id="使用-unlink"><a href="#使用-unlink" class="headerlink" title="使用 unlink"></a>使用 unlink</h2><p>使用 <code>unlink</code> 来确保程序的临时文件在退出的时候可以彻底删除</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> *filename = <span class="string">"output.file"</span>;</span><br><span class="line">  <span class="keyword">if</span> (open (filename, O_RDWR) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"open error"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (unlink(filename) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"unlink error"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"file unlinked\n"</span>);</span><br><span class="line"></span><br><span class="line">  sleep(<span class="number">15</span>);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"done\n"</span>);</span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>程序执行时文件立刻被删除，但是占用空间是在进程退出时删除的。</p>
+<hr>
+<h2 id="文件的时间"><a href="#文件的时间" class="headerlink" title="文件的时间"></a>文件的时间</h2><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+<th>例子</th>
+<th>ls 选项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>st_atim</td>
+<td>最后访问时间</td>
+<td>read</td>
+<td>-u</td>
+</tr>
+<tr>
+<td>st_mtim</td>
+<td>最后修改时间</td>
+<td>write</td>
+<td>默认</td>
+</tr>
+<tr>
+<td>st_ctim</td>
+<td>i节点状态的最后更改时间</td>
+<td>chmod, chown</td>
+<td>-c</td>
+</tr>
+</tbody>
+</table>
+<p>处理文件时间的函数 <code>futimens</code> 、<code>utimensat</code> 以及 <code>utimes</code> 需要传入的 <code>timespec</code> 数组中，第一个数组元素为<strong>访问时间</strong>，第二个数组元素为<strong>修改时间</strong>，分别对应 <code>stat</code> 结构体中的 <code>st_atim</code> 和 <code>st_mtim</code>。</p>
+<p>下列代码对文件信息进行截断，同时不改变其访问和修改日期</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i,fd;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">statbuf</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">times</span>[2];</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">1</span>; i &lt; argc; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (stat(argv[i], &amp;statbuf) &lt; <span class="number">0</span>) &#123; <span class="comment">/* 获取当前文件时间信息 */</span></span><br><span class="line">      err_ret(<span class="string">"%s: stat error"</span>, argv[i]);</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> ((fd = open(argv[i], O_RDWR | O_TRUNC)) &lt; <span class="number">0</span>) &#123; <span class="comment">/* 对文件进行截断操作 */</span></span><br><span class="line">      err_ret(<span class="string">"%s: open error"</span>, argv[i]);</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    times[<span class="number">0</span>] = statbuf.st_atim;</span><br><span class="line">    times[<span class="number">1</span>] = statbuf.st_mtim;</span><br><span class="line">    <span class="keyword">if</span> (futimens(fd, times) &lt; <span class="number">0</span>) &#123; <span class="comment">/* 修改文件的时间 */</span></span><br><span class="line">      err_ret(<span class="string">"%s: futimens error"</span>, argv[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    close(fd);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&gt; ls -lu a.txt</span><br><span class="line">-rw-rw-r-- 1 parallels parallels 23 8月  21 18:04 a.txt</span><br><span class="line"></span><br><span class="line">&gt; ls -l a.txt</span><br><span class="line">-rw-rw-r-- 1 parallels parallels 23 8月  21 18:03 a.txt</span><br><span class="line"></span><br><span class="line">&gt; ./a.out a.txt</span><br><span class="line"></span><br><span class="line">&gt; ls -lu a.txt</span><br><span class="line">-rw-rw-r-- 1 parallels parallels 0 8月  21 18:04 a.txt</span><br><span class="line"></span><br><span class="line">&gt; ls -l a.txt</span><br><span class="line">-rw-rw-r-- 1 parallels parallels 23 8月  21 18:03 a.txt</span><br><span class="line"></span><br><span class="line">&gt; ls -lc a.txt # 这里节点状态信息修改时间改变了</span><br><span class="line">-rw-rw-r-- 1 parallels parallels 0 8月  21 18:05 a.txt</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="当前的工作路径"><a href="#当前的工作路径" class="headerlink" title="当前的工作路径"></a>当前的工作路径</h2><p>使用函数 <code>chdir</code> 或 <code>fchdir</code>，定义在 <code>&lt;unistd.h&gt;</code> 中</p>
+<p>文件名以及路径的最大长度设置在 <code>&lt;limits.h&gt;</code> 文件中</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NAME_MAX         255	<span class="comment">/* # chars in a file name */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PATH_MAX        4096	<span class="comment">/* # chars in a path name including nul */</span></span></span><br></pre></td></tr></table></figure>
+<p>修改当前的路径，并打印其绝对路径</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">char</span> *ptr;</span><br><span class="line">  <span class="keyword">size_t</span> size;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (chdir(<span class="string">"/usr/libexec/docker"</span>) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    err_sys(<span class="string">"chdir failed"</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ptr = path_alloc(&amp;size);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (getcwd(ptr, size) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    err_sys(<span class="string">"getcwd failed"</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">"cwd = %s\n"</span>, ptr);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="识别设备编号"><a href="#识别设备编号" class="headerlink" title="识别设备编号"></a>识别设备编号</h2><p>每个文件系统所在的存储设备都由其 <strong>主、次设备号</strong> 表示。设备号所用的数据类型是基本系统数据类型 <code>dev_t</code>。 <code>主设备号</code> 标识 <code>设备驱动程序</code> 或 <code>与其通信的外设板</code> 。 <code>次设备号</code> 标识 <code>特定的子设备</code> 。</p>
+<p>通过宏 <code>major</code> 和 <code>minor</code> 来访问主、次设备号。对于Linux，这两个宏定义在头文件 <code>&lt;sys/sysmacros.h&gt;</code> 中。</p>
+<p><code>st_dev</code> 为文件系统的设备号，包含 <code>文件名</code> 及与其对应的 <code>i节点</code> 。 只有 <code>字符特殊文件</code> 和 <code>块特殊文件</code> 才有 <code>st_rdev</code> 值，此值包含实际设备的设备号。</p>
+<p>下列函数能打印设备号</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/sysmacros.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> i;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">buf</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">1</span>; i &lt; argc; i++) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s: "</span>, argv[i]);</span><br><span class="line">    <span class="keyword">if</span> (stat(argv[i], &amp;buf) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">      err_ret(<span class="string">"stat error"</span>);</span><br><span class="line">      <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"dev = %d/%d"</span>, major(buf.st_dev), minor(buf.st_dev));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 字符特殊文件 或 块特殊文件 的情况</span></span><br><span class="line">    <span class="keyword">if</span> (S_ISCHR(buf.st_mode) || S_ISBLK(buf.st_mode)) &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">" (%s) rdev = %d/%d"</span>, (S_ISCHR(buf.st_mode)) ? <span class="string">"character"</span> : <span class="string">"block"</span>, major(buf.st_rdev), minor(buf.st_rdev));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(EXIT_SUCCESS);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译执行后有如下输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; ./a.out /home/parallels /dev/tty</span><br><span class="line">/home/parallels: dev = 8/1</span><br><span class="line">/dev/tty: dev = 0/6 (character) rdev = 5/0</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/" data-id="cm2q61t02007xdqjhyydebi2h" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/23/《UNIX-环境高级编程》笔记0x4：标准I-O/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          《UNIX 环境高级编程》笔记0x4：标准I/O库
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《UNIX 环境高级编程》笔记0x2：文件I/O</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

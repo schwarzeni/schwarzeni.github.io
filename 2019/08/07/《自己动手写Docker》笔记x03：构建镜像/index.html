@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>《自己动手写Docker》笔记x03：构建镜像 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="这是《自己动手写Docker》的读书笔记，本篇为第四章的笔记，主要的内容为如何使用GO语言、busybox以及AUFS构建一个可以运行的容器，并实现Docker中的Volume功能。">
+<meta name="keywords" content="容器,Golang,Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《自己动手写Docker》笔记x03：构建镜像">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="这是《自己动手写Docker》的读书笔记，本篇为第四章的笔记，主要的内容为如何使用GO语言、busybox以及AUFS构建一个可以运行的容器，并实现Docker中的Volume功能。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/image2.png">
+<meta property="og:updated_time" content="2020-12-04T07:49:42.782Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《自己动手写Docker》笔记x03：构建镜像">
+<meta name="twitter:description" content="这是《自己动手写Docker》的读书笔记，本篇为第四章的笔记，主要的内容为如何使用GO语言、busybox以及AUFS构建一个可以运行的容器，并实现Docker中的Volume功能。">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-《自己动手写Docker》笔记x03：构建镜像" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/" class="article-date">
+  <time class="post-time" datetime="2019-08-07T13:01:35.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      《自己动手写Docker》笔记x03：构建镜像
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这是《自己动手写Docker》的读书笔记，本篇为第四章的笔记，主要的内容为如何使用GO语言、busybox以及AUFS构建一个可以运行的容器，并实现Docker中的Volume功能。</p>
+<a id="more"></a>
+<p>实验环境参数如下</p>
+<ul>
+<li>虚拟机 Parallel14</li>
+<li>Ubuntu 16.04</li>
+<li>Linux内核 4.10.0-28-generic</li>
+<li>Golang v1.12.4</li>
+</ul>
+<hr>
+<p>本笔记的代码也是在Github仓库<a href="https://github.com/schwarzeni/write-your-own-docker-learning" target="_blank" rel="noopener">schwarzeni/write-your-own-docker-learning</a>上，<code>cpt4</code> 文件下的内容。</p>
+<hr>
+<h2 id="使用busybox"><a href="#使用busybox" class="headerlink" title="使用busybox"></a>使用busybox</h2><p>首先使用Docker安装busybox镜像，并使其运行起来，同时将其打包成tar。</p>
+<p>busybox中有非常多的UNIX中的空间，它提供了一个非常完整且小巧的文件系统，这个可以为我们所用。</p>
+<p>首先，为了确保Docker的速度，最好使用<a href="https://cr.console.aliyun.com/cn-hangzhou/instances/mirrors" target="_blank" rel="noopener">阿里云的Docker镜像加速</a>，免费且上面有详细的使用教程。之后就输几行命令即可</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker pull busybox</span><br><span class="line"></span><br><span class="line">docker run -d busybox top -b</span><br><span class="line"></span><br><span class="line">docker ps</span><br><span class="line"></span><br><span class="line"><span class="comment"># CONTAINER ID        IMAGE               COMMAND     ...</span></span><br><span class="line"><span class="comment"># 0b7d7d5ec541        busybox             "top -b"</span></span><br></pre></td></tr></table></figure>
+<p>获取其容器ID后，就可以导出了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出</span></span><br><span class="line">docker <span class="built_in">export</span> -o busybox.tar 0b7d</span><br><span class="line"></span><br><span class="line"><span class="comment"># 解压</span></span><br><span class="line">tar -xvf busybox.tar -C busybox/</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="pivot-root"><a href="#pivot-root" class="headerlink" title="pivot_root"></a>pivot_root</h2><p><code>pivot_root</code> 为Linux的系统调用，主要功能是改变当前的root文件系统。<code>pivot_root</code> 可以将当前进程的root文件系统移动到 <code>put_old</code> 文件夹中，然后使 <code>new_root</code> 成为新的root文件系统。</p>
+<p><code>chroot</code> 是针对某个进程，系统的其他部分依旧运行在老的root目录下。而<code>pivot_root</code> 是把整个系统切换到一个新的root目录中，移除对之前root文件系统的依赖，这样你就可以umount原先的文件系统。</p>
+<p>以下代码对应 <code>cpt4/cpt4-1-pivote-root</code></p>
+<p>关键函数如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/init.go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">pivotRoot</span><span class="params">(root <span class="keyword">string</span>)</span> <span class="params">(err error)</span></span> &#123;</span><br><span class="line">	<span class="comment">// 为了使当前root的 老root 和 新root 不在同一个文件系统下，需要将root重新mount一次</span></span><br><span class="line">	<span class="comment">// bind mount  将相同的内容换一个挂载点</span></span><br><span class="line">	<span class="keyword">if</span> err = syscall.Mount(root, root, <span class="string">"bind"</span>, syscall.MS_BIND|syscall.MS_REC, <span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"mount rootfs to itself error: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建 rootfs/.pivot_root 存储到 old_root 中</span></span><br><span class="line">	pivotDir := filepath.Join(root, <span class="string">".pivot_root"</span>)</span><br><span class="line">	<span class="keyword">if</span> err = os.Mkdir(pivotDir, <span class="number">0777</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 将 pivot_root 挂载到新的rootfs，现在老的 old_root 是挂载在 rootfs/.pivot_root</span></span><br><span class="line">	<span class="comment">// 挂载点现在依然可以在mount命令中看到</span></span><br><span class="line">	<span class="keyword">if</span> err = syscall.PivotRoot(root, pivotDir); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"pivot_root %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 修改当前的工作目录到根目录</span></span><br><span class="line">	<span class="keyword">if</span> err = syscall.Chdir(<span class="string">"/"</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"chdir / %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	pivotDir = filepath.Join(<span class="string">"/"</span>, <span class="string">".pivot_root"</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// unmount rootfs/.pivot_root</span></span><br><span class="line">	<span class="keyword">if</span> err = syscall.Unmount(pivotDir, syscall.MNT_DETACH); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> fmt.Errorf(<span class="string">"unmount pivot_root dir %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 删除临时文件夹</span></span><br><span class="line">	<span class="keyword">return</span> os.Remove(pivotDir)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样就可以调用此函数进程mount操作了</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/init.go</span></span><br><span class="line"><span class="comment">// 设置挂载点</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">setUpMount</span><span class="params">()</span></span> &#123;</span><br><span class="line">	pwd, err := os.Getwd()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"Get current location error %v"</span>, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	log.Infof(<span class="string">"Current location is %s"</span>, pwd)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err = syscall.Mount(<span class="string">""</span>, <span class="string">"/"</span>, <span class="string">""</span>, syscall.MS_PRIVATE | syscall.MS_REC, <span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 改变root</span></span><br><span class="line">	<span class="keyword">if</span> err = pivotRoot(pwd); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// mount proc</span></span><br><span class="line">	defaultMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV</span><br><span class="line">	<span class="keyword">if</span> err = syscall.Mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="keyword">uintptr</span>(defaultMountFlags), <span class="string">""</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">// tmpfs  基于内存的文件系统，可以使用RAM或swap分区来存储</span></span><br><span class="line">	<span class="keyword">if</span> err = syscall.Mount(<span class="string">"tmpfs"</span>, <span class="string">"/dev"</span>, <span class="string">"tmpfs"</span>, syscall.MS_NOSUID|syscall.MS_STRICTATIME, <span class="string">"mode=755"</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="使用AUFS"><a href="#使用AUFS" class="headerlink" title="使用AUFS"></a>使用AUFS</h2><p><code>AUFS</code> 可以构建一个拥有二层模式的镜像，对于最上层 <strong>可写层</strong> 的修改不会影响到 <strong>基础层</strong></p>
+<h3 id="mount"><a href="#mount" class="headerlink" title="mount"></a>mount</h3><p>Docker在使用镜像启动一个容器时，会新建2个layer：<code>write layer</code> 和 <code>container-init layer</code>。前者为容器唯一的可读写层；后者为容器新建的只读层，用来存储容器启动时传入的系统信息。最后把 <code>write layer</code> 和 <code>container-init layer</code> 以及相关镜像的layers都mount到一个mnt目录下，然后将mnt目录作为容器启动的根目录。</p>
+<p>应用AUFS的主要目的是不让在容器中进程的操作对镜像产生任何的影响。主要实现如下几个函数</p>
+<ul>
+<li><code>CreateReadOnlyLayer</code> 新建 <code>busybox</code> 文件夹，将busybox.tar解压到 <code>busybox</code> 文件夹下，作为容器的 <strong>只读层</strong></li>
+<li><code>CreateWriteLayer</code> 创建名为 <code>writeLayer</code> 的文件夹，作为容器唯一的 <strong>可写层</strong></li>
+<li><code>CreateMountPoint</code> 创建 <code>mnt</code> 文件夹作为挂载点，然后将 <code>writeLayer</code> 目录和 <code>busybox</code> 目录mount到mnt目录下</li>
+</ul>
+<p>在 <code>NewParentProcess</code> 函数中调用这几个函数，将容器使用的宿主机目录换成 <code>mnt</code> 目录。相关代码对应于目录 <code>cpt4/cpt4-2-3-aufs-volume</code> 下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/container_process.go</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于创建容器的文件系统</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewWorkspace</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>, volume <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	CreateReadOnlyLayer(rootURL)</span><br><span class="line">	CreateWriteLayer(rootURL)</span><br><span class="line">	CreateMountPoint(rootURL, mntURL)</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建busybox文件夹，将busybox.tar解压到其目录下</span></span><br><span class="line"><span class="comment">// 作为容器的只读层</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CreateReadOnlyLayer</span><span class="params">(rootURL <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	busyboxURL := path.Join(rootURL, <span class="string">"busybox/"</span>)</span><br><span class="line">	busyboxTarURL := path.Join(rootURL, <span class="string">"busybox.tar"</span>)</span><br><span class="line"></span><br><span class="line">	exist, err := PathExists(busyboxURL)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Infof(<span class="string">"Fail to judge whether dir %s exists. %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> !exist &#123;</span><br><span class="line">		<span class="keyword">if</span> err := os.Mkdir(busyboxURL, <span class="number">0777</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Errorf(<span class="string">"Mkdir dir %s for busybox error, %v"</span>, busyboxURL, err)</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 解压</span></span><br><span class="line">		<span class="keyword">if</span> _, err := exec.Command(<span class="string">"tar"</span>, <span class="string">"-xvf"</span>, busyboxTarURL, <span class="string">"-C"</span>, busyboxURL).CombinedOutput(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Errorf(<span class="string">"Untar dir %s error. %v"</span>, busyboxTarURL, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建名为writeLayer的文件夹</span></span><br><span class="line"><span class="comment">// 作为容器唯一的可写层</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CreateWriteLayer</span><span class="params">(rootURL <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	writeURL := path.Join(rootURL, <span class="string">"writeLayer/"</span>)</span><br><span class="line">	<span class="keyword">if</span> err := os.Mkdir(writeURL, <span class="number">0777</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"Mkdir dir %s for writelayer error. %v"</span>, writeURL, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首先创建mnt文件夹作为挂载点</span></span><br><span class="line"><span class="comment">// 然后把writeLayer目录和busybox目录mount到mnt目录下</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">CreateMountPoint</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> err := os.Mkdir(mntURL, <span class="number">0777</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"Mkdir dir %s for mnt error. %v"</span>, mntURL, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// <span class="doctag">TODO:</span> 体会一下</span></span><br><span class="line">	dirs := <span class="string">"dirs="</span> + path.Join(rootURL, <span class="string">"writeLayer"</span>) + <span class="string">":"</span> + path.Join(rootURL, <span class="string">"busybox"</span>)</span><br><span class="line">	cmd := exec.Command(<span class="string">"mount"</span>, <span class="string">"-t"</span>, <span class="string">"aufs"</span>, <span class="string">"-o"</span>, dirs, <span class="string">"none"</span>, mntURL)</span><br><span class="line">	cmd.Stdout = os.Stdout</span><br><span class="line">	cmd.Stderr = os.Stderr</span><br><span class="line">	<span class="keyword">if</span> err := cmd.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"error when mount aufs. %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断文件路径是否存在</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">PathExists</span><span class="params">(sourceURL <span class="keyword">string</span>)</span> <span class="params">(exist <span class="keyword">bool</span>, err error)</span></span> &#123;</span><br><span class="line">	_, err = os.Stat(sourceURL)</span><br><span class="line">	<span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">true</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> os.IsNotExist(err) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">false</span>, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span>, err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="umount"><a href="#umount" class="headerlink" title="umount"></a>umount</h3><p>Docker会在删除容器的时候，将容器对应的 <code>Write Layer</code> 和 <code>Container-init Layer</code> 删除，而保留镜像的所有内容。Go语言主要实现 <code>DeleteWorkspace</code> 函数，内部包括：</p>
+<ul>
+<li><code>DeleteMountPount</code> umount掉 <code>mnt</code> 目录，随后删除</li>
+<li><code>DeleteWriteLayer</code> 删除掉 <code>writeLayer</code> 文件夹，因为从之前的代码（如下）中可以看出这个文件夹是AUFS中用于记录变化的</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ....</span></span><br><span class="line">dirs := <span class="string">"dirs="</span> + path.Join(rootURL, <span class="string">"writeLayer"</span>) + <span class="string">":"</span> + path.Join(rootURL, <span class="string">"busybox"</span>)</span><br><span class="line">cmd := exec.Command(<span class="string">"mount"</span>, <span class="string">"-t"</span>, <span class="string">"aufs"</span>, <span class="string">"-o"</span>, dirs, <span class="string">"none"</span>, mntURL)</span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+<p>具体的函数实现如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// container/container_process.go</span></span><br><span class="line"><span class="comment">// 在容器退出时 unmount mnt目录，删除mnt和writeLayer文件夹</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DeleteWorkspace</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>, volume <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    DeleteMountPoint(mntURL)</span><br><span class="line">	DeleteWriteLayer(rootURL)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// unmount mnt</span></span><br><span class="line"><span class="comment">// delete mnt</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DeleteMountPoint</span><span class="params">(mntURL <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	cmd := exec.Command(<span class="string">"umount"</span>, mntURL)</span><br><span class="line">	cmd.Stdout = os.Stdout</span><br><span class="line">	cmd.Stderr = os.Stderr</span><br><span class="line">	<span class="keyword">if</span> err := cmd.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"error when umount mnt %s. %v"</span>, mntURL, err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := os.RemoveAll(mntURL); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"error when remove mnt folder %s. %v"</span>, mntURL, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// delete writeLayer文件夹</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DeleteWriteLayer</span><span class="params">(rootURL <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	writeURL := path.Join(rootURL, <span class="string">"writeLayer"</span>)</span><br><span class="line">	<span class="keyword">if</span> err := os.RemoveAll(writeURL); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"error when remove writeLayer folder %s. %v"</span>, writeURL, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>从书中偷一个时序图</p>
+<p><img src="image1.png" alt=""></p>
+<p>当启动程序时，对容器内部进行修改，发生改变的只是 <code>writeLayer</code> 中的内容，<code>busybox</code> 中的内容没有改变</p>
+<hr>
+<h2 id="实现Volume"><a href="#实现Volume" class="headerlink" title="实现Volume"></a>实现Volume</h2><p>此功能将外部系统的文件和容器内部的文件实现了映射，相当于是挂载到了同一设备上。主要使用了如下的mount系统调用</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mount -t aufs -o <span class="built_in">dirs</span>=&lt;parentURL&gt; none &lt;mnt&gt;/&lt;containerURL&gt;</span><br></pre></td></tr></table></figure>
+<p>本节对应的代码位置同上</p>
+<p>首先，添加命令行flag</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main_command.go</span></span><br><span class="line"><span class="keyword">var</span> runCommand = cli.Command&#123;</span><br><span class="line">	Name: <span class="string">"run"</span>,</span><br><span class="line">	Usage: <span class="string">"mydocker run -ti [command]"</span>,</span><br><span class="line">	Flags: []cli.Flag&#123;</span><br><span class="line">        <span class="comment">// ....</span></span><br><span class="line">        <span class="comment">// 加在这里</span></span><br><span class="line">		cli.StringFlag&#123;</span><br><span class="line">			Name: <span class="string">"v"</span>,</span><br><span class="line">			Usage: <span class="string">"volume"</span>,</span><br><span class="line">		&#125;,</span><br><span class="line">	&#125;,</span><br><span class="line">	Action: <span class="function"><span class="keyword">func</span><span class="params">(ctx *cli.Context)</span> <span class="title">error</span></span>&#123;</span><br><span class="line">        <span class="comment">// ....</span></span><br><span class="line">		volumn := ctx.String(<span class="string">"v"</span>)</span><br><span class="line">		Run(tty, cmdArr, resConf, volumn)</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">	&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其次，添加 <code>MountVolume</code> 和 <code>DeleteMountPointWithVolume</code>，同时要对 <code>NewWorkspace</code> 和 <code>DeleteWorkspace</code> 做出修改</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 解析用户传入的volume</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">volumeUrlExtract</span><span class="params">(volume <span class="keyword">string</span>)</span> <span class="params">([]<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> volumeURLS []<span class="keyword">string</span></span><br><span class="line">	volumeURLS = strings.Split(volume, <span class="string">":"</span>)</span><br><span class="line">	<span class="keyword">return</span> volumeURLS</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="MountVolume"><a href="#MountVolume" class="headerlink" title="MountVolume"></a>MountVolume</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 挂载 volume</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MountVolume</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>, volumesURLs []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建宿主机文件目录</span></span><br><span class="line">	parentURL := volumesURLs[<span class="number">0</span>]</span><br><span class="line">	<span class="keyword">if</span> err := os.Mkdir(parentURL, <span class="number">0777</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Infof(<span class="string">"Mkdir parent dir %s error. %v"</span>, parentURL, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在容器文件系统中创建挂载点</span></span><br><span class="line">	containerURL := volumesURLs[<span class="number">1</span>]</span><br><span class="line">	containerVolumeURL := path.Join(mntURL, containerURL)</span><br><span class="line">	<span class="keyword">if</span> err := os.Mkdir(containerVolumeURL, <span class="number">0777</span>); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Infof(<span class="string">"Mkdir container dir %s error. %v"</span>, containerVolumeURL, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 将宿主机文件目录挂载到容器挂载点</span></span><br><span class="line">	dirs := <span class="string">"dirs="</span> + parentURL</span><br><span class="line">	cmd := exec.Command(<span class="string">"mount"</span>, <span class="string">"-t"</span>, <span class="string">"aufs"</span>, <span class="string">"-o"</span>, dirs, <span class="string">"none"</span>, containerVolumeURL)</span><br><span class="line">	cmd.Stdout = os.Stdout</span><br><span class="line">	cmd.Stderr = os.Stderr</span><br><span class="line">	<span class="keyword">if</span> err := cmd.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"Mount volume failed %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="DeleteMountPointWithVolume"><a href="#DeleteMountPointWithVolume" class="headerlink" title="DeleteMountPointWithVolume"></a>DeleteMountPointWithVolume</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 删除 volume</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DeleteMountPointWithVolume</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>, volumeURLs []<span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	<span class="comment">//  umount 掉</span></span><br><span class="line">	containerURL := path.Join(mntURL, volumeURLs[<span class="number">1</span>])</span><br><span class="line">	cmd := exec.Command(<span class="string">"umount"</span>, containerURL)</span><br><span class="line">	cmd.Stdout = os.Stdout</span><br><span class="line">	cmd.Stderr = os.Stderr</span><br><span class="line">	<span class="keyword">if</span> err := cmd.Run(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Errorf(<span class="string">"Unmount volumn failed. %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 执行剩余的操作</span></span><br><span class="line">	<span class="comment">// umount掉整个容器的挂载点</span></span><br><span class="line">	<span class="comment">// 删除其挂载点</span></span><br><span class="line">	DeleteMountPoint(mntURL)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="NewWorkspace"><a href="#NewWorkspace" class="headerlink" title="NewWorkspace"></a>NewWorkspace</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用于创建容器的文件系统</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewWorkspace</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>, volume <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	CreateReadOnlyLayer(rootURL)</span><br><span class="line">	CreateWriteLayer(rootURL)</span><br><span class="line">	CreateMountPoint(rootURL, mntURL)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> volume != <span class="string">""</span> &#123;</span><br><span class="line">		volumeURLs := volumeUrlExtract(volume)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(volumeURLs) == <span class="number">2</span>  &amp;&amp; volumeURLs[<span class="number">0</span>] != <span class="string">""</span> &amp;&amp; volumeURLs[<span class="number">1</span>] != <span class="string">""</span> &#123;</span><br><span class="line">			MountVolume(rootURL, mntURL, volumeURLs)</span><br><span class="line">			log.Infof(<span class="string">"mount volume: %q"</span>, volumeURLs)</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			log.Infof(<span class="string">"Volume parameter input is not correct"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="DeleteWorkspace"><a href="#DeleteWorkspace" class="headerlink" title="DeleteWorkspace"></a>DeleteWorkspace</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在容器退出时 unmount mnt目录，删除mnt和writeLayer文件夹</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DeleteWorkspace</span><span class="params">(rootURL <span class="keyword">string</span>, mntURL <span class="keyword">string</span>, volume <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	volumeURLs := volumeUrlExtract(volume)</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(volumeURLs) == <span class="number">2</span> &amp;&amp; volumeURLs[<span class="number">0</span>] != <span class="string">""</span> &amp;&amp; volumeURLs[<span class="number">1</span>] != <span class="string">""</span> &#123;</span><br><span class="line">		DeleteMountPointWithVolume(rootURL, mntURL, volumeURLs)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		DeleteMountPoint(mntURL)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	DeleteWriteLayer(rootURL)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<p>再偷一个时序图</p>
+<p><img src="image2.png" alt=""></p>
+<hr>
+<h2 id="镜像打包"><a href="#镜像打包" class="headerlink" title="镜像打包"></a>镜像打包</h2><p>这个思路比较简单，就不在这里写了，就是把 <code>mnt</code> 打个包</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/08/07/《自己动手写Docker》笔记x03：构建镜像/" data-id="cm2q61t07008mdqjhmccibql4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/07/Pandas-数据处理基础/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Pandas 数据处理基础
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/08/06/《自己动手写Docker》笔记x02-基础容器构建/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《自己动手写Docker》笔记x02：基础容器构建</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kubernetes CRD 编写 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="参照官方样例项目 kubernetes/sample-controller 中的部分内容编写，此文仅仅为一个流程记录，部分文件中 import 部分的相关依赖根据项目不用的命名情况需要作出相应的修改。">
+<meta name="keywords" content="Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes CRD 编写">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/09/09/Kubernetes-CRD-编写/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="参照官方样例项目 kubernetes/sample-controller 中的部分内容编写，此文仅仅为一个流程记录，部分文件中 import 部分的相关依赖根据项目不用的命名情况需要作出相应的修改。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-09-15T01:51:45.827Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes CRD 编写">
+<meta name="twitter:description" content="参照官方样例项目 kubernetes/sample-controller 中的部分内容编写，此文仅仅为一个流程记录，部分文件中 import 部分的相关依赖根据项目不用的命名情况需要作出相应的修改。">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Kubernetes-CRD-编写" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/09/09/Kubernetes-CRD-编写/" class="article-date">
+  <time class="post-time" datetime="2020-09-09T12:13:18.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">09</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kubernetes CRD 编写
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>参照官方样例项目 <a href="https://github.com/kubernetes/sample-controller" target="_blank" rel="noopener">kubernetes/sample-controller</a> 中的部分内容编写，此文仅仅为一个流程记录，部分文件中 <code>import</code> 部分的相关依赖根据项目不用的命名情况需要作出相应的修改。</p>
+<a id="more"></a>
+<p>编程环境：</p>
+<ul>
+<li>Go v1.13.8</li>
+<li>MacOS 10.15.8</li>
+<li>Kubernetes v1.17.0</li>
+</ul>
+<p>样例项目地址 <a href="https://github.com/schwarzeni/k8s-sample-controller-doc-demo/tree/1-setup" target="_blank" rel="noopener">schwarzeni/k8s-sample-controller-doc-demo</a></p>
+<h2 id="Project-Setup"><a href="#Project-Setup" class="headerlink" title="Project Setup"></a>Project Setup</h2><p>注意，由于后期使用 code-generator 时，code-generator 不支持 go module 模式，所以项目虽然依然可以使用 go module ，但是目录需要建成 GOPATH 的样式，例如如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go mod init github.com/schwarzeni/k8s-sample-controller-doc-demo</span><br></pre></td></tr></table></figure>
+<p>此时项目 k8s-sample-controller-doc-demo 父文件夹路径应该为 <code>github.com/schwarzeni/</code></p>
+<p>安装相关的依赖，对于 1.17 版本的 Kubernetes ，下载 0.17.0 版本的相关客户端，下载 code-generator 时可能会报错，这个不用管</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">go get -u k8s.io/code-generator@v0.17.0</span><br><span class="line">go get -u k8s.io/client-go@v0.17.0</span><br><span class="line">go get -u k8s.io/apimachinery@v0.17.0</span><br><span class="line">go get -u k8s.io/api@v0.17.0</span><br></pre></td></tr></table></figure>
+<p>建立 <code>hack/tools.go</code> 并写入如下内容，便于之后使用 <code>go mod vendor</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// +build tools</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// This package imports things required by build scripts, to force `go mod` to see them as dependencies</span></span><br><span class="line"><span class="keyword">package</span> tools</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> _ <span class="string">"k8s.io/code-generator"</span></span><br></pre></td></tr></table></figure>
+<p>之后执行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go mod vendor</span><br></pre></td></tr></table></figure>
+<p>此时项目结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── go.mod</span><br><span class="line">├── go.sum</span><br><span class="line">├── vendor</span><br><span class="line">    └── ...</span><br><span class="line">├── hack</span><br><span class="line">    └── tools.go</span><br></pre></td></tr></table></figure>
+<p>文件 <code>vendor/k8s.io/code-generator/generate-groups.sh</code> 就是用来生成代码的脚本</p>
+<hr>
+<h2 id="Code-Generation"><a href="#Code-Generation" class="headerlink" title="Code Generation"></a>Code Generation</h2><p>首先先定义相关的 K8S 资源，然后使用 K8S 提供的工具生成相关的访问代码。这里的代码全部参照 <a href="https://github.com/kubernetes/sample-controller" target="_blank" rel="noopener">kubernetes/sample-controller</a> 中的相关代码。</p>
+<p>在根目录下新建文件夹 <code>pkg/apis/samplecontroller</code> 作为定义资源的目录，在此目录下新建四个文件并填入相应的内容，IDE 可能会报错，这个不用管</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pkg/apis/samplecontroller</span><br><span class="line">├── register.go</span><br><span class="line">└── v1alpha1</span><br><span class="line">    ├── doc.go</span><br><span class="line">    ├── register.go</span><br><span class="line">    └── types.go</span><br></pre></td></tr></table></figure>
+<p>register.go<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> samplecontroller</span><br><span class="line"></span><br><span class="line"><span class="comment">// GroupName is the group name used in this package</span></span><br><span class="line"><span class="keyword">const</span> GroupName = <span class="string">"samplecontroller.k8s.io"</span></span><br></pre></td></tr></table></figure></p>
+<p>v1alpha1/doc.go<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// +k8s:deepcopy-gen=package</span></span><br><span class="line"><span class="comment">// +groupName=samplecontroller.k8s.io</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Package v1alpha1 is the v1alpha1 version of the API.</span></span><br><span class="line"><span class="keyword">package</span> v1alpha1</span><br></pre></td></tr></table></figure></p>
+<p>v1alpha1/types.go<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> v1alpha1</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  metav1 <span class="string">"k8s.io/apimachinery/pkg/apis/meta/v1"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// +genclient</span></span><br><span class="line"><span class="comment">// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Foo is a specification for a Foo resource</span></span><br><span class="line"><span class="keyword">type</span> Foo <span class="keyword">struct</span> &#123;</span><br><span class="line">  metav1.TypeMeta   <span class="string">`json:",inline"`</span></span><br><span class="line">  metav1.ObjectMeta <span class="string">`json:"metadata,omitempty"`</span></span><br><span class="line"></span><br><span class="line">  Spec   FooSpec   <span class="string">`json:"spec"`</span></span><br><span class="line">  Status FooStatus <span class="string">`json:"status"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FooSpec is the spec for a Foo resource</span></span><br><span class="line"><span class="keyword">type</span> FooSpec <span class="keyword">struct</span> &#123;</span><br><span class="line">  DeploymentName <span class="keyword">string</span> <span class="string">`json:"deploymentName"`</span></span><br><span class="line">  Replicas       *<span class="keyword">int32</span> <span class="string">`json:"replicas"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// FooStatus is the status for a Foo resource</span></span><br><span class="line"><span class="keyword">type</span> FooStatus <span class="keyword">struct</span> &#123;</span><br><span class="line">  AvailableReplicas <span class="keyword">int32</span> <span class="string">`json:"availableReplicas"`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// FooList is a list of Foo resources</span></span><br><span class="line"><span class="keyword">type</span> FooList <span class="keyword">struct</span> &#123;</span><br><span class="line">  metav1.TypeMeta <span class="string">`json:",inline"`</span></span><br><span class="line">  metav1.ListMeta <span class="string">`json:"metadata"`</span></span><br><span class="line"></span><br><span class="line">  Items []Foo <span class="string">`json:"items"`</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>v1alpha1/register.go<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> v1alpha1</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  metav1 <span class="string">"k8s.io/apimachinery/pkg/apis/meta/v1"</span></span><br><span class="line">  <span class="string">"k8s.io/apimachinery/pkg/runtime"</span></span><br><span class="line">  <span class="string">"k8s.io/apimachinery/pkg/runtime/schema"</span></span><br><span class="line"></span><br><span class="line">  samplecontroller <span class="string">"github.com/schwarzeni/k8s-sample-controller-doc-demo/pkg/apis/samplecontroller"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// SchemeGroupVersion is group version used to register these objects</span></span><br><span class="line"><span class="keyword">var</span> SchemeGroupVersion = schema.GroupVersion&#123;Group: samplecontroller.GroupName, Version: <span class="string">"v1alpha1"</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Kind takes an unqualified kind and returns back a Group qualified GroupKind</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Kind</span><span class="params">(kind <span class="keyword">string</span>)</span> <span class="title">schema</span>.<span class="title">GroupKind</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> SchemeGroupVersion.WithKind(kind).GroupKind()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Resource takes an unqualified resource and returns a Group qualified GroupResource</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">Resource</span><span class="params">(resource <span class="keyword">string</span>)</span> <span class="title">schema</span>.<span class="title">GroupResource</span></span> &#123;</span><br><span class="line">  <span class="keyword">return</span> SchemeGroupVersion.WithResource(resource).GroupResource()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">  <span class="comment">// SchemeBuilder initializes a scheme builder</span></span><br><span class="line">  SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)</span><br><span class="line">  <span class="comment">// AddToScheme is a global function that registers this API group &amp; version to a scheme</span></span><br><span class="line">  AddToScheme = SchemeBuilder.AddToScheme</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Adds the list of known types to Scheme.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">addKnownTypes</span><span class="params">(scheme *runtime.Scheme)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">  scheme.AddKnownTypes(SchemeGroupVersion,</span><br><span class="line">    &amp;Foo&#123;&#125;,</span><br><span class="line">    &amp;FooList&#123;&#125;,</span><br><span class="line">  )</span><br><span class="line">  metav1.AddToGroupVersion(scheme, SchemeGroupVersion)</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>再执行一次 <code>go mod vendor</code></p>
+<p>为自动生成的文件准备一个 header</p>
+<p>hack/boilerplate.go.txt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">this is a header file</span><br><span class="line">*/</span><br></pre></td></tr></table></figure>
+<p>执行如下命令生成代码：（我在 Goland 的终端中执行此命令会报错，但是在普通终端中执行就没问题了，目前还不太清楚原因）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bash vendor/k8s.io/code-generator/generate-groups.sh all \</span><br><span class="line">github.com/schwarzeni/k8s-sample-controller-doc-demo/pkg/generated  github.com/schwarzeni/k8s-sample-controller-doc-demo/pkg/apis \</span><br><span class="line">samplecontroller:v1alpha1 \</span><br><span class="line">--go-header-file hack/boilerplate.go.txt \</span><br><span class="line">--output-base /Users/nizhenyang/my-project/cloud/src</span><br></pre></td></tr></table></figure>
+<p>对于 <code>--output-base</code> ，假如你的项目绝对路径为 <code>/Users/nizhenyang/my-project/cloud/src/github.com/schwarzeni/k8s-sample-controller-doc-demo</code> ，将后半段 <code>github.com/schwarzeni/k8s-sample-controller-doc-demo</code> 视为 GOPATH，则这个参数的值就是前半段路径。</p>
+<p>执行完代码之后，在 <code>pkg/</code> 下会出现新生成的 <code>generated</code> 文件夹， 大致的结构如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">pkg/generated</span><br><span class="line">├── clientset</span><br><span class="line">│   └── versioned</span><br><span class="line">│       ├── clientset.go</span><br><span class="line">│       ├── doc.go</span><br><span class="line">│       ├── fake</span><br><span class="line">│       ├── scheme</span><br><span class="line">│       └── typed</span><br><span class="line">├── informers</span><br><span class="line">│   └── externalversions</span><br><span class="line">│       ├── factory.go</span><br><span class="line">│       ├── generic.go</span><br><span class="line">│       ├── internalinterfaces</span><br><span class="line">│       └── samplecontroller</span><br><span class="line">└── listers</span><br><span class="line">    └── samplecontroller</span><br><span class="line">        └── v1alpha1</span><br></pre></td></tr></table></figure>
+<p>在<code>pkg/apis/samplecontroller/v1alpha1/</code> 下新生成了 <code>zz_generated.deepcopy.go</code> 文件。</p>
+<p>生成代码任务完成，再执行一次 <code>go mod vendor</code></p>
+<hr>
+<h2 id="Testing"><a href="#Testing" class="headerlink" title="Testing"></a>Testing</h2><p>这里写一个测试程序来验证我们生产代码的可用性，首先，根据自定义资源的格式准备两份 yaml 配置文件：</p>
+<p>crd.yaml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apiextensions.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">CustomResourceDefinition</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">foos.samplecontroller.k8s.io</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  group:</span> <span class="string">samplecontroller.k8s.io</span></span><br><span class="line"><span class="attr">  version:</span> <span class="string">v1alpha1</span></span><br><span class="line"><span class="attr">  names:</span></span><br><span class="line"><span class="attr">    kind:</span> <span class="string">Foo</span></span><br><span class="line"><span class="attr">    plural:</span> <span class="string">foos</span></span><br><span class="line"><span class="attr">  scope:</span> <span class="string">Namespaced</span></span><br></pre></td></tr></table></figure>
+<p>example-foo.yaml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">samplecontroller.k8s.io/v1alpha1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Foo</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">example-foo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  deploymentName:</span> <span class="string">example-foo</span></span><br><span class="line"><span class="attr">  replicas:</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>执行命令 <code>kubectl apply -f crd.yaml</code> 创建资源定义</p>
+<p>删除 vendor 目录，在项目根目录新建 <code>main.go</code>  ，内容如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"log"</span></span><br><span class="line">  <span class="string">"time"</span></span><br><span class="line"></span><br><span class="line">  <span class="string">"github.com/schwarzeni/k8s-sample-controller-doc-demo/pkg/apis/samplecontroller/v1alpha1"</span></span><br><span class="line">  <span class="string">"k8s.io/client-go/tools/cache"</span></span><br><span class="line"></span><br><span class="line">  clientset <span class="string">"github.com/schwarzeni/k8s-sample-controller-doc-demo/pkg/generated/clientset/versioned"</span></span><br><span class="line">  informers <span class="string">"github.com/schwarzeni/k8s-sample-controller-doc-demo/pkg/generated/informers/externalversions"</span></span><br><span class="line">  <span class="string">"k8s.io/client-go/tools/clientcmd"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="comment">// 你的Kubernetes配置文件路径，一般为 ~/.kube/config</span></span><br><span class="line">  config, err := clientcmd.BuildConfigFromFlags(<span class="string">""</span>, <span class="string">"config/config"</span>)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="built_in">panic</span>(err)</span><br><span class="line">  &#125;</span><br><span class="line">  exampleClient, err := clientset.NewForConfig(config)</span><br><span class="line">  sharedInformers := informers.NewSharedInformerFactory(exampleClient, time.Second*<span class="number">2</span>)</span><br><span class="line">  informer := sharedInformers.Samplecontroller().V1alpha1().Foos().Informer()</span><br><span class="line"></span><br><span class="line">  informer.AddEventHandler(cache.ResourceEventHandlerFuncs&#123;</span><br><span class="line">    AddFunc: <span class="function"><span class="keyword">func</span><span class="params">(obj <span class="keyword">interface</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">      mObj := obj.(*v1alpha1.Foo)</span><br><span class="line">      log.Printf(<span class="string">"New Foo Added: %s"</span>, mObj.GetName())</span><br><span class="line">    &#125;,</span><br><span class="line">    DeleteFunc: <span class="function"><span class="keyword">func</span><span class="params">(obj <span class="keyword">interface</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">      mObj := obj.(*v1alpha1.Foo)</span><br><span class="line">      log.Printf(<span class="string">"Delete Foo : %s"</span>, mObj.GetName())</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  stopCh := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line">  <span class="keyword">defer</span> <span class="built_in">close</span>(stopCh)</span><br><span class="line">  informer.Run(stopCh)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行该程序</p>
+<p>执行 <code>kubectl apply -f foo-example.yaml</code> ，发现程序输出了 “New Foo Added: example-foo”</p>
+<p>执行 <code>kubectl delete -f foo-example.yaml</code> ，发现程序输出了 “Delete Foo : example-foo”</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2020/09/09/Kubernetes-CRD-编写/" data-id="cm2q61sxy002hdqjhyu0hnnc6" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/13/简单算式字符串计算/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          简单算式字符串计算
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/09/07/三十岁以前的往事-九/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">三十岁以前的往事（九）：打一辈子星际，做一辈子朋友</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>局域网上传文件 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近老爸换了台笔记本电脑，希望可以从手机向电脑传照片，新笔记本电脑的蓝牙和手机蓝牙老是连不上，试了别的一些手机照片管理软件，但是在电脑上都安装不起来，都是缺少某些 dll 文件，同时老爸觉得手机和电脑进行有线连接太麻烦的。于是乎我就有了一个想法，在笔记本电脑上运行个服务端提供上传文件的功能不就行了吗，只要手机和电脑是在用一个 WiFi 局域网下就可以了，手机浏览器访问电脑上的服务端程序上传文件，非">
+<meta name="keywords" content="总结,Golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="局域网上传文件">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="最近老爸换了台笔记本电脑，希望可以从手机向电脑传照片，新笔记本电脑的蓝牙和手机蓝牙老是连不上，试了别的一些手机照片管理软件，但是在电脑上都安装不起来，都是缺少某些 dll 文件，同时老爸觉得手机和电脑进行有线连接太麻烦的。于是乎我就有了一个想法，在笔记本电脑上运行个服务端提供上传文件的功能不就行了吗，只要手机和电脑是在用一个 WiFi 局域网下就可以了，手机浏览器访问电脑上的服务端程序上传文件，非">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image4.png">
+<meta property="og:updated_time" content="2020-03-23T07:09:46.958Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="局域网上传文件">
+<meta name="twitter:description" content="最近老爸换了台笔记本电脑，希望可以从手机向电脑传照片，新笔记本电脑的蓝牙和手机蓝牙老是连不上，试了别的一些手机照片管理软件，但是在电脑上都安装不起来，都是缺少某些 dll 文件，同时老爸觉得手机和电脑进行有线连接太麻烦的。于是乎我就有了一个想法，在笔记本电脑上运行个服务端提供上传文件的功能不就行了吗，只要手机和电脑是在用一个 WiFi 局域网下就可以了，手机浏览器访问电脑上的服务端程序上传文件，非">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-局域网上传文件" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/03/23/局域网上传文件/" class="article-date">
+  <time class="post-time" datetime="2020-03-23T07:02:37.000Z" itemprop="datePublished">
+    <span class="post-month">3月</span><br/>
+    <span class="post-day">23</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      局域网上传文件
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近老爸换了台笔记本电脑，希望可以从手机向电脑传照片，新笔记本电脑的蓝牙和手机蓝牙老是连不上，试了别的一些手机照片管理软件，但是在电脑上都安装不起来，都是缺少某些 dll 文件，同时老爸觉得手机和电脑进行有线连接太麻烦的。于是乎我就有了一个想法，在笔记本电脑上运行个服务端提供上传文件的功能不就行了吗，只要手机和电脑是在用一个 WiFi 局域网下就可以了，手机浏览器访问电脑上的服务端程序上传文件，非常简单的需求。</p>
+<p>代码在 <a href="https://github.com/schwarzeni/go-simple-uploadfile" target="_blank" rel="noopener">Github</a> 上</p>
+<a id="more"></a>
+<p>首先先选取编程语言，首先将解释型语言以及需要虚拟机运行的语言 pass，因为我希望服务端程序体积尽量地小，最好就是一个可执行二进制文件，同时做到部署时零配置，图形界面点击图标即运行；底层语言 pass，因为我想几个小时内就写出这个程序，而且我也需要能交叉编译，因为我的开发电脑是 MacOS，而老爸的笔记本电脑是 Windows7。我熟悉的编程语言就那么几种，这么排除下来就剩下 Golang 了，版本为 1.13。</p>
+<p>给别人的用的程序最重要的要求是操作方便，所以我为笔记本电脑上运行的服务端程序设计了几个特性：点击可执行文件后直接打开浏览器，用来显示当前链接的二维码，方便手机扫码；同时，上传文件时需要显示进度条，方便查看进度。</p>
+<p>由于是在家里的局域网中自行使用，所以没有添加任何权限校验以及安全校验。</p>
+<p>从开发到验收（其实就是部署到 Win7 笔记本电脑上后用老爸手机上传几个文件），总共用了三个小时不到。其中不可避免地出现部分由于复制粘贴重复的代码，不过都无伤大雅。</p>
+<p>服务端使用到了 gin-contrib/gin 作为服务端框架，skip2/go-qrcode 用于生成二维码，前端用的是 BootStrap4 和 JQuery。总之，就是怎么开发快怎么来，下面介绍几个技术点。</p>
+<h2 id="自动打开浏览器"><a href="#自动打开浏览器" class="headerlink" title="自动打开浏览器"></a>自动打开浏览器</h2><p>在网上找到的一个代码段，直接用就 OK</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">openbrowser</span><span class="params">(url <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> err error</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> runtime.GOOS &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"linux"</span>:</span><br><span class="line">        err = exec.Command(<span class="string">"xdg-open"</span>, url).Start()</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"windows"</span>:</span><br><span class="line">        err = exec.Command(<span class="string">"rundll32"</span>, <span class="string">"url.dll,FileProtocolHandler"</span>, url).Start()</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"darwin"</span>:</span><br><span class="line">        err = exec.Command(<span class="string">"open"</span>, url).Start()</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        err = fmt.Errorf(<span class="string">"unsupported platform"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatal(err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="获取当前的-IP"><a href="#获取当前的-IP" class="headerlink" title="获取当前的 IP"></a>获取当前的 IP</h2><p>我希望获取的是电脑在局域网中的 IP，而不是诸如 127.0.0.1 这样的 lo 地址。也是在网上找到的代码段，直接用就 OK，应该是请求本地的 DNS。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getOutboundIP</span><span class="params">()</span> <span class="title">net</span>.<span class="title">IP</span></span> &#123;</span><br><span class="line">    conn, err := net.Dial(<span class="string">"udp"</span>, <span class="string">"8.8.8.8:80"</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Fatal(err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">    localAddr := conn.LocalAddr().(*net.UDPAddr)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> localAddr.IP</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="在服务启动后打开浏览器"><a href="#在服务启动后打开浏览器" class="headerlink" title="在服务启动后打开浏览器"></a>在服务启动后打开浏览器</h2><p>之前以及提到过，希望可以在程序启动后打开浏览器，但是 gin 并没有为开发者提供类似于 AfterStart 这样的 hook ，所以这里采用的是使用心跳检测的方法。</p>
+<p>首先，为服务端程序提供了心跳检测的 api ，如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> r := gin.Default()</span><br><span class="line">r.GET(<span class="string">"/health"</span>, <span class="function"><span class="keyword">func</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">       c.JSON(http.StatusOK, gin.H&#123;</span><br><span class="line">           <span class="string">"message"</span>: <span class="string">"ok"</span>,</span><br><span class="line">       &#125;)</span><br><span class="line">   &#125;)</span><br></pre></td></tr></table></figure>
+<p>随后，开一个 goroutine 不停地向这个 api 发起请求，当程序完全启动后，也就是这个 api 接口正常响应后，执行打开浏览器的函数</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">setopenbrowser</span><span class="params">(serverAddr <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        reqUrl := fmt.Sprintf(<span class="string">"http://%s/health"</span>, serverAddr)</span><br><span class="line">        <span class="keyword">for</span> &#123;</span><br><span class="line">            <span class="keyword">var</span> (</span><br><span class="line">                client = &amp;http.Client&#123;Timeout: time.Second * <span class="number">5</span>&#125;</span><br><span class="line">                err    error</span><br><span class="line">                resp   *http.Response</span><br><span class="line">            )</span><br><span class="line">            <span class="keyword">if</span> resp, err = client.Get(reqUrl); err != <span class="literal">nil</span> &#123;</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">            openbrowser(<span class="string">"http://"</span> + serverAddr)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里吐槽一点，我是使用的 Intellij IDEA 进行开发的，如果就直接点击 IDE 中的 Run 运行程序的话，请求该心跳接口一直返回的是 <code>EOF</code>，我被这个问题困扰了很久，最后在网上查到，这是因为在 Intellij IDEA 中，我设置了 http proxy（因为直连它的插件商店太慢了），所以才会出现这样的问题，于是我就直接在命令行中直接 <code>go run .</code> 运行程序了。</p>
+<hr>
+<h2 id="处理上传的文件"><a href="#处理上传的文件" class="headerlink" title="处理上传的文件"></a>处理上传的文件</h2><p>这里我是直接 copy 网上的代码的 … 因为快啊 (￣ ▽ ￣)” ，这里贴出了部分代码</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleUploadMutiFile</span><span class="params">(c *gin.Context)</span></span> &#123;</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">    <span class="comment">// 设置文件大小</span></span><br><span class="line">    err := c.Request.ParseMultipartForm(<span class="number">4</span> &lt;&lt; <span class="number">20</span>)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">"msg"</span>: <span class="string">"文件太大"</span>&#125;)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    formdata := c.Request.MultipartForm</span><br><span class="line">    files := formdata.File[<span class="string">"uploadfiles"</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> _, v := <span class="keyword">range</span> files &#123;</span><br><span class="line">        file, err := v.Open()</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">            c.JSON(http.StatusBadRequest, gin.H&#123;<span class="string">"msg"</span>: <span class="string">"文件读取失败"</span>&#125;)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">defer</span> file.Close()</span><br><span class="line"></span><br><span class="line">        filename := fmt.Sprintf(<span class="string">"%s_%d_%s"</span>, filePrefix, time.Now().Unix(), v.Filename)</span><br><span class="line">        storePath := path.Join(filesDirName, filename)</span><br><span class="line">        w, err := os.Create(storePath)</span><br><span class="line">        <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">           c.JSON(http.StatusInternalServerError, gin.H&#123;<span class="string">"msg"</span>: <span class="string">"创建文件失败"</span>, <span class="string">"file"</span>: storePath&#125;)</span><br><span class="line">           <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">defer</span> w.Close()</span><br><span class="line">        <span class="keyword">if</span> _, err := io.Copy(w, file); err != <span class="literal">nil</span> &#123;</span><br><span class="line">           c.JSON(http.StatusInternalServerError, gin.H&#123;<span class="string">"msg"</span>: <span class="string">"写入文件失败"</span>, <span class="string">"file"</span>: v.Filename&#125;)</span><br><span class="line">           <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    c.JSON(http.StatusOK, gin.H&#123;<span class="string">"msg"</span>: <span class="string">"上传成功"</span>&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="前端显示上传进度"><a href="#前端显示上传进度" class="headerlink" title="前端显示上传进度"></a>前端显示上传进度</h2><p>监听 xhr 的 progress 事件即可，大概的代码如下，这里使用的 JQuery 封装的版本</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$.ajax(&#123;</span><br><span class="line">  type: <span class="string">"POST"</span>,</span><br><span class="line">  url: <span class="string">"/upload"</span>,</span><br><span class="line">  timeout: <span class="number">30</span> * <span class="number">1000</span>,</span><br><span class="line">  data: formData,</span><br><span class="line">  processData: <span class="literal">false</span>,</span><br><span class="line">  contentType: <span class="literal">false</span>,</span><br><span class="line">  xhr: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    myXhr = $.ajaxSettings.xhr();</span><br><span class="line">    <span class="keyword">if</span> (myXhr.upload) &#123;</span><br><span class="line">      myXhr.upload.addEventListener(</span><br><span class="line">        <span class="string">"progress"</span>,</span><br><span class="line">        <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">          <span class="keyword">if</span> (e.lengthComputable) &#123;</span><br><span class="line">            <span class="keyword">var</span> percent = <span class="built_in">Math</span>.floor((e.loaded / e.total) * <span class="number">100</span>);</span><br><span class="line">            <span class="keyword">if</span> (percent &lt;= <span class="number">100</span>) &#123;</span><br><span class="line">              <span class="built_in">console</span>.log(percent);</span><br><span class="line">              <span class="comment">// set progress bar here ...</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="literal">false</span></span><br><span class="line">      );</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> myXhr;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="Ajax-提交多文件"><a href="#Ajax-提交多文件" class="headerlink" title="Ajax 提交多文件"></a>Ajax 提交多文件</h2><p>使用 <code>FormData</code> 对象即可，贴出了部分代码代码如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">enctype</span>=<span class="string">"multipart/form-data"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">"custom_file"</span>&gt;</span>Choose file<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"file"</span> <span class="attr">name</span>=<span class="string">"uploadfiles"</span> <span class="attr">multiple</span> <span class="attr">id</span>=<span class="string">"custom_file"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">"upload_btn"</span>&gt;</span>upload<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.getElementById(<span class="string">"upload_btn"</span>).onclick = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> file = <span class="built_in">document</span>.getElementById(<span class="string">"custom_file"</span>).files;</span><br><span class="line">  <span class="keyword">var</span> formData = <span class="keyword">new</span> FormData();</span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; file.length; i++) &#123;</span><br><span class="line">    formData.append(<span class="string">"uploadfiles"</span>, file[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  $.ajax(&#123;</span><br><span class="line">    type: <span class="string">"POST"</span>,</span><br><span class="line">    url: <span class="string">"/upload"</span>,</span><br><span class="line">    timeout: <span class="number">30</span> * <span class="number">1000</span>,</span><br><span class="line">    data: formData,</span><br><span class="line">    processData: <span class="literal">false</span>,</span><br><span class="line">    contentType: <span class="literal">false</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>后端获取 form 中的 <code>uploadfiles</code> 即可。</p>
+<p>老爸用的华为手机自带的浏览器、微信内嵌浏览器居然都不支持多选文件，这个兼容性问题我也是服了，不过安卓版的 QQ 浏览器是可以的。</p>
+<hr>
+<h2 id="图例"><a href="#图例" class="headerlink" title="图例"></a>图例</h2><p><img src="image1.png" alt=""></p>
+<p><img src="image2.png" alt=""></p>
+<p><img src="image3.png" alt=""></p>
+<p><img src="image4.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2020/03/23/局域网上传文件/" data-id="cm2q61t1200emdqjhrtt5j8px" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/06/14/Ubuntu16-04-部署-Kubernetes-笔记/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Ubuntu16.04 部署 Kubernetes 笔记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/02/10/Golang-面试题：写一个简单的负载均衡任务调度器/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Golang 面试题：写一个简单的负载均衡任务调度器</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

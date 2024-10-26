@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>《UNIX 环境高级编程》笔记0x2：文件I/O | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="此为第三章的笔记，由于其内容大部分类似于API手册，所以就不直接搬运到笔记上了。">
+<meta name="keywords" content="Linux,操作系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《UNIX 环境高级编程》笔记0x2：文件I&#x2F;O">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="此为第三章的笔记，由于其内容大部分类似于API手册，所以就不直接搬运到笔记上了。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/image2.png">
+<meta property="og:updated_time" content="2021-04-14T11:24:56.192Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《UNIX 环境高级编程》笔记0x2：文件I&#x2F;O">
+<meta name="twitter:description" content="此为第三章的笔记，由于其内容大部分类似于API手册，所以就不直接搬运到笔记上了。">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-《UNIX-环境高级编程》笔记0x2：文件I-O" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/" class="article-date">
+  <time class="post-time" datetime="2019-08-20T14:51:41.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">20</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      《UNIX 环境高级编程》笔记0x2：文件I/O
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/UNIX-环境高级编程/">UNIX 环境高级编程</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>此为第三章的笔记，由于其内容大部分类似于API手册，所以就不直接搬运到笔记上了。</p>
+<a id="more"></a>
+<hr>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>UNIX系统中的大多数文件I/O只需要5个函数：<code>open</code> 、 <code>write</code> 、 <code>lseek</code> 和 <code>close</code> 。</p>
+<p><code>不带缓冲的I/O</code>：每个 <code>write</code> 和 <code>read</code> 都调用内核中的一个系统调用。</p>
+<hr>
+<h2 id="文件描述符"><a href="#文件描述符" class="headerlink" title="文件描述符"></a>文件描述符</h2><p>非负整数。</p>
+<p>对于内核而言，所有打开的文件都通过 <code>文件描述符引用</code> 。打开或创建一个新文件时，内核向进程返回一个文件描述符。</p>
+<p>通过 <code>open</code> 或 <code>create</code> 返回文件描述符表示该文件，并将其作为参数传给 <code>read</code> 或 <code>write</code>。</p>
+<p>范围在 <code>0 ~ OPEN_MAX-1</code> 之间。</p>
+<h3 id="默认文件描述符"><a href="#默认文件描述符" class="headerlink" title="默认文件描述符"></a>默认文件描述符</h3><ul>
+<li><code>0</code>（<code>STDIN_FILENO</code>）标准输入</li>
+<li><code>1</code>（<code>STDOUT_FILENO</code>）标准输出</li>
+<li><code>2</code>（<code>STDERR_FILENO</code>）标准错误</li>
+</ul>
+<p>括号中的符号常量定义在 <code>&lt;unistd.h&gt;</code> 头文件中。</p>
+<hr>
+<h3 id="TOCTTOU-错误"><a href="#TOCTTOU-错误" class="headerlink" title="TOCTTOU 错误"></a>TOCTTOU 错误</h3><p><code>time-of-check-to-time-of-use</code>：如果有两个基于文件的函数调用，其中第二个依赖于第一个调用的结果，那么该程序是脆弱的。两个系统并不是原子操作，两个函数调用之间文件可能改变了。</p>
+<hr>
+<h2 id="文件打开方式"><a href="#文件打开方式" class="headerlink" title="文件打开方式"></a>文件打开方式</h2><p>在 <code>&lt;fcntl.h&gt;</code> 头文件中定义。这里只列出部分重要的，其他见PDFp70</p>
+<table>
+<thead>
+<tr>
+<th>代号</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>O_RDONLY</td>
+<td>只读打开(0)</td>
+</tr>
+<tr>
+<td>O_WRONLY</td>
+<td>只写打开(1)</td>
+</tr>
+<tr>
+<td>O_RDWR</td>
+<td>读、写打开(2)</td>
+</tr>
+<tr>
+<td>O_EXEC</td>
+<td>只执行打开</td>
+</tr>
+<tr>
+<td>-</td>
+<td>以上只能指定一个</td>
+</tr>
+<tr>
+<td>O_APPEND</td>
+<td>追加至文件末尾</td>
+</tr>
+<tr>
+<td>O_CREAT</td>
+<td>不存在则创建（配合O_RDWR使用）</td>
+</tr>
+<tr>
+<td>O_SYNC</td>
+<td>每次write等物理I/O完成（数据和属性）</td>
+</tr>
+<tr>
+<td>O_DSYNC</td>
+<td>同上（仅数据）</td>
+</tr>
+<tr>
+<td>O_TRUNC</td>
+<td>存在，且以只写或读写打开，则将其长度截0</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="文件描述符操作"><a href="#文件描述符操作" class="headerlink" title="文件描述符操作"></a>文件描述符操作</h2><p>在 <code>&lt;fcntl.h&gt;</code> 头文件中定义。作为 <code>fcntl</code> 函数的第二个参数，这里只列出部分重要的，其他见PDFp85</p>
+<table>
+<thead>
+<tr>
+<th>代号</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F_DUPFD</td>
+<td>复制文件描述符fd。新文件描述符作为函数值返回</td>
+</tr>
+<tr>
+<td>F_GETFD</td>
+<td>获取fd</td>
+</tr>
+<tr>
+<td>F_SETFD</td>
+<td>设置fd，新值为 <code>fcntl</code> 第三个参数</td>
+</tr>
+<tr>
+<td>F_GETFL</td>
+<td>获取fd的文件状态标志作为函数值返回</td>
+</tr>
+<tr>
+<td>F_SETFL</td>
+<td>设置文件状态标志，新值为 <code>fcntl</code> 第三个参数</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="lseek"><a href="#lseek" class="headerlink" title="lseek"></a>lseek</h2><h3 id="无法设置偏移的情况"><a href="#无法设置偏移的情况" class="headerlink" title="无法设置偏移的情况"></a>无法设置偏移的情况</h3><p>测试标准输入是否可以设置偏移量。管道、FIFO或网络套接字返回为-1，并将errno设置为 <code>ESPIPE</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (lseek(STDIN_FILENO, <span class="number">0</span>, SEEK_CUR) == <span class="number">-1</span>)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"cannot seek\n"</span>);</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"seek ok\n"</span>);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; ./a.out &lt; /etc/passwd</span><br><span class="line">seek ok</span><br><span class="line"></span><br><span class="line">&gt; cat /etc/passwd | ./a.out</span><br><span class="line">cannot seek</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="创建具有空洞的文件"><a href="#创建具有空洞的文件" class="headerlink" title="创建具有空洞的文件"></a>创建具有空洞的文件</h3><p>文件的偏移量可以大于文件的当前长度。位于文件中但没有写过的字节都读为0。</p>
+<p>文件中的空洞并不要求在磁盘上占用存储区。从 <code>原文件尾部</code> 和 <code>新开始写位置</code> 之间的部分不需要分配磁盘块。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">char</span> buf1[] = <span class="string">"abcdefghij"</span>;</span><br><span class="line"><span class="keyword">char</span> buf2[] = <span class="string">"ABCDEFGHIJ"</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> fd;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ((fd = creat(<span class="string">"hole.txt"</span>, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP)) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"creat error"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (write(fd, buf1, <span class="number">10</span>) != <span class="number">10</span>)</span><br><span class="line">    err_sys(<span class="string">"buf1 write error"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (lseek(fd, <span class="number">16384</span>, SEEK_SET) == <span class="number">-1</span>)</span><br><span class="line">    err_sys(<span class="string">"lseek error"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (write(fd, buf2, <span class="number">10</span>) != <span class="number">10</span>)</span><br><span class="line">    err_sys(<span class="string">"buf2 write error"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>od</code> 查看文件中实际的内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">od -c hole.txt</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">0000000   a   b   c   d   e   f   g   h   i   j  \0  \0  \0  \0  \0  \0</span><br><span class="line">0000020  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0</span><br><span class="line">*</span><br><span class="line">0040000   A   B   C   D   E   F   G   H   I   J</span><br><span class="line">0040012</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="fcntl"><a href="#fcntl" class="headerlink" title="fcntl"></a>fcntl</h2><p>根据指令执行文件控制操作</p>
+<p>下列程序指定文件描述符，并根据该描述符打印其所选择的文件标志说明</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span> val;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (argc != <span class="number">2</span>)</span><br><span class="line">    err_quit(<span class="string">"usage: a.out &lt;descriptor#&gt;"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取文件描述符</span></span><br><span class="line">  <span class="keyword">if</span> ((val = fcntl(atoi(argv[<span class="number">1</span>]), F_GETFL, <span class="number">0</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">    err_sys(<span class="string">"fcntl error for fd %d"</span>, atoi(argv[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 文件的访问方式，需要与 O_ACCMODE 进行与运算获得</span></span><br><span class="line">  <span class="keyword">switch</span> (val &amp; O_ACCMODE) &#123;</span><br><span class="line">    <span class="keyword">case</span> O_RDONLY:</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"read only"</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> O_WRONLY:</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"write only"</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> O_RDWR:</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"read write"</span>);</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">      err_dump(<span class="string">"unknown access mode"</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (val &amp; O_APPEND)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">", append"</span>);</span><br><span class="line">  <span class="keyword">if</span> (val &amp; O_NONBLOCK)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">", nonblocking"</span>);</span><br><span class="line">  <span class="keyword">if</span> (val &amp; O_SYNC)</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">", synchronous writes"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">putchar</span>(<span class="string">'\n'</span>);</span><br><span class="line">  <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输出如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&gt; ./a.out 0 &lt; /dev/tty</span><br><span class="line"><span class="built_in">read</span> only</span><br><span class="line"></span><br><span class="line">&gt; ./a.out 1 &gt; temp.foo</span><br><span class="line">&gt; cat temp.foo</span><br><span class="line">write only</span><br><span class="line"></span><br><span class="line">&gt; ./a.out 2 2&gt;&gt;temp.foo</span><br><span class="line">write only, append</span><br><span class="line"></span><br><span class="line">&gt; ./a.out 5 5&lt;&gt;temp.foo</span><br><span class="line"><span class="built_in">read</span> write</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="增删文件描述符"><a href="#增删文件描述符" class="headerlink" title="增删文件描述符"></a>增删文件描述符</h2><h3 id="新增"><a href="#新增" class="headerlink" title="新增"></a>新增</h3><p>逻辑或</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_fl</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">int</span> flags)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line">    <span class="keyword">if</span> ((val = fcntl(fd, F_GETFL, <span class="number">0</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        err_sys(<span class="string">"fcntl F_GETFL error"</span>);</span><br><span class="line"></span><br><span class="line">    val |= flags;  <span class="comment">/* turn on flags */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (fcntl(fd, F_SETFL, val) &lt; <span class="number">0</span>)</span><br><span class="line">        err_sys(<span class="string">"fcntl F_SETFL error"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h3><p>反码的逻辑与</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;apue.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_fl</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">int</span> flags)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line">    <span class="keyword">if</span> ((val = fcntl(fd, F_GETFL, <span class="number">0</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        err_sys(<span class="string">"fcntl F_GETFL error"</span>);</span><br><span class="line"></span><br><span class="line">    val &amp;= ~flags;  <span class="comment">/* turn off flags */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (fcntl(fd, F_SETFL, val) &lt; <span class="number">0</span>)</span><br><span class="line">        err_sys(<span class="string">"fcntl F_SETFL error"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="dev-fd"><a href="#dev-fd" class="headerlink" title="/dev/fd"></a>/dev/fd</h2><p>Linux下，<code>/dev/fd</code> 被链接至 <code>/proc/self/fd</code></p>
+<hr>
+<h2 id="本章涉及到的所有系统调用"><a href="#本章涉及到的所有系统调用" class="headerlink" title="本章涉及到的所有系统调用"></a>本章涉及到的所有系统调用</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>名称</th>
+<th>PDF页面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>打开文件</td>
+<td>open、openat、creat</td>
+<td>70</td>
+</tr>
+<tr>
+<td>关闭文件</td>
+<td>close</td>
+<td>73</td>
+</tr>
+<tr>
+<td>偏移内容</td>
+<td>lseek</td>
+<td>73</td>
+</tr>
+<tr>
+<td>读数据</td>
+<td>read</td>
+<td>77</td>
+</tr>
+<tr>
+<td>写数据</td>
+<td>write</td>
+<td>77</td>
+</tr>
+<tr>
+<td>复制文件描述符</td>
+<td>dup、dup2</td>
+<td>83</td>
+</tr>
+<tr>
+<td>改变已打开文件属性</td>
+<td>fcntl</td>
+<td>85</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="文件共享"><a href="#文件共享" class="headerlink" title="文件共享"></a>文件共享</h2><p>打开文件的内核数据结构</p>
+<p><img src="image1.png" alt="image1.png"></p>
+<p>多进程打开同一文件</p>
+<p><img src="image2.png" alt="image2.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/08/20/《UNIX-环境高级编程》笔记0x2：文件I-O/" data-id="cm2q61t01007udqjhvn6zb4fl" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/操作系统/">操作系统</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/22/《UNIX-环境高级编程》笔记0x3：文件和目录/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          《UNIX 环境高级编程》笔记0x3：文件和目录
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/08/19/《UNIX-环境高级编程》笔记0x1：UNIX基础知识/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《UNIX 环境高级编程》笔记0x1：UNIX基础知识</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

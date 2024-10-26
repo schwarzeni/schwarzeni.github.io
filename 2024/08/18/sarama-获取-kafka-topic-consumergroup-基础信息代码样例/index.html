@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>sarama 获取 kafka topic &amp; consumergroup 基础信息代码样例 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="主要的信息为：  全量 topic 列表  单个 topic 的基础信息  全量 consumergroup  单个 consumergroup 的基础信息   学习来源为 github.com/danielqsj/kafka_exporter">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sarama 获取 kafka topic &amp; consumergroup 基础信息代码样例">
+<meta property="og:url" content="http://blog.schwarzeni.com/2024/08/18/sarama-获取-kafka-topic-consumergroup-基础信息代码样例/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="主要的信息为：  全量 topic 列表  单个 topic 的基础信息  全量 consumergroup  单个 consumergroup 的基础信息   学习来源为 github.com/danielqsj/kafka_exporter">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2024-08-18T12:23:37.472Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="sarama 获取 kafka topic &amp; consumergroup 基础信息代码样例">
+<meta name="twitter:description" content="主要的信息为：  全量 topic 列表  单个 topic 的基础信息  全量 consumergroup  单个 consumergroup 的基础信息   学习来源为 github.com/danielqsj/kafka_exporter">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-sarama-获取-kafka-topic-consumergroup-基础信息代码样例" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2024/08/18/sarama-获取-kafka-topic-consumergroup-基础信息代码样例/" class="article-date">
+  <time class="post-time" datetime="2024-08-18T12:16:10.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">18</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      sarama 获取 kafka topic &amp; consumergroup 基础信息代码样例
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>主要的信息为：</p>
+<ul>
+<li><p>全量 topic 列表</p>
+</li>
+<li><p>单个 topic 的基础信息</p>
+</li>
+<li><p>全量 consumergroup</p>
+</li>
+<li><p>单个 consumergroup 的基础信息</p>
+</li>
+</ul>
+<p>学习来源为 <a href="https://github.com/danielqsj/kafka_exporter/blob/master/kafka_exporter.go" target="_blank" rel="noopener">github.com/danielqsj/kafka_exporter</a></p>
+<a id="more"></a>
+<hr>
+<h1 id="客户端初始化"><a href="#客户端初始化" class="headerlink" title="客户端初始化"></a>客户端初始化</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewClient</span><span class="params">(kafkaAddr <span class="keyword">string</span>)</span> <span class="params">(kafkaClient sarama.Client, err error)</span></span> &#123;</span><br><span class="line">	config := sarama.NewConfig()</span><br><span class="line">	config.ClientID = fmt.Sprintf(<span class="string">"%d-nzy-client"</span>, time.Now().UnixNano())</span><br><span class="line">	kafkaClient, err = sarama.NewClient([]<span class="keyword">string</span>&#123;kafkaAddr&#125;, config)</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="获取-topic-信息"><a href="#获取-topic-信息" class="headerlink" title="获取 topic 信息"></a>获取 topic 信息</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GetTopics 获取 topic 列表</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GetTopics</span><span class="params">(kafkaClient sarama.Client)</span></span> &#123;</span><br><span class="line">	fmt.Println(<span class="string">"get topic list ..."</span>)</span><br><span class="line">	<span class="keyword">if</span> err := kafkaClient.RefreshMetadata(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"refresh metadata error: %v\n"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line">	topics, err := kafkaClient.Topics()</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"get topics error"</span>, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> _, topic := <span class="keyword">range</span> topics &#123;</span><br><span class="line">		fmt.Println(topic)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	kafkaClient, err := NewClient(kafkaAddr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 实际上 topic 的信息可以直接从 kafka 实例中获取</span></span><br><span class="line">	GetTopics(kafkaClient)</span><br><span class="line">	<span class="comment">// 输出</span></span><br><span class="line">	<span class="comment">// alahousing_build_to_dp</span></span><br><span class="line">	<span class="comment">// sitemapec2ec</span></span><br><span class="line">	<span class="comment">// check2router_low</span></span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="获取指定-topic-信息"><a href="#获取指定-topic-信息" class="headerlink" title="获取指定 topic 信息"></a>获取指定 topic 信息</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GetTopicInfo 获取指定 topic 信息</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GetTopicInfo</span><span class="params">(kafkaClient sarama.Client, topicName <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		partitions        []<span class="keyword">int32</span>          <span class="comment">// topic 分片列表</span></span><br><span class="line">		partitionToBroker []*sarama.Broker <span class="comment">// 每个分片的 leader 所在的  broker id</span></span><br><span class="line">		currentOffsets    []<span class="keyword">int64</span>          <span class="comment">// 每个分片的最新 offset</span></span><br><span class="line">		err               error</span><br><span class="line">	)</span><br><span class="line">	<span class="comment">// 其实还有 Replicas、InSyncReplicas 等信息</span></span><br><span class="line">	fmt.Printf(<span class="string">"get topic %s info ...\n"</span>, topicName)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err = kafkaClient.RefreshMetadata(topicName); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"refresh metadata error, topic=%s err=%v\n"</span>, topicName, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> partitions, err = kafkaClient.Partitions(topicName); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"get topic partitions error, topic=%s err=%v\n"</span>, topicName, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, partitionID := <span class="keyword">range</span> partitions &#123;</span><br><span class="line">		broker, err := kafkaClient.Leader(topicName, partitionID)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"get topic leader error, topic=%s partitionID=%d err=%v\n"</span>, topicName, partitionID, err)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		partitionToBroker = <span class="built_in">append</span>(partitionToBroker, broker)</span><br><span class="line"></span><br><span class="line">		currentOffset, err := kafkaClient.GetOffset(topicName, partitionID, sarama.OffsetNewest)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"get topic offset error, topic=%s partitionID=%d err=%v\n"</span>, topicName, partitionID, err)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		currentOffsets = <span class="built_in">append</span>(currentOffsets, currentOffset)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> idx := <span class="keyword">range</span> partitions &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"topic=%s partitionID=%d leader=%d offset=%d\n"</span>, topicName, partitions[idx], partitionToBroker[idx].ID(), currentOffsets[idx])</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	kafkaClient, err := NewClient(kafkaAddr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	GetTopicInfo(kafkaClient, <span class="string">"parser_to_dp"</span>)</span><br><span class="line">	<span class="comment">// 输出</span></span><br><span class="line">	<span class="comment">// topic=parser_to_dp partitionID=0 leader=18 offset=13154959731</span></span><br><span class="line">	<span class="comment">// topic=parser_to_dp partitionID=1 leader=19 offset=14816760821</span></span><br><span class="line">	<span class="comment">// topic=parser_to_dp partitionID=2 leader=20 offset=14877105177</span></span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="获取全量-consumergroup-列表"><a href="#获取全量-consumergroup-列表" class="headerlink" title="获取全量 consumergroup 列表"></a>获取全量 consumergroup 列表</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// GetConsumerGroups 获取全量 consumergroup 列表</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">GetConsumerGroups</span><span class="params">(kafkaClient sarama.Client)</span></span> &#123;</span><br><span class="line">	fmt.Printf(<span class="string">"get all consumergroups ..."</span>)</span><br><span class="line">	<span class="keyword">for</span> _, broker := <span class="keyword">range</span> kafkaClient.Brokers() &#123;</span><br><span class="line">		<span class="function"><span class="keyword">func</span><span class="params">(broker *sarama.Broker)</span></span> &#123;</span><br><span class="line">			<span class="comment">// 连接 broker</span></span><br><span class="line">			<span class="keyword">if</span> err := broker.Open(kafkaClient.Config()); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				fmt.Printf(<span class="string">"connect broker error: broker=%d err=%v\n"</span>, broker.ID(), err)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">defer</span> broker.Close()</span><br><span class="line"></span><br><span class="line">			groups, err := broker.ListGroups(&amp;sarama.ListGroupsRequest&#123;&#125;)</span><br><span class="line">			<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">				fmt.Printf(<span class="string">"get consumergroups error: broker=%d err=%v\n"</span>, broker.ID(), err)</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="keyword">for</span> groupID := <span class="keyword">range</span> groups.Groups &#123;</span><br><span class="line">				fmt.Printf(<span class="string">"consumergroup: broker=%d groupID=%s\n"</span>, broker.ID(), groupID)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;(broker)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	kafkaClient, err := NewClient(kafkaAddr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	GetConsumerGroups(kafkaClient)</span><br><span class="line">	<span class="comment">// 输出</span></span><br><span class="line">	<span class="comment">// consumergroup: broker=27 groupID=BatchCardsGroup</span></span><br><span class="line">	<span class="comment">// consumergroup: broker=27 groupID=data_proxy_stardust_nj_finance</span></span><br><span class="line">	<span class="comment">// consumergroup: broker=27 groupID=saas_TravelBotRouteSearch_to_build_online</span></span><br><span class="line">	<span class="comment">// consumergroup: broker=2 groupID=receiver_weaver_yq</span></span><br><span class="line">	<span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>补充一点，这里需要从连接各个 broker 来获取的原因是：Kafka 是一个分布式消息系统，其中 consumer group 的元数据信息（如 offset、成员信息等）是分布在整个集群的多个 broker 上的。没有一个单独的 broker 保存了所有 consumer group 的完整信息。因此，为了收集全面的信息，客户端可能需要查询多个 broker。（from 文心一言）</p>
+<h1 id="获取指定-consumergroup-的信息"><a href="#获取指定-consumergroup-的信息" class="headerlink" title="获取指定 consumergroup 的信息"></a>获取指定 consumergroup 的信息</h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DescribeConsumerGroup 获取指定 consumergroup 的信息</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">DescribeConsumerGroup</span><span class="params">(kafkaClient sarama.Client, groupID <span class="keyword">string</span>)</span></span> &#123;</span><br><span class="line">	fmt.Printf(<span class="string">"get consumergroup info: groupID=%s ...\n"</span>, groupID)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> (</span><br><span class="line">		err               error</span><br><span class="line">		brokerConn        *sarama.Broker</span><br><span class="line">		groupDescriptions *sarama.DescribeGroupsResponse</span><br><span class="line">		descGroupsReq     = sarama.DescribeGroupsRequest&#123;Groups: []<span class="keyword">string</span>&#123;groupID&#125;&#125;</span><br><span class="line">		offsetFetchReq    = sarama.OffsetFetchRequest&#123;ConsumerGroup: groupID, Version: <span class="number">1</span>&#125; <span class="comment">// 获取 consumergroup 各 topic 各分片的消费进度</span></span><br><span class="line">		offsetFetchResp   *sarama.OffsetFetchResponse</span><br><span class="line">	)</span><br><span class="line">	<span class="comment">// 上面在初始化 req 的时候，最好使用框架提供的 New 方法</span></span><br><span class="line">	<span class="comment">// 其中如果 OffsetFetchRequest 不设置 Version 会无法查到 offset 信息</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 获取 cg 对应的 coordinator</span></span><br><span class="line">	<span class="keyword">if</span> brokerConn, err = kafkaClient.Coordinator(groupID); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"get consumergroup info error: groupID=%s err=%v\n"</span>, groupID, err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := brokerConn.Open(kafkaClient.Config()); err != <span class="literal">nil</span> &amp;&amp; err != sarama.ErrAlreadyConnected &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"connect consumergroup coordinator error: groupID=%s broker=%d err=%v\n"</span>, groupID, brokerConn.ID(), err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> brokerConn.Close()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 列出当前 consumergroup 信息</span></span><br><span class="line">	<span class="keyword">if</span> groupDescriptions, err = brokerConn.DescribeGroups(&amp;descGroupsReq); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"get consumergroup info error: groupID=%s broker=%d err=%v\n"</span>, groupID, brokerConn.ID(), err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	groupDescription := groupDescriptions.Groups[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, memberDesc := <span class="keyword">range</span> groupDescription.Members &#123;</span><br><span class="line">		memberAssign, err := memberDesc.GetMemberAssignment()</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"get consumergroup info error: groupID=%s broker=%d err=%v\n"</span>, groupID, brokerConn.ID(), err)</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">for</span> topicName, partitions := <span class="keyword">range</span> memberAssign.Topics &#123;</span><br><span class="line">			<span class="keyword">for</span> _, partition := <span class="keyword">range</span> partitions &#123;</span><br><span class="line">				fmt.Printf(<span class="string">"memberID=%s clientID=%s clientHost=%s topic=%s partitionID=%d\n"</span>,</span><br><span class="line">					memberDesc.MemberId, memberDesc.ClientId, memberDesc.ClientHost, topicName, partition)</span><br><span class="line">				offsetFetchReq.AddPartition(topicName, partition)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 获取 consumergroup 各 topic 各分片的消费进度</span></span><br><span class="line">	<span class="keyword">if</span> offsetFetchResp, err = brokerConn.FetchOffset(&amp;offsetFetchReq); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Printf(<span class="string">"get consumergroup info error: groupID=%s broker=%d err=%v\n"</span>, groupID, brokerConn.ID(), err)</span><br><span class="line">		<span class="keyword">return</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> topic, partitions := <span class="keyword">range</span> offsetFetchResp.Blocks &#123;</span><br><span class="line">		<span class="keyword">for</span> partition, block := <span class="keyword">range</span> partitions &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"topic=%s partitionID=%d offset=%d\n"</span>, topic, partition, block.Offset)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	kafkaClient, err := NewClient(kafkaAddr)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	DescribeConsumerGroup(kafkaClient, <span class="string">"receiver_weaver_yq"</span>)</span><br><span class="line">	<span class="comment">// 输出</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-ed710fa4-a663-49c1-97b1-93028eac8438 clientID=rdkafka clientHost=/10.68.236.167 topic=weaver_normal partitionID=7</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-ed710fa4-a663-49c1-97b1-93028eac8438 clientID=rdkafka clientHost=/10.68.236.167 topic=weaver_normal partitionID=8</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-ed710fa4-a663-49c1-97b1-93028eac8438 clientID=rdkafka clientHost=/10.68.236.167 topic=weaver_normal partitionID=9</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-dda29bfa-bfbf-4eb5-9256-b7d22a0de6eb clientID=rdkafka clientHost=/10.35.149.144 topic=weaver_normal partitionID=4</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-dda29bfa-bfbf-4eb5-9256-b7d22a0de6eb clientID=rdkafka clientHost=/10.35.149.144 topic=weaver_normal partitionID=5</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-dda29bfa-bfbf-4eb5-9256-b7d22a0de6eb clientID=rdkafka clientHost=/10.35.149.144 topic=weaver_normal partitionID=6</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-8cda9181-2f3e-40ca-8ea1-918a08f67dbd clientID=rdkafka clientHost=/10.68.219.245 topic=weaver_normal partitionID=0</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-8cda9181-2f3e-40ca-8ea1-918a08f67dbd clientID=rdkafka clientHost=/10.68.219.245 topic=weaver_normal partitionID=1</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-8cda9181-2f3e-40ca-8ea1-918a08f67dbd clientID=rdkafka clientHost=/10.68.219.245 topic=weaver_normal partitionID=2</span></span><br><span class="line">	<span class="comment">// memberID=rdkafka-8cda9181-2f3e-40ca-8ea1-918a08f67dbd clientID=rdkafka clientHost=/10.68.219.245 topic=weaver_normal partitionID=3</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=2 offset=5742653</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=4 offset=5739048</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=5 offset=5748532</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=7 offset=5738679</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=1 offset=5746542</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=3 offset=5745192</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=6 offset=5736528</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=8 offset=5741136</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=9 offset=5743792</span></span><br><span class="line">	<span class="comment">// topic=weaver_normal partitionID=0 offset=5745314</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2024/08/18/sarama-获取-kafka-topic-consumergroup-基础信息代码样例/" data-id="cm2q61szs006ndqjh1hlh4ugx" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2024/08/18/c-condition-variable-使用/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          c++ condition_variable 使用
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2024/08/16/kafka-单实例-CPU-用量飙升及-GC-时间过长问题排查/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka 单实例 CPU 用量飙升及 GC 时间过长问题排查</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>veth + iptables 模拟 Docker 网络 Bridge 模式 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="万恶的 iptables :-/">
+<meta name="keywords" content="容器,Docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="veth + iptables 模拟 Docker 网络 Bridge 模式">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="万恶的 iptables :-/">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/main-arch.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/image-4.png">
+<meta property="og:updated_time" content="2021-04-23T11:09:31.273Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="veth + iptables 模拟 Docker 网络 Bridge 模式">
+<meta name="twitter:description" content="万恶的 iptables :-/">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/main-arch.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-veth-iptables-模拟-Docker-网络-Bridge-模式" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/" class="article-date">
+  <time class="post-time" datetime="2019-12-28T13:48:05.000Z" itemprop="datePublished">
+    <span class="post-month">12月</span><br/>
+    <span class="post-day">28</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      veth + iptables 模拟 Docker 网络 Bridge 模式
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>万恶的 iptables :-/</p>
+<a id="more"></a>
+<p><img src="main-arch.png" alt="main-arch"></p>
+<p>Docker 容器的网络如果设置为 <code>bridge</code> 模式，则那个容器就会拥有一个独立的网络命名空间（Network Namespace），一个新建的网络命名空间，其中只有一个为 <code>DOWN</code> 状态的 <code>lo</code> 网卡。</p>
+<p>Docker 随后创建一对虚拟以太网卡（Virtual Ethernet），由于其是成对存在的，所以这种设备一般称为 <code>veth pair</code> 。在它的一端发送的数据会在另外一端接收，类似于Linux的双向管道。Docker 会创建一对 veth，将一个移至容器命名空间中，将另一个挂到 Docker 自己创建的网桥 <code>docker0</code> 上。</p>
+<p>随后，对 <code>iptables</code> 进行相关的配置，就可以做到容器内部和外部的通信。</p>
+<hr>
+<h2 id="系统信息"><a href="#系统信息" class="headerlink" title="系统信息"></a>系统信息</h2><p>本次实验将会按照上图所示的结构模拟 Docker 的 Bridge 网络模式，本机（运行在虚拟机中）配置信息如下：</p>
+<ul>
+<li>Ubuntu 16.04</li>
+<li>内核 4.10.0-28-generic</li>
+<li>连接外网网卡 enp0s5  10.211.55.32/24</li>
+</ul>
+<hr>
+<h2 id="Veth"><a href="#Veth" class="headerlink" title="Veth"></a>Veth</h2><p>首先，先处理 Network Namespace 1：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建 Network Namespace 1</span></span><br><span class="line">sudo ip netns add ns1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 veth</span></span><br><span class="line">sudo ip link add veth0 <span class="built_in">type</span> veth peer name veth_ns_1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将一个veth移至 ns1 中</span></span><br><span class="line">sudo ip link <span class="built_in">set</span> veth0 netns ns1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置这个veth的ip，并启用 ns1 中的网络接口</span></span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns1 ifconfig veth0 175.18.0.2/24 up</span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns1 ifconfig lo up</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启用留在默认网络命名空间中的虚拟网卡</span></span><br><span class="line">sudo ifconfig veth_ns_1 up</span><br></pre></td></tr></table></figure>
+<p>其中， <code>ip netns exec ns1 ...</code> 表示进入 <code>ns1</code> 命名空间中做相关操作，此时，查看一下 <code>ns1</code> 中的网卡情况：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo ip netns <span class="built_in">exec</span> ns1 ip addr</span><br></pre></td></tr></table></figure>
+<p>会有类似于如下的输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">5: veth0@if4: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu 1500 qdisc noqueue state LOWERLAYERDOWN group default qlen 1000</span><br><span class="line">    link/ether 1a:c5:0f:37:bf:3a brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 175.18.0.2/24 brd 175.18.0.255 scope global veth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>对于 <code>ns2</code> ，操作非常相似，这里就直接贴出代码，不做相关的注释了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo ip netns add ns2</span><br><span class="line">sudo ip link add veth0 <span class="built_in">type</span> veth peer name veth_ns_2</span><br><span class="line">sudo ip link <span class="built_in">set</span> veth0 netns ns2</span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns2 ifconfig veth0 175.18.0.3/24 up</span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns2 ifconfig lo up</span><br><span class="line">sudo ifconfig veth_ns_2 up</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="Linux-Bridge"><a href="#Linux-Bridge" class="headerlink" title="Linux Bridge"></a>Linux Bridge</h2><p>网桥（bridge）虚拟设备用来桥接网络设备，相当于现实世界中的交换机，可以将网卡接到它上面。下面将留在默认命名空间中的两个虚拟网卡（veth_ns_1、veth_ns_2）接到自己创建的网桥上，并对网桥做相关的配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建一个网桥</span></span><br><span class="line"><span class="comment"># brctl在 bridge-utils 软件包中，没有的话需要使用 apt-get 下载</span></span><br><span class="line">sudo brctl addbr ns_br</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置网桥的ip，并启用</span></span><br><span class="line">sudo ifconfig ns_br 175.18.0.1/24 up</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置路由</span></span><br><span class="line">sudo route add -net 175.18.0.0/24 dev ns_br</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将两个虚拟网卡添加到网桥上</span></span><br><span class="line">sudo brctl addif ns_br veth_ns_1</span><br><span class="line">sudo brctl addif ns_br veth_ns_2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置两个网络命名空间的默认路由</span></span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns1 ip route add default via 175.18.0.1 dev veth0</span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns2 ip route add default via 175.18.0.1 dev veth0</span><br></pre></td></tr></table></figure>
+<p>此时，两个网络命名空间 ns1 和 ns2 就可以和网桥通信了，执行以下命令都是有效的：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo ip netns <span class="built_in">exec</span> ns2 ping 175.18.0.1</span><br><span class="line">sudo ip netns <span class="built_in">exec</span> ns1 ping 175.18.0.1</span><br><span class="line">sudo ping -I ns_br 175.18.0.2</span><br><span class="line">sudo ping -I ns_br 175.18.0.3</span><br></pre></td></tr></table></figure>
+<p>但是，它们之间是无法通信的，或许也有可能，这个就牵涉到 iptables 的问题了。</p>
+<hr>
+<h2 id="Linux-iptables"><a href="#Linux-iptables" class="headerlink" title="Linux iptables"></a>Linux iptables</h2><p>之前提到，Linux Bridge 的作用就像是一个交换机，负责转发数据包，而 iptables 的职责之一就是过滤这些数据包。</p>
+<p>为了保证转发功能开始，先确认如下的输出为1：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/sys/net/ipv4/ip_forward</span><br></pre></td></tr></table></figure>
+<p>如果为 0，则输入如下命令开启</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo sysctl -w net.ipv4.conf.all.forwarding=1</span><br></pre></td></tr></table></figure>
+<p>iptables 有五个表（table），这里先查看 <code>FILTER</code> 表，输入如下命令查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter -n --list</span><br></pre></td></tr></table></figure>
+<p>关注输出的这一部分</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Chain FORWARD (policy DROP)</span><br><span class="line">target     prot opt source               destination</span><br><span class="line">DOCKER-USER  all  --  0.0.0.0/0            0.0.0.0/0</span><br><span class="line">DOCKER-ISOLATION-STAGE-1  all  --  0.0.0.0/0            0.0.0.0/0</span><br><span class="line">ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED</span><br><span class="line">DOCKER     all  --  0.0.0.0/0            0.0.0.0/0</span><br><span class="line">ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0</span><br><span class="line">ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0</span><br></pre></td></tr></table></figure>
+<p>iptables 有五个链（chain），这里的 <code>FORWARD</code> 链用于处理转发到其他机器 / network namespace 的数据包，这里的默认 policy 为 <strong>DROP</strong> ，所以从 <code>ns1</code> 到 <code>ns2</code> 的数据包就会被丢弃。这里为了方便起见，先将它的 policy 设为 <code>ACCEPT</code> ，对数据包默认放行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter --policy FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
+<p>此时，两个网络命名空间之间以及和网桥之间网络都可以互通了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ip netns <span class="built_in">exec</span> ns1 ping -c 3 175.18.0.3</span><br><span class="line">ip netns <span class="built_in">exec</span> ns1 ping -c 3 175.18.0.1</span><br><span class="line">ip netns <span class="built_in">exec</span> ns1 ping -c 3 10.211.55.32</span><br><span class="line"></span><br><span class="line">ip netns <span class="built_in">exec</span> ns2 ping -c 3 175.18.0.2</span><br><span class="line">ip netns <span class="built_in">exec</span> ns2 ping -c 3 175.18.0.1</span><br><span class="line">ip netns <span class="built_in">exec</span> ns2 ping -c 3 10.211.55.32</span><br><span class="line"></span><br><span class="line">ping -c 3 175.18.0.3</span><br><span class="line">ping -c 3 175.18.0.2</span><br></pre></td></tr></table></figure>
+<hr>
+<p>实验用的 Ubuntu 主机是运行在我笔记本电脑的虚拟机中的，我笔记本的ip为 10.6.213.149， 如果想从网络命名空间内 ping 10.6.213.149 是无法成功的，你也可以理解为无法 ping 外部的网络。这个和好理解，从 ns1 发送 ICMP 报文至 10.6.213.149 是可以成功的，此时报文的源地址为 175.18.0.2 。但是在 10.6.213.149 回复报文的时候，ICMP 报文的目的地址为 175.18.0.2，这个是一个内网的IP，所以数据包必然丢失。</p>
+<p><img src="image-1.png" alt="image-1"></p>
+<p>希望的是在数据包离开 10.211.55.32 时，将源地址改为 10.211.55.32，这样子 10.6.213.149 就能正确返回报文了，而 iptables 的 <code>NAT</code> 表就是用来干这个的，它的主要功能是修改数据包的源和目的地址，命令如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A POSTROUTING -s 175.18.0.0/24 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+<p><code>POSTROUTING</code> 链也为 iptables 的五个链之一，是用来做 <code>SNAT</code> （源地址转换的），而 <code>MASQUERADE</code> 策略是：报文从哪个网卡出就用该网卡上的 IP 地址替换该报文的源地址，而在这里， 175.18.0.2 被 10.211.55.32 替换。 <code>-A</code> 表示 append，也就是向 <code>NAT</code> 表的 <code>POSTROUTING</code> 链追加设置，如果把 <code>-A</code> 换成 <code>-D</code> 则为删除此规则。<code>-t</code> 用于指定表（table），  <code>-s</code> 表示源地址， <code>-j</code> 表示 jump。</p>
+<p>执行此命令后，就可以 ping 通 10.6.213.149 了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip netns <span class="built_in">exec</span> ns1 ping -c 3 10.6.213.149</span><br><span class="line">ip netns <span class="built_in">exec</span> ns2 ping -c 3 10.6.213.149</span><br></pre></td></tr></table></figure>
+<hr>
+<p>在两个网络命名空间 ns1 和 ns2 中各启动一个 http 服务器，都监听 80 端口，这里使用 python 作为服务器，命令如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ip netns <span class="built_in">exec</span> ns1 python3 -m http.server 80</span><br><span class="line">ip netns <span class="built_in">exec</span> ns2 python3 -m http.server 80</span><br></pre></td></tr></table></figure>
+<p>在 Ubuntu 中可以直接通过 175.18.0.2:80 和 175.18.0.3:80 来访问两个 http 服务器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -I http://175.18.0.2</span><br><span class="line">curl -I http://175.18.0.3</span><br></pre></td></tr></table></figure>
+<p>Docker 的 bridge 模式是将容器中的端口和物理机端口做了映射，这个映射使用 iptables 实现的，下面我们也实现一个端口映射，规则如下：</p>
+<p><img src="image-2.png" alt="image-2"></p>
+<p>对 iptables 做如下的配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A PREROUTING -p tcp --dport 8088 -j DNAT --to 175.18.0.2:80</span><br><span class="line">iptables -t nat -A PREROUTING -p tcp --dport 8089 -j DNAT --to 175.18.0.3:80</span><br></pre></td></tr></table></figure>
+<p>和之前一样，也是对 iptables 的 <code>NAT</code> 表做设置，但是这里是对 <code>PREROUTING</code> 链做设置，做 <code>DNAT</code> （目标地址转换）。此时，从虚拟机外就可以直接使用 Ubuntu的 IP 访问两个服务了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -I http://10.211.55.32:8088</span><br><span class="line">curl -I http://10.211.55.32:8089</span><br></pre></td></tr></table></figure>
+<p>这里列举访问 ns1 的流程：</p>
+<p><img src="image-3.png" alt="image-3"></p>
+<hr>
+<p>之前对 <code>FILTER</code> 表设置的有些简略，这里再详细地配置一下，首先，将 FORWARD 链的默认策略该回来，默认为 DROP：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter --policy FORWARD DROP</span><br></pre></td></tr></table></figure>
+<p>之后进行如下配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter -A FORWARD -i ns_br -j ACCEPT</span><br><span class="line">iptables -t filter -A FORWARD -d 175.18.0.2/32 ! -i ns_br -o ns_br -p tcp -m tcp --dport 80 -j ACCEPT</span><br><span class="line">iptables -t filter -A FORWARD -d 175.18.0.3/32 ! -i ns_br -o ns_br -p tcp -m tcp --dport 80 -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p><code>-i</code> 表示接收数据包的网卡，而 <code>-o</code> 表示发送数据包的网卡。</p>
+<p>第一行命令规定了转发给 <code>ns_br</code> 网卡的数据包一律放行。第二行命令规定了由 <code>ns_br</code> 网卡转发给 175.18.0.2:80 且不是由 <code>ns_br</code> 网卡发送的数据包给 一律放行（emm，有点绕，下面这张示意图可能更形象），第三行同理类似。</p>
+<p><img src="image-4.png" alt="image-4"></p>
+<p>注意，由于这里限制了从 <code>ns_br</code> 网卡出来的流量，所以以及无法从 <code>ns1</code> 或 <code>ns2</code> 中 ping 外网了，如果希望可以从容器内部想外部发起icmp等非tcp请求，则添加如下配置</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -t filter -A FORWARD -o ns_br -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>目前还无法支持从本地用 127.0.0.1 访问，也不支持在本地用主机 ip 直接访问，满足后者需求可以执行如下命令，前者目前未找到解决方案：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -p tcp --dport 8088 -j DNAT --to-destination 175.18.0.2:80</span><br><span class="line">iptables -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -p tcp --dport 8089 -j DNAT --to-destination 175.18.0.3:80</span><br></pre></td></tr></table></figure>
+<p>查阅网上资料后，<a href="https://www.linuxquestions.org/questions/linux-networking-3/iptables-redirect-127-0-0-1-to-192-168-1-113-a-818817/#3" target="_blank" rel="noopener">一种说法</a>是 iptables 无法直接操作 lo 接口的流量</p>
+<hr>
+<p>介绍两个查看 iptables 的方式（以查看 <code>NAT</code> 表为例 ）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按照不同链（chain）显示</span></span><br><span class="line">iptables -t nat -n --list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 显示完整的配置信息</span></span><br><span class="line">iptables -t nat -S</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《自己动手写Docker》</li>
+<li>《Kubernetes网络权威指南》</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/12/28/veth-iptables-模拟-Docker-网络-Bridge-模式/" data-id="cm2q61szv006ydqjhjftjem35" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/01/02/你的2019/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          你的2019
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/12/22/逛漫展/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">逛漫展</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

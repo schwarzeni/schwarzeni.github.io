@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>k8s debug cli 最初版 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="一次偶然的机会看到了这篇文章 《简化 Pod 故障诊断: kubectl-debug 介绍》，感觉这个实现挺有意思的，准备自己实现一个。这里借鉴了文章中工具的大体设计思路以及获取容器 ID 的方式，其他的大体都是自己思考和实现的，同时，实现的功能比较粗糙，比如诊断容器写死为 busybox、只能进入 exec -it 风格的交互模式等、数据传输过程未加密、执行加入 Pod 中第一个容器的命名空间、">
+<meta name="keywords" content="Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s debug cli 最初版">
+<meta property="og:url" content="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="一次偶然的机会看到了这篇文章 《简化 Pod 故障诊断: kubectl-debug 介绍》，感觉这个实现挺有意思的，准备自己实现一个。这里借鉴了文章中工具的大体设计思路以及获取容器 ID 的方式，其他的大体都是自己思考和实现的，同时，实现的功能比较粗糙，比如诊断容器写死为 busybox、只能进入 exec -it 风格的交互模式等、数据传输过程未加密、执行加入 Pod 中第一个容器的命名空间、">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/showcase.gif">
+<meta property="og:image" content="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/arch.png">
+<meta property="og:updated_time" content="2021-05-13T04:59:59.283Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="k8s debug cli 最初版">
+<meta name="twitter:description" content="一次偶然的机会看到了这篇文章 《简化 Pod 故障诊断: kubectl-debug 介绍》，感觉这个实现挺有意思的，准备自己实现一个。这里借鉴了文章中工具的大体设计思路以及获取容器 ID 的方式，其他的大体都是自己思考和实现的，同时，实现的功能比较粗糙，比如诊断容器写死为 busybox、只能进入 exec -it 风格的交互模式等、数据传输过程未加密、执行加入 Pod 中第一个容器的命名空间、">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/showcase.gif">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-k8s-debug-cli-最初版" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/05/13/k8s-debug-cli-最初版/" class="article-date">
+  <time class="post-time" datetime="2021-05-13T04:58:14.000Z" itemprop="datePublished">
+    <span class="post-month">5月</span><br/>
+    <span class="post-day">13</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      k8s debug cli 最初版
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>一次偶然的机会看到了这篇文章 <a href="https://aleiwu.com/post/kubectl-debug-intro/" target="_blank" rel="noopener">《简化 Pod 故障诊断: kubectl-debug 介绍》</a>，感觉这个实现挺有意思的，准备自己实现一个。这里借鉴了文章中工具的<a href="https://aleiwu.com/post/kubectl-debug-intro/#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86" target="_blank" rel="noopener">大体设计思路</a>以及<a href="https://github.com/aylei/kubectl-debug/blob/24842b00e65449fb35bb33900f5c32d05bbac7a9/pkg/plugin/cmd.go#L762" target="_blank" rel="noopener">获取容器 ID 的方式</a>，其他的大体都是自己思考和实现的，同时，实现的功能比较粗糙，比如诊断容器写死为 busybox、只能进入 exec -it 风格的交互模式等、数据传输过程未加密、执行加入 Pod 中第一个容器的命名空间、容器运行时只能使用 docker 不兼容 containerd 等。</p>
+<a id="more"></a>
+<h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul>
+<li>Kubernetes v1.19.0</li>
+<li>容器运行时 Docker v19.03.11</li>
+<li>Golang v1.15.6</li>
+<li>开发机与 Kubernetes 集群在同一子网 10.211.55.0/24 中<ul>
+<li>开发机 macOS 10.211.55.2</li>
+<li>k8s master 10.211.55.59</li>
+<li>k8s node1 10.211.55.60</li>
+<li>k8s node2 10.211.55.61</li>
+</ul>
+</li>
+<li>本地镜像仓库 10.211.55.2:10000</li>
+</ul>
+<hr>
+<h2 id="功能简介与实现效果"><a href="#功能简介与实现效果" class="headerlink" title="功能简介与实现效果"></a>功能简介与实现效果</h2><p>完整代码在 <a href="https://github.com/schwarzeni/k8s-debug-cli" target="_blank" rel="noopener">https://github.com/schwarzeni/k8s-debug-cli</a> 上。</p>
+<p>执行 <code>k8sdebugctl &lt;pod namespace&gt; &lt;pod name&gt;</code> 之后，会进入到 busybox 容器的终端交互界面，类似于 <code>kubectl exec -it</code> 或 <code>docker exec -it</code> 的效果，而这个 busybox 容器和目标 pod 是位于同一网络、PID 等命名空间中的。</p>
+<p><img src="showcase.gif" alt=""></p>
+<hr>
+<h2 id="架构设计"><a href="#架构设计" class="headerlink" title="架构设计"></a>架构设计</h2><p>其实跟上文中提到的 <a href="https://aleiwu.com/post/kubectl-debug-intro/#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86" target="_blank" rel="noopener">kubectl-debug 的大体设计思路</a> 很像。</p>
+<p><img src="arch.png" alt=""></p>
+<hr>
+<h2 id="功能调研：远程终端"><a href="#功能调研：远程终端" class="headerlink" title="功能调研：远程终端"></a>功能调研：远程终端</h2><p>这个工具的本质，就是在节点1上进入节点2上的终端，这个虽然可以用 ssh 来实现远程登录，但是需要输入密码有点麻烦。这里采用最简单的 tcp 数据流的形式来实现，没有对数据进行加密。</p>
+<p>首先安装相关的依赖</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> get -u golang.org/x/term</span><br><span class="line"><span class="keyword">go</span> get -u github.com/creack/pty</span><br><span class="line"><span class="keyword">go</span> get -u golang.org/x/crypto</span><br></pre></td></tr></table></figure>
+<p>这里第二个依赖是用来模型终端的，目前貌似只兼容了 *nix，所以本节中开发环境需要在 *nix 环境中，后面就没有这个要求了。</p>
+<p>首先编写服务端 <code>cmd/remotecli/server/server.go</code>。数据流向大致如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -- pty -- tcp</span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  <span class="string">"io"</span></span><br><span class="line">  <span class="string">"log"</span></span><br><span class="line">  <span class="string">"net"</span></span><br><span class="line">  <span class="string">"os"</span></span><br><span class="line">  <span class="string">"os/exec"</span></span><br><span class="line">  <span class="string">"os/signal"</span></span><br><span class="line">  <span class="string">"syscall"</span></span><br><span class="line"></span><br><span class="line">  <span class="string">"github.com/creack/pty"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">handleConn</span><span class="params">(conn net.Conn)</span></span> &#123;</span><br><span class="line">  ptmx, tty, _ := pty.Open()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Handle pty size. 否则类似于 htop 的命令，图像界面就无法正常显示</span></span><br><span class="line">  ch := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">  signal.Notify(ch, syscall.SIGWINCH)</span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> <span class="keyword">range</span> ch &#123;</span><br><span class="line">      <span class="keyword">if</span> err := pty.InheritSize(os.Stdin, ptmx); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        log.Printf(<span class="string">"error resizing pty: %s"</span>, err)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;()</span><br><span class="line">  ch &lt;- syscall.SIGWINCH <span class="comment">// Initial resize.</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    c := exec.Command(<span class="string">"/bin/bash"</span>)</span><br><span class="line">    c.SysProcAttr = &amp;syscall.SysProcAttr&#123;&#125;</span><br><span class="line">    c.SysProcAttr.Setsid = <span class="literal">true</span></span><br><span class="line">    c.SysProcAttr.Setctty = <span class="literal">true</span></span><br><span class="line">    c.Stdin = tty</span><br><span class="line">    c.Stdout = tty</span><br><span class="line">    c.Stderr = tty</span><br><span class="line">    _ = c.Start()</span><br><span class="line">    _ = c.Wait()</span><br><span class="line">    _ = ptmx.Close()</span><br><span class="line">    signal.Stop(ch)</span><br><span class="line">    <span class="built_in">close</span>(ch)</span><br><span class="line">    conn.Close()</span><br><span class="line">  &#125;()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    _, _ = io.Copy(ptmx, conn)</span><br><span class="line">  &#125;()</span><br><span class="line">  _, _ = io.Copy(conn, ptmx)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  listen, err := net.Listen(<span class="string">"tcp"</span>, <span class="string">"0.0.0.0:30000"</span>)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    fmt.Println(<span class="string">"listen failed, err:"</span>, err)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> listen.Close()</span><br><span class="line">  conn, err := listen.Accept()</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    fmt.Println(<span class="string">"accept failed, err:"</span>, err)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  handleConn(conn)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再编写客户端端 <code>cmd/remotecli/client/client.go</code></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  <span class="string">"io"</span></span><br><span class="line">  <span class="string">"log"</span></span><br><span class="line">  <span class="string">"net"</span></span><br><span class="line">  <span class="string">"os"</span></span><br><span class="line"></span><br><span class="line">  <span class="string">"golang.org/x/crypto/ssh/terminal"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  conn, err := net.Dial(<span class="string">"tcp"</span>, <span class="string">"0.0.0.0:30000"</span>)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    fmt.Println(<span class="string">"dial failed, err"</span>, err)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> !terminal.IsTerminal(<span class="number">0</span>) || !terminal.IsTerminal(<span class="number">1</span>) &#123;</span><br><span class="line">    fmt.Errorf(<span class="string">"stdin/stdout should be terminal"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 这个应该是处理Ctrl + C 这种特殊键位，以及处理 stdin 输入</span></span><br><span class="line">  oldState, err := terminal.MakeRaw(<span class="keyword">int</span>(os.Stdin.Fd()))</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="built_in">panic</span>(err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> terminal.Restore(<span class="number">0</span>, oldState)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> _, err := io.Copy(conn, os.Stdin); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Println(<span class="string">"io.Copy(conn, os.Stdin)"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;()</span><br><span class="line">  <span class="keyword">if</span> _, err := io.Copy(os.Stdout, conn); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Println(<span class="string">"io.Copy(conn, os.Stdin)"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"client exit"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先启动 server，然后再启动 client，发现 client 可以连接至 server 的 bash cli，vim、top 等命令可以正常执行。</p>
+<hr>
+<h2 id="功能调研：将容器加入至已有的命名空间"><a href="#功能调研：将容器加入至已有的命名空间" class="headerlink" title="功能调研：将容器加入至已有的命名空间"></a>功能调研：将容器加入至已有的命名空间</h2><p>如果使用 docker cli 的话可以很方便地将新建的容器加入已有的容器命名空间中，例如如下命令，详细参考<a href="https://docs.docker.com/engine/reference/run/" target="_blank" rel="noopener"> docker 的官方文档</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it --network=container:<span class="variable">$TARGET_ID</span> busybox</span><br></pre></td></tr></table></figure>
+<p>那么如果用命令行模拟呢？</p>
+<p>首先，安装 Docker 的 SDK</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get -u github.com/docker/docker</span><br></pre></td></tr></table></figure>
+<p>在文件 <code>cmd/nsjoin/nsjoin.go</code> 中尝试实现上述的逻辑</p>
+<p>首先，需要用 docker 的 sdk 连接至 docker，查出目标容器的相关信息。目标容器的 ID 通过环境变量的形式获取</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// find container id</span></span><br><span class="line">  targetContainerID, ok := os.LookupEnv(<span class="string">"ENV_CONTAINER_ID"</span>)</span><br><span class="line">  <span class="keyword">if</span> !ok &#123;</span><br><span class="line">    log.Fatal(<span class="string">"unable to find target container name in env"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// connect to docker</span></span><br><span class="line">  ctx := context.Background()</span><br><span class="line">  cli, err := client.NewClientWithOpts(client.WithHost(<span class="string">"unix:///var/run/docker.sock"</span>), client.WithAPIVersionNegotiation())</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"new docker client "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"connect to docker"</span>)</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// find target container by id</span></span><br><span class="line">  containers, err := cli.ContainerList(ctx, types.ContainerListOptions&#123;</span><br><span class="line">    Filters: filters.NewArgs(filters.KeyValuePair&#123;</span><br><span class="line">      Key:   <span class="string">"id"</span>,</span><br><span class="line">      Value: targetContainerID,</span><br><span class="line">    &#125;),</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"list containers "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> <span class="built_in">len</span>(containers) == <span class="number">0</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"unable to find container with id "</span> + targetContainerID)</span><br><span class="line">  &#125;</span><br><span class="line">  targetContainer := containers[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<p>随后需要创建新的容器，这里使用 busybox，首先现在容器镜像</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// find if image exists</span></span><br><span class="line">  images, err := cli.ImageList(ctx, types.ImageListOptions&#123;</span><br><span class="line">    Filters: filters.NewArgs(filters.KeyValuePair&#123;</span><br><span class="line">      Key:   <span class="string">"reference"</span>,</span><br><span class="line">      Value: <span class="string">"busybox:latest"</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"search image "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// if not, download it</span></span><br><span class="line">  <span class="keyword">if</span> <span class="built_in">len</span>(images) == <span class="number">0</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> _, err := cli.ImagePull(ctx, <span class="string">"docker.io/library/busybox:latest"</span>, types.ImagePullOptions&#123;&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Println(<span class="string">"pull image "</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    log.Println(<span class="string">"pull image success"</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    log.Println(<span class="string">"find local image cache"</span>)</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>随后启动容器，将其加入 target container 的相关命名空间中，这里加入的命名空间有 Volume、Network、PID 和 IPC</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">resp, err := cli.ContainerCreate(ctx, &amp;container.Config&#123;</span><br><span class="line">  Image: <span class="string">"busybox:latest"</span>,</span><br><span class="line">  Cmd:   []<span class="keyword">string</span>&#123;<span class="string">"bin/sh"</span>, <span class="string">"-c"</span>, <span class="string">"tail -f /dev/null"</span>&#125;,</span><br><span class="line">&#125;, &amp;container.HostConfig&#123;</span><br><span class="line">  <span class="comment">// ref: https://docs.docker.com/engine/reference/run/</span></span><br><span class="line">  VolumesFrom: []<span class="keyword">string</span>&#123;targetContainer.ID&#125;,</span><br><span class="line">  IpcMode:     container.IpcMode(<span class="string">"container:"</span> + targetContainer.ID),</span><br><span class="line">  NetworkMode: container.NetworkMode(<span class="string">"container:"</span> + targetContainer.ID),</span><br><span class="line">  PidMode:     container.PidMode(<span class="string">"container:"</span> + targetContainer.ID),</span><br><span class="line">  <span class="comment">//UTSMode:     "",</span></span><br><span class="line">  <span class="comment">//UsernsMode:  ,</span></span><br><span class="line">&#125;, <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="string">"debug-for_"</span>+targetContainerID+fmt.Sprintf(<span class="string">"_%d"</span>, time.Now().Unix()))</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"create container "</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">log.Println(<span class="string">"create container success"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions&#123;&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"start container "</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">log.Println(<span class="string">"start container success"</span>)</span><br></pre></td></tr></table></figure>
+<p>随后，进入到 exec -it 交互模式，这里拿到的 <code>attchResp</code> 就类似于上一节中的 <code>exec.Command</code> ，作为输入和输入流的源头</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">execResp, err := cli.ContainerExecCreate(ctx, resp.ID, types.ExecConfig&#123;</span><br><span class="line">  Tty:          <span class="literal">true</span>,</span><br><span class="line">  AttachStdin:  <span class="literal">true</span>,</span><br><span class="line">  AttachStderr: <span class="literal">true</span>,</span><br><span class="line">  AttachStdout: <span class="literal">true</span>,</span><br><span class="line">  Cmd:          []<span class="keyword">string</span>&#123;<span class="string">"/bin/sh"</span>&#125;,</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"container exec create "</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">log.Println(<span class="string">"container exec create success"</span>)</span><br><span class="line"></span><br><span class="line">attchResp, err := cli.ContainerExecAttach(ctx, execResp.ID, types.ExecStartCheck&#123;&#125;)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"container exec attach "</span>, err)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">defer</span> attchResp.Close()</span><br><span class="line">log.Println(<span class="string">"container exec attach"</span>)</span><br></pre></td></tr></table></figure>
+<p>启动本地终端实现命令行交互</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// start cli</span></span><br><span class="line">  oldState, err := term.MakeRaw(<span class="keyword">int</span>(os.Stdin.Fd()))</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">   log.Fatal(<span class="string">"make term stdin raw "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; _ = term.Restore(<span class="keyword">int</span>(os.Stdin.Fd()), oldState) &#125;() <span class="comment">// Best effort.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// get output</span></span><br><span class="line">  <span class="comment">// ref https://stackoverflow.com/questions/52774830/docker-exec-command-from-golang-api</span></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">   _, _ = stdcopy.StdCopy(os.Stdout, os.Stderr, attchResp.Conn)</span><br><span class="line">  &#125;()</span><br><span class="line">  _, _ = io.Copy(attchResp.Conn, os.Stdin)</span><br></pre></td></tr></table></figure>
+<p>最后清理容器</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">_ = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions&#123;Force: <span class="literal">true</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>对 <code>cmd/nsjoin/nsjoin.go</code> 进行交叉编译并 scp 到 k8s master 节点上</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GOOS=linux GOARCH=amd64 go build -o nsjoin github.com/schwarzeni/k8s-debug-cli/cmd/nsjoin &amp;&amp;  scp nsjoin root@10.211.55.59:~/app</span><br></pre></td></tr></table></figure>
+<p>在 10.211.55.59 上做测试，尝试加入到 k8s-scheduler 容器的命名空间中，我这里它的容器 ID 是 de582c538892，执行如下命令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ENV_CONTAINER_ID=de582c538892 ./nsjoin</span><br></pre></td></tr></table></figure>
+<p>有如下输出。（由于 k8s 的 control plane 上的容器都是以 hostnetwork 的形式启动的，所以执行 ip addr 只会看到宿主机的网络配置）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">root@kubeedge_edge_4: ~/app &gt; ENV_CONTAINER_ID=de582c538892 ./nsjoin</span><br><span class="line">2021/05/13 10:04:19 connect to docker</span><br><span class="line">2021/05/13 10:04:19 find local image cache</span><br><span class="line">2021/05/13 10:04:19 create container success</span><br><span class="line">2021/05/13 10:04:20 start container success</span><br><span class="line">2021/05/13 10:04:20 container exec create success</span><br><span class="line">2021/05/13 10:04:20 container exec attach</span><br><span class="line">/ # ps uax</span><br><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">    1 root      0:20 kube-scheduler --authentication-kubeconfig=/etc/kubernetes</span><br><span class="line">   14 root      0:00 tail -f /dev/null</span><br><span class="line">   19 root      0:00 /bin/sh</span><br><span class="line">   25 root      0:00 ps uax</span><br><span class="line"></span><br><span class="line">/ # ls /proc/1/root/etc/kubernetes/</span><br><span class="line">scheduler.conf</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="功能调研：使用-client-go-与-k8s-交互"><a href="#功能调研：使用-client-go-与-k8s-交互" class="headerlink" title="功能调研：使用 client-go 与 k8s 交互"></a>功能调研：使用 client-go 与 k8s 交互</h2><p>这里还需要先了解一下如何使用 client-go 来操作 pod。新建 <code>cmd/k8sclient/k8sclient.go</code> ，实现获取 kube-scheduler pod 容器的 ID 信息以及它所在集群节点的 IP 以及名称</p>
+<p>首先，安装 client-go</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">go get -u k8s.io/client-go</span><br><span class="line">go get -u k8s.io/apimachinery</span><br><span class="line">go get -u k8s.io/api</span><br></pre></td></tr></table></figure>
+<p>首先，新建一个客户端，需要提供 kubeconfig 文件，这个文件一般是 k8s master node 的 <code>~/.kube/config</code> </p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">kubeconfigF := flag.String(<span class="string">"f"</span>, <span class="string">"..."</span>, <span class="string">"absolute path to the kubeconfig file"</span>)</span><br><span class="line">podNameF := flag.String(<span class="string">"p"</span>, <span class="string">"kube-scheduler-k8s-master"</span>, <span class="string">"pod's name"</span>)</span><br><span class="line">podNSF := flag.String(<span class="string">"n"</span>, <span class="string">"kube-system"</span>, <span class="string">"pod's namespace"</span>)</span><br><span class="line"></span><br><span class="line">flag.Parse()</span><br><span class="line">config, err := clientcmd.BuildConfigFromFlags(<span class="string">""</span>, *kubeconfigF)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"init config"</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">clientset, err := kubernetes.NewForConfig(config)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"init client"</span>, err)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，查找目标的 Pod</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"</span></span><br><span class="line">targetPod, err := clientset.CoreV1().Pods(*podNSF).Get(context.TODO(), *podNameF, metav1.GetOptions&#123;&#125;)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"get target pod"</span>, *podNameF, <span class="string">"in namespace"</span>, *podNSF, err)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> targetPod == <span class="literal">nil</span> &#123;</span><br><span class="line">  log.Fatal(<span class="string">"pod "</span> + *podNameF + <span class="string">" in namespace "</span> + *podNSF + <span class="string">" not found"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，从 targetPod 中提取出相关信息</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">targetPodHostIP := targetPod.Status.HostIP</span><br><span class="line">  targetPodHostName := targetPod.Spec.NodeName</span><br><span class="line">  targetPodContainerID := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    targetContainerName := targetPod.Spec.Containers[<span class="number">0</span>].Name</span><br><span class="line">    <span class="keyword">for</span> _, s := <span class="keyword">range</span> targetPod.Status.ContainerStatuses &#123;</span><br><span class="line">      <span class="keyword">if</span> s.Name == targetContainerName &#123;</span><br><span class="line">        <span class="comment">// docker://.....</span></span><br><span class="line">        <span class="keyword">return</span> s.ContainerID[<span class="number">9</span>:]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    log.Fatal(<span class="string">"get container id not found "</span>, targetContainerName)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">  &#125;()</span><br><span class="line">  log.Printf(<span class="string">"\ntargetPodHostIP: %s\ntargetPodHostName: %s\ntargetPodContainerID: %s\n"</span>, </span><br><span class="line">    targetPodHostIP, targetPodHostName, targetPodContainerID)</span><br></pre></td></tr></table></figure>
+<p>运行程序，会得到类似如下输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2021/05/13 10:29:51 </span><br><span class="line">targetPodHostIP: 10.211.55.59</span><br><span class="line">targetPodHostName: k8s-master</span><br><span class="line">targetPodContainerID: de582c5388924db0876c8cef4c7a98ecd3222b81436b7289a70dac7e28d72f8e</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="debug-agent-开发"><a href="#debug-agent-开发" class="headerlink" title="debug agent 开发"></a>debug agent 开发</h2><p>这个模块最终会以 pod 的形式，在调试开始时部署至 k8s 集群中，随后会启动 busybox 容器将其加入至目标容器的命名空间中，并与客户端建立起 tcp 连接，将 exec -it 的命令行交互数据通过 tcp 传输给客户端，数据流向如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">client ---- debug agent ---- busybox</span><br></pre></td></tr></table></figure>
+<p>新建文件 <code>cmd/debugagent/debugagent.go</code> ，关于如何启动 busybox 容器并将其加入至目标容器的命名空间中在之前的技术调研中已经涉及了，这里就不再赘述了。主代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"context"</span></span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  <span class="string">"log"</span></span><br><span class="line">  <span class="string">"os"</span></span><br><span class="line">  <span class="string">"os/signal"</span></span><br><span class="line">  <span class="string">"syscall"</span></span><br><span class="line">  <span class="string">"time"</span></span><br><span class="line"></span><br><span class="line">  <span class="string">"github.com/docker/docker/api/types"</span></span><br><span class="line">  <span class="string">"github.com/docker/docker/api/types/container"</span></span><br><span class="line">  <span class="string">"github.com/docker/docker/api/types/filters"</span></span><br><span class="line">  <span class="string">"github.com/docker/docker/client"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> containerConnChan = <span class="built_in">make</span>(<span class="keyword">chan</span> types.HijackedResponse)</span><br><span class="line"><span class="keyword">var</span> debugFinishChan = <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="keyword">go</span> tcpServer()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// get container id from env</span></span><br><span class="line">  targetContainerID, ok := os.LookupEnv(<span class="string">"ENV_CONTAINER_ID"</span>)</span><br><span class="line">  <span class="keyword">if</span> !ok &#123;</span><br><span class="line">    log.Fatal(<span class="string">"unable to find target container name in env"</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// get docker client</span></span><br><span class="line">  ctx := context.Background()</span><br><span class="line">  cli, err := client.NewClientWithOpts(client.WithHost(<span class="string">"unix:///var/run/docker.sock"</span>), client.WithAPIVersionNegotiation())</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"new docker client "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// search for target container by id</span></span><br><span class="line">  containers, err := cli.ContainerList(ctx, types.ContainerListOptions&#123;</span><br><span class="line">    Filters: filters.NewArgs(filters.KeyValuePair&#123;</span><br><span class="line">      Key:   <span class="string">"id"</span>,</span><br><span class="line">      Value: targetContainerID,</span><br><span class="line">    &#125;),</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"list containers "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> <span class="built_in">len</span>(containers) == <span class="number">0</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"unable to find container with id "</span> + targetContainerID)</span><br><span class="line">  &#125;</span><br><span class="line">  targetContainer := containers[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">  <span class="comment">// download busybox image</span></span><br><span class="line">  images, err := cli.ImageList(ctx, types.ImageListOptions&#123;</span><br><span class="line">    Filters: filters.NewArgs(filters.KeyValuePair&#123;</span><br><span class="line">      Key:   <span class="string">"reference"</span>,</span><br><span class="line">      Value: <span class="string">"busybox:latest"</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"search image "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> <span class="built_in">len</span>(images) == <span class="number">0</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> _, err := cli.ImagePull(ctx, <span class="string">"docker.io/library/busybox:latest"</span>, types.ImagePullOptions&#123;&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Println(<span class="string">"pull image "</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    log.Println(<span class="string">"pull image success"</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    log.Println(<span class="string">"find local image cache"</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// create busybox container and join to target container ns</span></span><br><span class="line">  resp, err := cli.ContainerCreate(ctx, &amp;container.Config&#123;</span><br><span class="line">    Image: <span class="string">"busybox:latest"</span>,</span><br><span class="line">    Cmd:   []<span class="keyword">string</span>&#123;<span class="string">"bin/sh"</span>, <span class="string">"-c"</span>, <span class="string">"tail -f /dev/null"</span>&#125;,</span><br><span class="line">  &#125;, &amp;container.HostConfig&#123;</span><br><span class="line">    <span class="comment">// ref: https://docs.docker.com/engine/reference/run/</span></span><br><span class="line">    VolumesFrom: []<span class="keyword">string</span>&#123;targetContainer.ID&#125;,</span><br><span class="line">    IpcMode:     container.IpcMode(<span class="string">"container:"</span> + targetContainer.ID),</span><br><span class="line">    NetworkMode: container.NetworkMode(<span class="string">"container:"</span> + targetContainer.ID),</span><br><span class="line">    PidMode:     container.PidMode(<span class="string">"container:"</span> + targetContainer.ID),</span><br><span class="line">    <span class="comment">//UTSMode:     "",</span></span><br><span class="line">    <span class="comment">//UsernsMode:  ,</span></span><br><span class="line">  &#125;, <span class="literal">nil</span>, <span class="literal">nil</span>, <span class="string">"debug-for_"</span>+targetContainerID+fmt.Sprintf(<span class="string">"_%d"</span>, time.Now().Unix()))</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"create container "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"create container success"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// start container</span></span><br><span class="line">  <span class="keyword">if</span> err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions&#123;&#125;); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"start container "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"start container success"</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// start exec -it</span></span><br><span class="line">  execResp, err := cli.ContainerExecCreate(ctx, resp.ID, types.ExecConfig&#123;</span><br><span class="line">    Tty:          <span class="literal">true</span>,</span><br><span class="line">    AttachStdin:  <span class="literal">true</span>,</span><br><span class="line">    AttachStderr: <span class="literal">true</span>,</span><br><span class="line">    AttachStdout: <span class="literal">true</span>,</span><br><span class="line">    Cmd:          []<span class="keyword">string</span>&#123;<span class="string">"/bin/sh"</span>&#125;,</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"container exec create "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"container exec create success"</span>)</span><br><span class="line">  attchResp, err := cli.ContainerExecAttach(ctx, execResp.ID, types.ExecStartCheck&#123;&#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"container exec attach "</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> attchResp.Close()</span><br><span class="line">  log.Println(<span class="string">"container exec attach"</span>)</span><br><span class="line"></span><br><span class="line">  containerConnChan &lt;- attchResp</span><br><span class="line"></span><br><span class="line">  sigs := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">  signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)</span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    &lt;-sigs</span><br><span class="line">    _ = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions&#123;Force: <span class="literal">true</span>&#125;)</span><br><span class="line">    os.Exit(<span class="number">0</span>)</span><br><span class="line">  &#125;()</span><br><span class="line">  &lt;-debugFinishChan</span><br><span class="line">  _ = cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions&#123;Force: <span class="literal">true</span>&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>tcpServer</code> 函数用于创建  TCP server 与客户端建立连接实现远程终端。远程终端的实现思路在之前的技术调研中也涉及到了，这里就不再赘述了。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">tcpServer</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; debugFinishChan &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125; &#125;()</span><br><span class="line">  listen, err := net.Listen(<span class="string">"tcp"</span>, <span class="string">"0.0.0.0:30000"</span>)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Println(<span class="string">"listen failed, err:"</span>, err)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> listen.Close()</span><br><span class="line">  conn, err := listen.Accept()</span><br><span class="line">  <span class="keyword">defer</span> conn.Close()</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Println(<span class="string">"accept failed, err:"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  cconn := &lt;-containerConnChan</span><br><span class="line"></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    _, _ = io.Copy(cconn.Conn, conn)</span><br><span class="line">  &#125;()</span><br><span class="line">  _, _ = stdcopy.StdCopy(conn, conn, cconn.Conn)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>至此 debug agent 编写完毕，需要将其打包成容器，现在如下的 Dockerfile。这里参考的是 kubebuilder 自动生成的 Dockerfile</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Build the manager binary</span></span><br><span class="line"><span class="keyword">FROM</span> golang:<span class="number">1.15</span> as builder</span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /workspace</span></span><br><span class="line"><span class="bash"><span class="comment"># Copy the Go Modules manifests</span></span></span><br><span class="line"><span class="bash">COPY go.mod go.mod</span></span><br><span class="line"><span class="bash"><span class="comment"># cache deps before building and copying source so that we don't need to re-download as much</span></span></span><br><span class="line"><span class="bash"><span class="comment"># and so that source changes don't invalidate our downloaded layer</span></span></span><br><span class="line"><span class="bash">ENV GOPROXY https://goproxy.cn,direct</span></span><br><span class="line"><span class="bash">RUN go mod download</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash"><span class="comment"># Copy the go source</span></span></span><br><span class="line"><span class="bash">COPY cmd/debugagent/debugagent.go cmd/debugagent/debugagent.go</span></span><br><span class="line"><span class="bash"><span class="comment">#COPY pkg/ pkg/</span></span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash"><span class="comment"># Build</span></span></span><br><span class="line"><span class="bash">RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o debug-agent github.com/schwarzeni/k8s-debug-cli/cmd/debugagent</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash"><span class="comment"># Use distroless as minimal base image to package the manager binary</span></span></span><br><span class="line"><span class="bash"><span class="comment"># Refer to https://github.com/GoogleContainerTools/distroless for more details</span></span></span><br><span class="line"><span class="bash">FROM gcr.io/distroless/static:nonroot</span></span><br><span class="line"><span class="bash">WORKDIR /</span></span><br><span class="line"><span class="bash">COPY --from=builder /workspace/debug-agent .</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash">ENTRYPOINT [<span class="string">"/debug-agent"</span>]</span></span><br></pre></td></tr></table></figure>
+<p>执行如下命令将镜像推送至位于 10.211.55.2:10000 的私有镜像仓库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker build . -t 10.211.55.2:10000/debug-agent:v0.0.1</span><br><span class="line">docker push 10.211.55.2:10000/debug-agent:v0.0.1</span><br></pre></td></tr></table></figure>
+<p>构建一个 pod 的 yaml 文件 <code>cmd/debugagent/deploy.yaml</code> 尝试将其部署至集群。这份文件仅用于测试。注意，其中的容器的环境变量 ENV_CONTAINER_ID 为 kube-scheduler 的 id，当然，你也可以换成别的 pod 的容器的 ip。 </p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line"><span class="attr">  name:</span> <span class="string">debug-agent</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line"><span class="attr">  hostNetwork:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">  nodeName:</span> <span class="string">k8s-master</span></span><br><span class="line"><span class="attr">  volumes:</span></span><br><span class="line"><span class="attr">    - name:</span> <span class="string">cri-sock</span></span><br><span class="line"><span class="attr">      hostPath:</span></span><br><span class="line"><span class="attr">        path:</span> <span class="string">/var/run/docker.sock</span></span><br><span class="line"><span class="attr">  containers:</span></span><br><span class="line"><span class="attr">    - name:</span> <span class="string">debug-agent-container</span></span><br><span class="line"><span class="attr">      image:</span> <span class="number">10.211</span><span class="number">.55</span><span class="number">.2</span><span class="string">:10000/debug-agent:v0.0.1</span></span><br><span class="line"><span class="attr">      env:</span></span><br><span class="line"><span class="attr">        - name:</span> <span class="string">ENV_CONTAINER_ID</span></span><br><span class="line"><span class="attr">          value:</span> <span class="string">de582c538892</span></span><br><span class="line"><span class="attr">      securityContext:</span></span><br><span class="line"><span class="attr">        runAsUser:</span> <span class="number">0</span> <span class="comment"># warning，run as root，insecure</span></span><br><span class="line"><span class="attr">      volumeMounts:</span></span><br><span class="line"><span class="attr">        - mountPath:</span> <span class="string">/var/run/docker.sock</span></span><br><span class="line"><span class="attr">          name:</span> <span class="string">cri-sock</span></span><br><span class="line"><span class="attr">      ports:</span></span><br><span class="line"><span class="attr">        - containerPort:</span> <span class="number">30000</span></span><br><span class="line"><span class="attr">          hostPort:</span> <span class="number">30000</span></span><br></pre></td></tr></table></figure>
+<p>使用 kubectl 将其部署至 k8s 集群中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f deploy.yaml</span><br></pre></td></tr></table></figure>
+<p>此时，可以利用之前技术调用远程终端中编写的 client （cmd/remotecli/client/client.go）尝试与其建立连接，只不过目标的 ip 需要改成 k8s master 的 ip。连接成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/ # ls</span><br><span class="line">bin   dev   etc   home  proc  root  sys   tmp   usr   var</span><br><span class="line">/ # ps aux</span><br><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">    1 root      0:37 kube-scheduler --authentication-kubeconfig=/etc/kubernetes</span><br><span class="line">   31 root      0:00 tail -f /dev/null</span><br><span class="line">   37 root      0:00 /bin/sh</span><br><span class="line">   44 root      0:00 ps aux</span><br><span class="line">/ #</span><br></pre></td></tr></table></figure>
+<p>执行命令删除测试 pod</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl delete -f deploy.yaml</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="debug-cli-开发"><a href="#debug-cli-开发" class="headerlink" title="debug-cli 开发"></a>debug-cli 开发</h2><p>接下来开始编写客户端工具，新建文件 <code>cmd/debugcli/debugcli.go</code> 开始编写。</p>
+<p>首先，需要将上一节中部署用的 yaml 文件翻译成 golang 代码的形式</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> (</span><br><span class="line">  debugAgentPodNS = corev1.NamespaceDefault <span class="comment">// <span class="doctag">TODO:</span> just in default ns</span></span><br><span class="line">  DEBUG_AGENT_IMAGE = <span class="string">"10.211.55.2:10000/debug-agent:v0.0.1"</span></span><br><span class="line">  DEBUG_AGENT_PORT  = <span class="number">30000</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// corev1 "k8s.io/api/core/v1"</span></span><br><span class="line"><span class="comment">// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">newDebugAgentPod</span><span class="params">(targetPod *corev1.Pod)</span> *<span class="title">corev1</span>.<span class="title">Pod</span></span> &#123;</span><br><span class="line">  <span class="keyword">var</span> runAsUserNum <span class="keyword">int64</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  getContainerID := <span class="function"><span class="keyword">func</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> target at first container in the pod ）</span></span><br><span class="line">    targetContainerName := targetPod.Spec.Containers[<span class="number">0</span>].Name</span><br><span class="line">    <span class="keyword">for</span> _, s := <span class="keyword">range</span> targetPod.Status.ContainerStatuses &#123;</span><br><span class="line">      <span class="keyword">if</span> s.Name == targetContainerName &#123;</span><br><span class="line">        <span class="comment">// docker://.....</span></span><br><span class="line">        <span class="keyword">return</span> s.ContainerID[<span class="number">9</span>:]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    log.Fatal(<span class="string">"get container id not found "</span>, targetContainerName)</span><br><span class="line">    <span class="keyword">return</span> <span class="string">""</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &amp;corev1.Pod&#123;</span><br><span class="line">    ObjectMeta: metav1.ObjectMeta&#123;</span><br><span class="line">      GenerateName: fmt.Sprintf(<span class="string">"debug-agent-for-%s"</span>, targetPod.Name),</span><br><span class="line">      Namespace:    debugAgentPodNS,</span><br><span class="line">      Labels:       <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;<span class="string">"debug-agent"</span>: targetPod.Name&#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    Spec: corev1.PodSpec&#123;</span><br><span class="line">      HostNetwork: <span class="literal">true</span>,</span><br><span class="line">      NodeName:    targetPod.Spec.NodeName,</span><br><span class="line">      Volumes: []corev1.Volume&#123;</span><br><span class="line">        &#123;</span><br><span class="line">          Name: <span class="string">"cri-sock"</span>,</span><br><span class="line">          VolumeSource: corev1.VolumeSource&#123;</span><br><span class="line">            HostPath: &amp;corev1.HostPathVolumeSource&#123;Path: <span class="string">"/var/run/docker.sock"</span>&#125;,</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">      Containers: []corev1.Container&#123;</span><br><span class="line">        &#123;</span><br><span class="line">          Name:  <span class="string">"debug-agent-container"</span>,</span><br><span class="line">          Image: DEBUG_AGENT_IMAGE,</span><br><span class="line">          SecurityContext: &amp;corev1.SecurityContext&#123;</span><br><span class="line">            RunAsUser: &amp;runAsUserNum,</span><br><span class="line">          &#125;,</span><br><span class="line">          Ports: []corev1.ContainerPort&#123;</span><br><span class="line">            &#123;ContainerPort: DEBUG_AGENT_PORT, HostPort: DEBUG_AGENT_PORT&#125;,</span><br><span class="line">          &#125;,</span><br><span class="line">          Env: []corev1.EnvVar&#123;</span><br><span class="line">            &#123;</span><br><span class="line">              Name:  <span class="string">"ENV_CONTAINER_ID"</span>,</span><br><span class="line">              Value: getContainerID(),</span><br><span class="line">            &#125;,</span><br><span class="line">          &#125;,</span><br><span class="line">          VolumeMounts: []corev1.VolumeMount&#123;</span><br><span class="line">            &#123;</span><br><span class="line">              Name:      <span class="string">"cri-sock"</span>,</span><br><span class="line">              MountPath: <span class="string">"/var/run/docker.sock"</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于 client-go 创建并启动 Pod 是异步的形式，还需要编写一个函数用于等待 Pod 完全启动</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// waitForPodStart</span></span><br><span class="line"><span class="comment">// ref: https://github.com/feiskyer/go-examples/blob/master/kubernetes/pod-create/pod.go#L27</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">waitForPodStart</span><span class="params">(ctx context.Context, client *kubernetes.Clientset, pod *corev1.Pod)</span> <span class="params">(*corev1.Pod, error)</span></span> &#123;</span><br><span class="line">  w, err := client.CoreV1().Pods(pod.Namespace).Watch(ctx, metav1.ListOptions&#123;</span><br><span class="line">    Watch:           <span class="literal">true</span>,</span><br><span class="line">    ResourceVersion: pod.ResourceVersion,</span><br><span class="line">    FieldSelector:   fields.Set&#123;<span class="string">"metadata.name"</span>: pod.Name&#125;.String(),</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  status := pod.Status</span><br><span class="line">  <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">      <span class="keyword">select</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> events, ok := &lt;-w.ResultChan():</span><br><span class="line">        <span class="keyword">if</span> !ok &#123;</span><br><span class="line">          <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        pod = events.Object.(*corev1.Pod)</span><br><span class="line">        status = pod.Status</span><br><span class="line">        <span class="keyword">if</span> pod.Status.Phase != corev1.PodPending &#123;</span><br><span class="line">          w.Stop()</span><br><span class="line">        &#125;</span><br><span class="line">      <span class="keyword">case</span> &lt;-time.After(<span class="number">20</span> * time.Second):</span><br><span class="line">        log.Println(<span class="string">"timeout to wait for pod active"</span>)</span><br><span class="line">        w.Stop()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;()</span><br><span class="line">  <span class="keyword">if</span> status.Phase != corev1.PodRunning &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"Pod is unavailable: %v"</span>, status.Phase)</span><br><span class="line">  &#125;</span><br><span class="line">  pod.Status = status</span><br><span class="line">  <span class="keyword">return</span> pod, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在可以开始编写主函数逻辑了。关于如何使用 client-go 与 k8s 进行交互的流程在之前的技术调研中已经提到，所以这里就不在赘述了。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> (</span><br><span class="line">  kubeconfig      = flag.String(<span class="string">"f"</span>, <span class="string">"..."</span>, <span class="string">"absolute path to the kubeconfig file"</span>)</span><br><span class="line">  podName         = flag.String(<span class="string">"p"</span>, <span class="string">"kube-scheduler-k8s-master"</span>, <span class="string">"pod's name"</span>)</span><br><span class="line">  podNS           = flag.String(<span class="string">"n"</span>, <span class="string">"kube-system"</span>, <span class="string">"pod's namespace"</span>)</span><br><span class="line">  debugAgentPodNS = corev1.NamespaceDefault <span class="comment">// <span class="doctag">TODO:</span> just in default ns</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">  DEBUG_AGENT_IMAGE = <span class="string">"10.211.55.2:10000/debug-agent:v0.0.1"</span></span><br><span class="line">  DEBUG_AGENT_PORT  = <span class="number">30000</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">init</span><span class="params">()</span></span> &#123;</span><br><span class="line">  flag.Parse()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  config, err := clientcmd.BuildConfigFromFlags(<span class="string">""</span>, *kubeconfig)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"init config"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  clientset, err := kubernetes.NewForConfig(config)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"init client"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  targetPod, err := clientset.CoreV1().Pods(*podNS).Get(context.TODO(), *podName, metav1.GetOptions&#123;&#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"get target pod"</span>, *podName, <span class="string">"in namespace"</span>, *podNS, err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> targetPod == <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"target pod "</span> + *podName + <span class="string">" not exist in ns "</span> + *podNS)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  daPod, err := clientset.CoreV1().Pods(debugAgentPodNS).Create(context.TODO(), newDebugAgentPod(targetPod), metav1.CreateOptions&#123;&#125;)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"create debug agent pod"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"create debug agent pod"</span>, daPod.Name, <span class="string">"success in ns"</span>, daPod.Namespace)</span><br><span class="line"></span><br><span class="line">  daPod, err = waitForPodStart(context.TODO(), clientset, daPod)</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"wait for debug agent pod start"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"debug agent pod is start, try to get conn .."</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// get ip</span></span><br><span class="line">  addr := fmt.Sprintf(<span class="string">"%s:%d"</span>, daPod.Status.HostIP, DEBUG_AGENT_PORT)</span><br><span class="line">  <span class="keyword">var</span> conn net.Conn</span><br><span class="line">  retry := <span class="number">5</span></span><br><span class="line">  <span class="keyword">for</span> &#123;</span><br><span class="line">    conn, err = net.Dial(<span class="string">"tcp"</span>, addr)</span><br><span class="line">    <span class="keyword">if</span> err == <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> retry--; retry == <span class="number">0</span> &#123;</span><br><span class="line">      log.Fatal(<span class="string">"dial to debug agent at "</span>, addr, <span class="string">"failed"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> conn.Close()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> !terminal.IsTerminal(<span class="number">0</span>) || !terminal.IsTerminal(<span class="number">1</span>) &#123;</span><br><span class="line">    fmt.Errorf(<span class="string">"stdin/stdout should be terminal"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  oldState, err := terminal.MakeRaw(<span class="keyword">int</span>(os.Stdin.Fd()))</span><br><span class="line">  <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="built_in">panic</span>(err)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> terminal.Restore(<span class="number">0</span>, oldState)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> _, err := io.Copy(conn, os.Stdin); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      log.Println(<span class="string">"io.Copy(conn, os.Stdin)"</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;()</span><br><span class="line">  <span class="keyword">if</span> _, err := io.Copy(os.Stdout, conn); err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Println(<span class="string">"io.Copy(conn, os.Stdin)"</span>, err)</span><br><span class="line">  &#125;</span><br><span class="line">  log.Println(<span class="string">"client exit"</span>)</span><br><span class="line"></span><br><span class="line">  _ = clientset.CoreV1().Pods(debugAgentPodNS).Delete(context.TODO(), daPod.Name, metav1.DeleteOptions&#123;&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>尝试执行该程序，会有如下类似输出，中间出现卡顿可能是在下载 busybox 镜像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">2021/05/13 12:27:33 create debug agent pod debug-agent-for-kube-scheduler-k8s-masterxr984 success in ns default</span><br><span class="line">2021/05/13 12:27:34 debug agent pod is start, try to get conn ..</span><br><span class="line">/ # ps aux </span><br><span class="line">PID   USER     TIME  COMMAND</span><br><span class="line">    1 root      0:47 kube-scheduler --authentication-kubeconfig=/etc/kubernetes</span><br><span class="line">  106 root      0:00 tail -f /dev/null</span><br><span class="line">  112 root      0:00 /bin/sh</span><br><span class="line">  118 root      0:00 ps aux</span><br><span class="line">/ #</span><br></pre></td></tr></table></figure>
+<p>至此程序编写完毕</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/" data-id="cm2q61szj005odqjhbqh9ihs4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/06/03/go-I-O-的限流与计数/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Golang I/O 的限流与计数
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/05/08/kubebuilder-构建-deployment-service/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kubebuilder 构建 deployment + service</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

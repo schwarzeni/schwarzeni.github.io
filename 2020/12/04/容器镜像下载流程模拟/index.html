@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>容器镜像下载流程模拟 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近在研究 containerd 中下载镜像的流程，具体的代码没看太懂，但是通过打 log 的方式把大致的流程和 API 摸清了，记录一下">
+<meta name="keywords" content="容器">
+<meta property="og:type" content="article">
+<meta property="og:title" content="容器镜像下载流程模拟">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/12/04/容器镜像下载流程模拟/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="最近在研究 containerd 中下载镜像的流程，具体的代码没看太懂，但是通过打 log 的方式把大致的流程和 API 摸清了，记录一下">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-12-04T07:50:50.519Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="容器镜像下载流程模拟">
+<meta name="twitter:description" content="最近在研究 containerd 中下载镜像的流程，具体的代码没看太懂，但是通过打 log 的方式把大致的流程和 API 摸清了，记录一下">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-容器镜像下载流程模拟" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/12/04/容器镜像下载流程模拟/" class="article-date">
+  <time class="post-time" datetime="2020-12-04T07:41:18.000Z" itemprop="datePublished">
+    <span class="post-month">12月</span><br/>
+    <span class="post-day">04</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      容器镜像下载流程模拟
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近在研究 containerd 中下载镜像的流程，具体的代码没看太懂，但是通过打 log 的方式把大致的流程和 API 摸清了，记录一下</p>
+<a id="more"></a>
+<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><ul>
+<li>/v2/[namespace]/[image]/manifests/[tag] 获取镜像配置</li>
+<li>/v2/[namespace]/[image]/blobs/[ID] 获取相关的文件</li>
+</ul>
+<p>例如从官方仓库中下载 Nginx 的 alpine 版本，则 namespace 为 library ，image 为 nginx ，tag 为 alpine</p>
+<p>例如下载用户 person1 提交的镜像 nodeserver ，版本号为 1.2，则 namespace 为 person1，image 为 nodeserver，tag 为 1.2</p>
+<h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><p>以从 docker 官方仓库下载 <code>nginx:alpine</code> 为例</p>
+<p>首先，获取 token</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://auth.docker.io/token?service=registry.docker.io&amp;scope=repository:library/nginx:pull</span><br></pre></td></tr></table></figure>
+<p>返回值为（略去了部分字段）:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">"token"</span>: <span class="string">"ey ...."</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>之后的请求需要带上这个 token ，这里就默认保存在环境变量 <code>TOKEN</code> 中</p>
+<p>随后，发起请求获取 manifest</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -vL \</span><br><span class="line">  -H <span class="string">"Authorization: Bearer <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">  -H <span class="string">"Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, */*"</span> \</span><br><span class="line">  https://registry-1.docker.io/v2/library/nginx/manifests/alpine</span><br></pre></td></tr></table></figure>
+<p>得到的 response 的 header 中，字段 <code>Docker-Content-Digest</code> 记录着 manifest 对应的 sha256 哈希值，我觉得可以将其看作是它的 ID，为 <code>sha256:1e9c503db9913a59156f78c6420f6e2f01c8a3b71ceeeddcd7f604c4db0f045e</code> ，body 的字段为该镜像对应的所有平台版本的列表，结果如下:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"manifests"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:210a2ddbc64ef162913f6e1d81fdc29efed14f35aa77716ab5e952959833c831"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"amd64"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:002cf20d155af9d2a260c3c0d46451c3e0d856567d8fa5c81177d70b5b55d493"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"arm"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span>,</span><br><span class="line">                <span class="attr">"variant"</span>: <span class="string">"v6"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:de0842553f09b128efbd5689e1849526240efe9ba7f1e90438e19434e23e4a44"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"arm"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span>,</span><br><span class="line">                <span class="attr">"variant"</span>: <span class="string">"v7"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:748256f755585f3f57c5025e286edf985d119801be4c6b1a0e3ce37aa9033bd8"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"arm64"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span>,</span><br><span class="line">                <span class="attr">"variant"</span>: <span class="string">"v8"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:cede6d0e08f7e6502570bf5d9b1ebafc52e2442e22162b416c953c0f27bcff9e"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"386"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:131ecbff056156d911365a786f29e93bb64cde6421ff49028c4c40955225ccb4"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"ppc64le"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:72e3d8ed256c895c34c1f786ea04748cf86a4f35b24cb7eb6f14dc35ae79b7d2"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">            <span class="attr">"platform"</span>: &#123;</span><br><span class="line">                <span class="attr">"architecture"</span>: <span class="string">"s390x"</span>,</span><br><span class="line">                <span class="attr">"os"</span>: <span class="string">"linux"</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">1360</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.list.v2+json"</span>,</span><br><span class="line">    <span class="attr">"schemaVersion"</span>: <span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然，如果你使用它的 sha256 的值代替 alpine ，会得到相同的结果。请求代码如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -L \</span><br><span class="line">  -H <span class="string">"Authorization: Bearer <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">  -H <span class="string">"Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, */*"</span> \</span><br><span class="line">  https://registry-1.docker.io/v2/library/nginx/manifests/sha256:1e9c503db9913a59156f78c6420f6e2f01c8a3b71ceeeddcd7f604c4db0f045e</span><br></pre></td></tr></table></figure>
+<p>得到这个列表之后，从中选取合适的平台，比如说第一个，linux/amd64 ，则选取它的 sha256 的值 <code>sha256:210a2ddbc64ef162913f6e1d81fdc29efed14f35aa77716ab5e952959833c831</code> 发起类似于上一个的请求：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -L \</span><br><span class="line">  -H <span class="string">"Authorization: Bearer <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">  -H <span class="string">"Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, */*"</span> \</span><br><span class="line">  https://registry-1.docker.io/v2/library/nginx/manifests/sha256:210a2ddbc64ef162913f6e1d81fdc29efed14f35aa77716ab5e952959833c831</span><br></pre></td></tr></table></figure>
+<p>得到的结果如下。包含有镜像的配置信息和镜像各个层的信息。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"config"</span>: &#123;</span><br><span class="line">        <span class="attr">"digest"</span>: <span class="string">"sha256:98ab35023fd67311434b73434d860138a203ab5851fcc9a7161510d5c43fc755"</span>,</span><br><span class="line">        <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.container.image.v1+json"</span>,</span><br><span class="line">        <span class="attr">"size"</span>: <span class="number">7989</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"layers"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:188c0c94c7c576fff0792aca7ec73d67a2f7f4cb3a6e53a84559337260b36964"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.image.rootfs.diff.tar.gzip"</span>,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">2796860</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:617561f33ec6e3db8e3e3135d62308845388849202c8e4ea57495ab3266f422d"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.image.rootfs.diff.tar.gzip"</span>,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">6892796</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:7d856acdaa9cd61932982e9abb8e4601a45f9751eda9d30c631948a4c44b7012"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.image.rootfs.diff.tar.gzip"</span>,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">602</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:a0d3c6e28e6d50fb214598ea50b8dc07a693aa80842e0f31dcf8e5943a6fc665"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.image.rootfs.diff.tar.gzip"</span>,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">903</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">"digest"</span>: <span class="string">"sha256:af69a9b963c864e2093e939c58f1dbce0795041c16da149356fa69a604d91255"</span>,</span><br><span class="line">            <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.image.rootfs.diff.tar.gzip"</span>,</span><br><span class="line">            <span class="attr">"size"</span>: <span class="number">667</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">"mediaType"</span>: <span class="string">"application/vnd.docker.distribution.manifest.v2+json"</span>,</span><br><span class="line">    <span class="attr">"schemaVersion"</span>: <span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来要做的就是将这些文件一一下载即可，这里选取第一个做示例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -L \</span><br><span class="line">  -H <span class="string">"Authorization: Bearer <span class="variable">$TOKEN</span>"</span> \</span><br><span class="line">  -H <span class="string">"Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, */*"</span> \</span><br><span class="line">  https://registry-1.docker.io/v2/library/nginx/blobs/sha256:98ab35023fd67311434b73434d860138a203ab5851fcc9a7161510d5c43fc755</span><br></pre></td></tr></table></figure>
+<p>部分结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;architecture&quot;: &quot;amd64&quot;,</span><br><span class="line">    &quot;config&quot;: &#123;</span><br><span class="line">        &quot;AttachStderr&quot;: false,</span><br><span class="line">        &quot;AttachStdin&quot;: false,</span><br><span class="line">        &quot;AttachStdout&quot;: false,</span><br><span class="line">        &quot;Cmd&quot;: [</span><br><span class="line">            &quot;nginx&quot;,</span><br><span class="line">            &quot;-g&quot;,</span><br><span class="line">            &quot;daemon off;&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;Domainname&quot;: &quot;&quot;,</span><br><span class="line">        &quot;Entrypoint&quot;: [</span><br><span class="line">            &quot;/docker-entrypoint.sh&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;Env&quot;: [</span><br><span class="line">            &quot;PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;,</span><br><span class="line">            &quot;NGINX_VERSION=1.19.5&quot;,</span><br><span class="line">            &quot;NJS_VERSION=0.4.4&quot;,</span><br><span class="line">            &quot;PKG_RELEASE=1&quot;</span><br><span class="line">        ],</span><br><span class="line">        &quot;ExposedPorts&quot;: &#123;</span><br><span class="line">            &quot;80/tcp&quot;: &#123;&#125;</span><br><span class="line">        &#125;,</span><br><span class="line">// ....</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2020/12/04/容器镜像下载流程模拟/" data-id="cm2q61t1200ejdqjh7lq9nwk6" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/容器/">容器</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/12/28/网易云音乐2020年部分报告/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          网易云音乐2020年部分报告
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/11/15/《龙族》笔记/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">《龙族》笔记</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

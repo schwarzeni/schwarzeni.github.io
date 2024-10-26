@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>TLS 学习笔记 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下">
+<meta name="keywords" content="Golang,网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TLS 学习笔记">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2021-01-20T02:55:43.555Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TLS 学习笔记">
+<meta name="twitter:description" content="最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-TLS-学习笔记" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/09/21/TLS-学习笔记/" class="article-date">
+  <time class="post-time" datetime="2020-09-21T09:07:41.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">21</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      TLS 学习笔记
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近在部署 KubeEdge 的时候遇到了一些和 TLS 有关的问题，对这方面不太了解，补习了一下</p>
+<a id="more"></a>
+<h2 id="学习链接"><a href="#学习链接" class="headerlink" title="学习链接"></a>学习链接</h2><ul>
+<li><a href="https://github.com/k8sp/tls/blob/master/tls.md" target="_blank" rel="noopener">k8sp/tls</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/26684020" target="_blank" rel="noopener">TLS完全指南</a></li>
+<li><a href="https://www.cnblogs.com/guogangj/p/4118605.html" target="_blank" rel="noopener">那些证书相关的玩意儿</a></li>
+</ul>
+<hr>
+<h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><ol>
+<li>server 生成 public key 和 private key</li>
+<li>server 将 server public key 和 id（例如域名）合并为 CSR（Certificate Signing Request）提交给 CA</li>
+<li>CA 使用 CA private key 基于 CSR 生成 signature（数字签名），并和 CSR 一起作为 CRT 发还给 server</li>
+<li>client 通过 tls 访问 server 时，server 将 server CRT 发给 client</li>
+<li>client 使用 [CA CRT].[CA CSR].[CA public key] 解密 [Server CRT].[Server Signature]，并将结果与 [Server CRT].[Server CSR] 比较，如果一致，则可以使用 [Server CRT].[Server CSR].[Server Public Key] 对发送的数据进行加密</li>
+</ol>
+<hr>
+<h2 id="自签名"><a href="#自签名" class="headerlink" title="自签名"></a>自签名</h2><p>公钥私钥对</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br></pre></td></tr></table></figure>
+<p>生成 CSR ：申请身份证</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl req -nodes -new -key server.key -subj <span class="string">"/CN=localhost"</span> -out server.csr</span><br></pre></td></tr></table></figure>
+<p>生成 CRT ：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openssl x509 -req -sha256 -days 365 -<span class="keyword">in</span> server.csr -signkey server.key -out server.crt</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="CA-签名"><a href="#CA-签名" class="headerlink" title="CA 签名"></a>CA 签名</h2><p>生成 CA 的 key 和 crt</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out ca.key 2048</span><br><span class="line">openssl req -x509 -new -nodes -key ca.key -days 10000 -out ca.crt -subj <span class="string">"/CN=self-ca"</span></span><br></pre></td></tr></table></figure>
+<p>生成 server 的相关信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out server.key 2048</span><br><span class="line">openssl req -nodes -new -key server.key -subj <span class="string">"/CN=localhost"</span> -out server.csr</span><br><span class="line">openssl x509 -req -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365</span><br></pre></td></tr></table></figure>
+<p>注意，在执行最后一条命令的时候可能需要加上 server 的ip，否则可能会报 “x509: cannot validate certificate for x.x.x.x because it doesn’t contain any IP SANs”</p>
+<p>将最后一条命令替换如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server_ip=&lt;Your server ip&gt;</span><br><span class="line"><span class="built_in">echo</span> subjectAltName = IP:<span class="variable">$server_ip</span> &gt; extfile.cnf</span><br><span class="line">openssl x509 -req -<span class="keyword">in</span> server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 365 -extfile extfile.cnf</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="编写服务器"><a href="#编写服务器" class="headerlink" title="编写服务器"></a>编写服务器</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  http.HandleFunc(<span class="string">"/"</span>, <span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, req *http.Request)</span></span> &#123;</span><br><span class="line">    io.WriteString(w, <span class="string">"hello secure world!\n"</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">  _ = http.ListenAndServeTLS(<span class="string">":8080"</span>, <span class="string">"server.crt"</span>, <span class="string">"server.key"</span>, <span class="literal">nil</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 curl 访问：<code>curl --cacert ca.crt  https://localhost:8080</code></p>
+<hr>
+<h2 id="构建客户端访问"><a href="#构建客户端访问" class="headerlink" title="构建客户端访问"></a>构建客户端访问</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">loadCA</span><span class="params">(caFile <span class="keyword">string</span>)</span> *<span class="title">x509</span>.<span class="title">CertPool</span></span> &#123;</span><br><span class="line">  pool := x509.NewCertPool()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ca, e := ioutil.ReadFile(caFile); e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"ReadFile: "</span>, e)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pool.AppendCertsFromPEM(ca)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> pool</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  c := &amp;http.Client&#123;</span><br><span class="line">    Transport: &amp;http.Transport&#123;</span><br><span class="line">      TLSClientConfig: &amp;tls.Config&#123;RootCAs: loadCA(<span class="string">"ca.crt"</span>)&#125;,</span><br><span class="line">    &#125;&#125;</span><br><span class="line"></span><br><span class="line">  resp, e := c.Get(<span class="string">"https://localhost:8080"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"http.Client.Get: "</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">  _, _ = io.Copy(os.Stdout, resp.Body)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="双向验证"><a href="#双向验证" class="headerlink" title="双向验证"></a>双向验证</h2><p><a href="https://github.com/k8sp/tls/blob/master/tls.md#%E5%8F%8C%E6%96%B9tls%E8%AE%A4%E8%AF%81" target="_blank" rel="noopener">参考链接</a></p>
+<p>server:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  s := &amp;http.Server&#123;</span><br><span class="line">    Addr: <span class="string">":8080"</span>,</span><br><span class="line">    Handler: http.HandlerFunc(<span class="function"><span class="keyword">func</span><span class="params">(w http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">      fmt.Fprintf(w, <span class="string">"Hello World!\n"</span>)</span><br><span class="line">    &#125;),</span><br><span class="line">    TLSConfig: &amp;tls.Config&#123;</span><br><span class="line">      ClientCAs:  loadCA(<span class="string">"ca.crt"</span>),</span><br><span class="line">      ClientAuth: tls.RequireAndVerifyClientCert,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  e := s.ListenAndServeTLS(<span class="string">"server.crt"</span>, <span class="string">"server.key"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"ListenAndServeTLS: "</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>client:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  pair, e := tls.LoadX509KeyPair(<span class="string">"client.crt"</span>, <span class="string">"client.key"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"LoadX509KeyPair:"</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  client := &amp;http.Client&#123;</span><br><span class="line">    Transport: &amp;http.Transport&#123;</span><br><span class="line">      TLSClientConfig: &amp;tls.Config&#123;</span><br><span class="line">        RootCAs:      loadCA(<span class="string">"ca.crt"</span>),</span><br><span class="line">        Certificates: []tls.Certificate&#123;pair&#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;&#125;</span><br><span class="line"></span><br><span class="line">  resp, e := client.Get(<span class="string">"https://localhost:8080"</span>)</span><br><span class="line">  <span class="keyword">if</span> e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"http.Client.Get: "</span>, e)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line">  io.Copy(os.Stdout, resp.Body)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="tcp-tls"><a href="#tcp-tls" class="headerlink" title="tcp + tls"></a>tcp + tls</h2><p><a href="https://colobu.com/2016/06/07/simple-golang-tls-examples/" target="_blank" rel="noopener">参考链接</a></p>
+<hr>
+<h2 id="websocket-tls"><a href="#websocket-tls" class="headerlink" title="websocket + tls"></a>websocket + tls</h2><p>使用的库为 <a href="https://github.com/gorilla/websocket" target="_blank" rel="noopener">gorilla/websocket</a>，样例修改自官网给出的样例 <a href="https://github.com/gorilla/websocket/tree/master/examples/echo" target="_blank" rel="noopener">echo</a></p>
+<p>server:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  http.HandleFunc(<span class="string">"/echo"</span>, echo)</span><br><span class="line">  log.Fatal(http.ListenAndServeTLS(<span class="string">"localhost:8080"</span>, <span class="string">"server.crt"</span>, <span class="string">"server.key"</span>, <span class="literal">nil</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>client:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">loadCA</span><span class="params">(caFile <span class="keyword">string</span>)</span> *<span class="title">x509</span>.<span class="title">CertPool</span></span> &#123;</span><br><span class="line">  pool := x509.NewCertPool()</span><br><span class="line">  <span class="keyword">if</span> ca, e := ioutil.ReadFile(caFile); e != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatal(<span class="string">"ReadFile: "</span>, e)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pool.AppendCertsFromPEM(ca)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> pool</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  u := url.URL&#123;Scheme: <span class="string">"wss"</span>, Host: <span class="string">"localhost:8080"</span>, Path: <span class="string">"/echo"</span>&#125;</span><br><span class="line">  log.Printf(<span class="string">"connecting to %s"</span>, u.String())</span><br><span class="line"></span><br><span class="line">  websocket.DefaultDialer.TLSClientConfig = &amp;tls.Config&#123;RootCAs: loadCA(<span class="string">"ca.crt"</span>)&#125;</span><br><span class="line">  c, _, err := websocket.DefaultDialer.Dial(u.String(), <span class="literal">nil</span>)</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2020/09/21/TLS-学习笔记/" data-id="cm2q61sz90040dqjhoj8329ox" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/网络/">网络</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/09/24/Debug-部署至-K8S-中的-Golang-程序/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Debug 部署至 K8S 中的 Golang 程序
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/09/13/简单算式字符串计算/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">简单算式字符串计算</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

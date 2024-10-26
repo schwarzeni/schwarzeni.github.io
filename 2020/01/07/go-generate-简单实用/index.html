@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>go generate 简单使用 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="东抄西抄拼装而成的学习笔记，go 版本为 1.12.7，自动生成代码的技术还是非常方便的">
+<meta name="keywords" content="总结,Golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="go generate 简单使用">
+<meta property="og:url" content="http://blog.schwarzeni.com/2020/01/07/go-generate-简单实用/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="东抄西抄拼装而成的学习笔记，go 版本为 1.12.7，自动生成代码的技术还是非常方便的">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-01-07T07:15:33.891Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="go generate 简单使用">
+<meta name="twitter:description" content="东抄西抄拼装而成的学习笔记，go 版本为 1.12.7，自动生成代码的技术还是非常方便的">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-go-generate-简单实用" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/07/go-generate-简单实用/" class="article-date">
+  <time class="post-time" datetime="2020-01-07T07:00:25.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      go generate 简单使用
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>东抄西抄拼装而成的学习笔记，go 版本为 1.12.7，自动生成代码的技术还是非常方便的</p>
+<a id="more"></a>
+<h2 id="Hello-world"><a href="#Hello-world" class="headerlink" title="Hello world"></a>Hello world</h2><p>go 的命令行工具 <code>go generate</code> 可以快速生成一些逻辑的代码，先写一个 hello world 的例子</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.go</span></span><br><span class="line"><span class="comment">//go:generate echo hello world</span></span><br><span class="line"><span class="comment">//go:generate echo $GOARCH</span></span><br><span class="line"><span class="comment">//go:generate echo $GOOS</span></span><br><span class="line"><span class="comment">//go:generate echo $GOFILE</span></span><br><span class="line"><span class="comment">//go:generate echo $GOPACKAGE</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行 <code>go generate main.go</code>，会有如下的输出</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hello world</span><br><span class="line">amd64</span><br><span class="line">darwin</span><br><span class="line">main.go</span><br><span class="line">main</span><br></pre></td></tr></table></figure>
+<p>从第二行开始就是一些 <code>go generate</code> 可以利用的和 go 有关的环境变量</p>
+<p>这里记录两个例子：</p>
+<hr>
+<h2 id="模拟泛型"><a href="#模拟泛型" class="headerlink" title="模拟泛型"></a>模拟泛型</h2><p>此例子取自<a href="https://book.douban.com/subject/26345890/" target="_blank" rel="noopener">《go in practice》</a></p>
+<p>这里的程序逻辑就是一个队列，FIFO，但是希望可以由许多中类型使用。由于 go 中没有泛型，所以最安全的做法就是每种类型写一个队列实现，但是它们逻辑相同。</p>
+<p>可以考虑使用 <code>go generate</code> + template 来实现，先为该逻辑编写模板，非常简单的队列逻辑</p>
+<p>完整的代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 从第二个参数开始就是需要生成的队列的值类似，比如 ./queue int string MyInt</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">  <span class="string">"fmt"</span></span><br><span class="line">  <span class="string">"html/template"</span></span><br><span class="line">  <span class="string">"os"</span></span><br><span class="line">  <span class="string">"strings"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> tpl = <span class="string">`// Code generated, DO NOT EDIT.</span></span><br><span class="line"><span class="string">package &#123;&#123;.Package&#125;&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">type &#123;&#123;.MyType&#125;&#125;Queue struct &#123;</span></span><br><span class="line"><span class="string">    q []&#123;&#123;.MyType&#125;&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">func New&#123;&#123;.MyType&#125;&#125;Queue() *&#123;&#123;.MyType&#125;&#125;Queue &#123;</span></span><br><span class="line"><span class="string">    return &amp;&#123;&#123;.MyType&#125;&#125;Queue&#123;</span></span><br><span class="line"><span class="string">        q: []&#123;&#123;.MyType&#125;&#125;&#123;&#125;,</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">func (o *&#123;&#123;.MyType&#125;&#125;Queue) Insert(v &#123;&#123;.MyType&#125;&#125;) &#123;</span></span><br><span class="line"><span class="string">    o.q = append(o.q, v)</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">func (o *&#123;&#123;.MyType&#125;&#125;Queue) Remove() &#123;&#123;.MyType&#125;&#125; &#123;</span></span><br><span class="line"><span class="string">    if len(o.q) == 0 &#123;</span></span><br><span class="line"><span class="string">        panic("empty queue")</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">    first := o.q[0]</span></span><br><span class="line"><span class="string">    o.q = o.q[1:]</span></span><br><span class="line"><span class="string">    return first</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">`</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  tt := template.Must(template.New(<span class="string">"queue"</span>).Parse(tpl))</span><br><span class="line">  <span class="keyword">for</span> i := <span class="number">1</span>; i &lt; <span class="built_in">len</span>(os.Args); i++ &#123; <span class="comment">// 读入传参</span></span><br><span class="line">    <span class="keyword">var</span> (</span><br><span class="line">      dest = strings.ToLower(os.Args[i]) + <span class="string">"_queue.go"</span></span><br><span class="line">      err  error</span><br><span class="line">      file *os.File</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">if</span> file, err = os.Create(dest); err != <span class="literal">nil</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> !os.IsExist(err) &#123;</span><br><span class="line">        fmt.Printf(<span class="string">"Could not create %s: %s (skip)\n"</span>, dest, err)</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">      &#125;</span><br><span class="line">      _ = os.Remove(dest)</span><br><span class="line">    &#125;</span><br><span class="line">    vals := <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>&#123;</span><br><span class="line">      <span class="string">"MyType"</span>:  os.Args[i],</span><br><span class="line">      <span class="string">"Package"</span>: os.Getenv(<span class="string">"GOPACKAGE"</span>),</span><br><span class="line">    &#125;</span><br><span class="line">    _ = tt.Execute(file, vals)</span><br><span class="line">    _ = file.Close()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后在生成模板的时候，将 <code>MyType</code> 替换成用户指定的类型，而 <code>Package</code> 则会替换成调用该程序的文件所在的包名，举个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">── practiceuse</span><br><span class="line">    ├── main.go</span><br><span class="line">    ├── myint_queue.go</span><br><span class="line">    └── queue</span><br></pre></td></tr></table></figure>
+<p><code>queue</code> 为自动生成代码的程序，<code>main.go</code> 为自动生成代码的程序的调用方，而 <code>myint_queue.go</code> 为自动生成的文件，它的包名和 <code>main.go</code> 相同，<code>main.go</code> 函数的内容如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//go:generate ./queue MyInt</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MyInt <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="keyword">var</span> one, two, three MyInt = <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span></span><br><span class="line">  q := NewMyIntQueue()</span><br><span class="line">  q.Insert(one)</span><br><span class="line">  q.Insert(two)</span><br><span class="line">  q.Insert(three)</span><br><span class="line">  fmt.Printf(<span class="string">"First value: %d\n"</span>, q.Remove())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行 <code>go generate main.go</code> 生成的 <code>myint_queue.go</code> 的内容如下，这个逻辑就是根据模板生成</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code generated, DO NOT EDIT.</span></span><br><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> MyIntQueue <span class="keyword">struct</span> &#123;</span><br><span class="line">    q []MyInt</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewMyIntQueue</span><span class="params">()</span> *<span class="title">MyIntQueue</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;MyIntQueue&#123;</span><br><span class="line">        q: []MyInt&#123;&#125;,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(o *MyIntQueue)</span> <span class="title">Insert</span><span class="params">(v MyInt)</span></span> &#123;</span><br><span class="line">    o.q = <span class="built_in">append</span>(o.q, v)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(o *MyIntQueue)</span> <span class="title">Remove</span><span class="params">()</span> <span class="title">MyInt</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(o.q) == <span class="number">0</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(<span class="string">"empty queue"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    first := o.q[<span class="number">0</span>]</span><br><span class="line">    o.q = o.q[<span class="number">1</span>:]</span><br><span class="line">    <span class="keyword">return</span> first</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="快速生成Web服务状态码"><a href="#快速生成Web服务状态码" class="headerlink" title="快速生成Web服务状态码"></a>快速生成Web服务状态码</h2><p>该部分摘自 <a href="https://juejin.im/post/5d5ff2f45188256dad113236" target="_blank" rel="noopener">深入理解Go之generate</a></p>
+<p>有一个需求如下，给出一个 go 文件：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> errorcode</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ErrCode <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">  OK             ErrCode = <span class="literal">iota</span> <span class="comment">// OK</span></span><br><span class="line">  INVALID_DATA                  <span class="comment">// 无效参数</span></span><br><span class="line">  UNAUTHORIZED                  <span class="comment">// 无权限</span></span><br><span class="line">  INTERNAL_ERROR                <span class="comment">// 服务器内部错误</span></span><br><span class="line">  NOT_FOUND                     <span class="comment">// 无该资源</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>希望能根据它为 <code>ErrCode</code> 自动实现接口 <code>Stringer</code>，并且打印出的信息为注释的内容，比如下面的出处为 ”无权限“</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fmt.Println(errorcode.UNAUTHORIZED)</span><br></pre></td></tr></table></figure>
+<p>此处可以使用 Go 官方提供的 <a href="https://github.com/golang/tools/blob/master/cmd/stringer/stringer.go" target="_blank" rel="noopener">Go Tools:  stringer</a> ，执行 <code>go get golang.org/x/tools/cmd/stringer</code> 或者 <code>http_proxy=... go get -u golang.org/x/tools/cmd/stringer</code> 使用代理下载，之后将其加入环境变量，就可以直接在命令行中调用 <code>stringer</code> 了。</p>
+<p>将上述文件做如下修改</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> errorcode</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> ErrCode <span class="keyword">int</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//go:generate stringer -type ErrCode -linecomment</span></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">  OK             ErrCode = <span class="literal">iota</span> <span class="comment">// OK</span></span><br><span class="line">  INVALID_DATA                  <span class="comment">// 无效参数</span></span><br><span class="line">  UNAUTHORIZED                  <span class="comment">// 无权限</span></span><br><span class="line">  INTERNAL_ERROR                <span class="comment">// 服务器内部错误</span></span><br><span class="line">  NOT_FOUND                     <span class="comment">// 无该资源</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><code>-type</code> 指定需要实现 <code>Stringer</code> 接口的类型名称，而 <code>-linecomment</code> 表示输出的将行注释作为输出的内容，自动生成的文件内容如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Code generated by "stringer -type ErrCode -linecomment"; DO NOT EDIT.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> errorcode</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"strconv"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> _<span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="comment">// An "invalid array index" compiler error signifies that the constant values have changed.</span></span><br><span class="line">  <span class="comment">// Re-run the stringer command to generate them again.</span></span><br><span class="line">  <span class="keyword">var</span> x [<span class="number">1</span>]<span class="keyword">struct</span>&#123;&#125;</span><br><span class="line">  _ = x[OK<span class="number">-0</span>]</span><br><span class="line">  _ = x[INVALID_DATA<span class="number">-1</span>]</span><br><span class="line">  _ = x[UNAUTHORIZED<span class="number">-2</span>]</span><br><span class="line">  _ = x[INTERNAL_ERROR<span class="number">-3</span>]</span><br><span class="line">  _ = x[NOT_FOUND<span class="number">-4</span>]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> _ErrCode_name = <span class="string">"OK无效参数无权限服务器内部错误无该资源"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> _ErrCode_index = [...]<span class="keyword">uint8</span>&#123;<span class="number">0</span>, <span class="number">2</span>, <span class="number">14</span>, <span class="number">23</span>, <span class="number">44</span>, <span class="number">56</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(i ErrCode)</span> <span class="title">String</span><span class="params">()</span> <span class="title">string</span></span> &#123;</span><br><span class="line">  <span class="keyword">if</span> i &lt; <span class="number">0</span> || i &gt;= ErrCode(<span class="built_in">len</span>(_ErrCode_index)<span class="number">-1</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"ErrCode("</span> + strconv.FormatInt(<span class="keyword">int64</span>(i), <span class="number">10</span>) + <span class="string">")"</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> _ErrCode_name[_ErrCode_index[i]:_ErrCode_index[i+<span class="number">1</span>]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2020/01/07/go-generate-简单实用/" data-id="cm2q61sze004wdqjh1tfadegw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Golang/">Golang</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/01/29/JavaScript的两个小技巧/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          JavaScript的两个小技巧
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/01/02/你的2019/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">你的2019</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

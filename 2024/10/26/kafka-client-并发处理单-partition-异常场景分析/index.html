@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka client 并发处理单 partition 异常场景分析 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="为什么不推荐并发处理单 partition 的数据">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka client 并发处理单 partition 异常场景分析">
+<meta property="og:url" content="http://blog.schwarzeni.com/2024/10/26/kafka-client-并发处理单-partition-异常场景分析/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="为什么不推荐并发处理单 partition 的数据">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2024-10-26T12:57:31.582Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka client 并发处理单 partition 异常场景分析">
+<meta name="twitter:description" content="为什么不推荐并发处理单 partition 的数据">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kafka-client-并发处理单-partition-异常场景分析" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2024/10/26/kafka-client-并发处理单-partition-异常场景分析/" class="article-date">
+  <time class="post-time" datetime="2024-10-26T12:56:02.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">26</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kafka client 并发处理单 partition 异常场景分析
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>为什么不推荐并发处理单 partition 的数据</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近在研究同事写的计算框架，主要功能是从 kafka 中消费数据后，根据用户配置的拓扑和算子信息，调用用户算子对数据进行处理。框架由 c++ 编写，所以很自然地，将数据用 <code>std::shared_ptr</code> 声明，把数据的 commit 写在了 shared_ptr 的析构 hook 函数中。在数据被处理完成后自动 commit 对应的 offset。</p>
+<p>计算框架运行时，每个算子进行了单例初始化，算子之间通过 blocking queue 进行单向通讯，上游算子将数据写入 queue 中，由下游算子消费。每个算子内部启动 n 个 thread 并发从 queue 中消费和处理数据。如果希望做到 key 粒度的保序，则每个算子会创建 n 个 queue，每个线程消费指定的 queue，而 key 会被 hash 到指定的 queue 上。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>考虑如下场景，假设对于一个实例，并发处理 offset 为 n 和 n +1 的数据（对应上面的两个 thread），n + 1 的数据先于 n 的数据被处理完毕，n + 1 被提交。此时这个实例异常退出，n 还为处理完/提交。在 rebalance 后有新的实例接管了这个 partition 的数据处理，那它是会从 n 开始消费，还是 n + 2 开始消费呢？如果是后者，那么 n 数据就被丢了。</p>
+<h2 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h2><p>最简单的方案就是写个程序模拟如上场景做一个实验，程序代码如下：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"context"</span></span><br><span class="line">	<span class="string">"log"</span></span><br><span class="line"></span><br><span class="line">	<span class="string">"github.com/IBM/sarama"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	config := sarama.NewConfig()</span><br><span class="line">	config.Version = sarama.V1_0_0_0 <span class="comment">// 使用你的Kafka集群版本</span></span><br><span class="line">	config.Consumer.Return.Errors = <span class="literal">true</span></span><br><span class="line">	config.Consumer.Offsets.Initial = sarama.OffsetOldest</span><br><span class="line">	config.Consumer.Offsets.AutoCommit.Enable = <span class="literal">false</span> <span class="comment">// 关闭自动提交offset</span></span><br><span class="line"></span><br><span class="line">	brokers := []<span class="keyword">string</span>&#123;<span class="string">"kafka-cosmos-diaoyan.www.yq01.serv:9092"</span>&#125; <span class="comment">// 你的Kafka集群地址</span></span><br><span class="line">	group := <span class="string">"nzy_test_cg"</span>                                         <span class="comment">// 你的Consumer Group</span></span><br><span class="line">	topic := <span class="string">"nzy_test_consume_20241026"</span>                           <span class="comment">// 你的Kafka Topic, 单partition</span></span><br><span class="line"></span><br><span class="line">	client, err := sarama.NewConsumerGroup(brokers, group, config)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Panicf(<span class="string">"Error creating consumer group client: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	consumer := Consumer&#123;&#125;</span><br><span class="line">	<span class="comment">// 暂时不考虑优雅退出</span></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		err := client.Consume(context.Background(), []<span class="keyword">string</span>&#123;topic&#125;, &amp;consumer)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Panicf(<span class="string">"Error from consumer: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Consumer <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> _ sarama.ConsumerGroupHandler = &amp;Consumer&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(consumer *Consumer)</span> <span class="title">Setup</span><span class="params">(sarama.ConsumerGroupSession)</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> <span class="literal">nil</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(consumer *Consumer)</span> <span class="title">Cleanup</span><span class="params">(sess sarama.ConsumerGroupSession)</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> <span class="literal">nil</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(consumer *Consumer)</span> <span class="title">ConsumeClaim</span><span class="params">(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> msg := <span class="keyword">range</span> claim.Messages() &#123;</span><br><span class="line">		<span class="keyword">if</span> msg.Offset%<span class="number">5</span> == <span class="number">0</span> &amp;&amp; msg.Offset != <span class="number">0</span> &#123;</span><br><span class="line">			<span class="comment">// 模拟数据丢失</span></span><br><span class="line">			log.Printf(<span class="string">"Message [%v] lost"</span>, msg.Offset)</span><br><span class="line">			<span class="keyword">continue</span></span><br><span class="line">		&#125;</span><br><span class="line">		log.Printf(<span class="string">"Message [%v] : %v"</span>, msg.Offset, <span class="keyword">string</span>(msg.Value))</span><br><span class="line">		sess.MarkMessage(msg, <span class="string">""</span>) <span class="comment">// 标记消息，准备提交offset, 注意这里是异步提交</span></span><br><span class="line">		sess.Commit()             <span class="comment">// 显示声明提交offset</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>向这个 topic 写入数据，输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">nzy@yq01-build-rd2.yq01.baidu.com /home/disk2/nizhenyang/dev/kafka-pilot-util/cmd/demo/bad_consumer</span><br><span class="line">$ ./bad_consumer </span><br><span class="line">2024/10/26 16:24:13 Message [30] lost</span><br><span class="line">2024/10/26 16:24:16 Message [31] : 32</span><br><span class="line">^C</span><br><span class="line">nzy@yq01-build-rd2.yq01.baidu.com /home/disk2/nizhenyang/dev/kafka-pilot-util/cmd/demo/bad_consumer</span><br><span class="line">$ ./bad_consumer </span><br><span class="line">2024/10/26 16:24:29 Message [32] : 33</span><br></pre></td></tr></table></figure>
+<p>可以看出，offset 为 30 的数据被丢了。实际上从 <a href="https://github.com/apache/kafka/blob/d7ac865fb0d2f739392623a379d056a7bf3c19f4/core/src/main/scala/kafka/coordinator/group/GroupMetadata.scala#L622" target="_blank" rel="noopener">kafka 的源码</a> 也可以看出，broker 端并没有很复杂的逻辑，比如说如果 n 未被提交，那么 n + 1 的提交不生效。代码中仅会判断当前提交的 offset 的值是否大于存量的值，如果是，则会进行会更新。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">onOffsetCommitAppend</span></span>(topicIdPartition: <span class="type">TopicIdPartition</span>, offsetWithCommitRecordMetadata: <span class="type">CommitRecordMetadataAndOffset</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">   <span class="keyword">val</span> topicPartition = topicIdPartition.topicPartition</span><br><span class="line">   <span class="keyword">if</span> (pendingOffsetCommits.contains(topicPartition)) &#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="comment">// offsets 字段中没有该分区位移提交数据，或者</span></span><br><span class="line"><span class="comment">// offsets 字段中该分区对应的提交位移消息在位移主题中的位移值小于待写入的位移值</span></span><br><span class="line">     <span class="keyword">if</span> (!offsets.contains(topicPartition) || offsets(topicPartition).olderThan(offsetWithCommitRecordMetadata))</span><br><span class="line">       <span class="comment">// 将该分区对应的提交位移消息添加到 offsets 中</span></span><br><span class="line">       offsets.put(topicPartition, offsetWithCommitRecordMetadata)</span><br><span class="line">   &#125;</span><br><span class="line"><span class="comment">// ....</span></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>根据上面这段代码逻辑，也不会存在如下场景，n +1 先于 n 提交 offset，n 提交 offset 时将 n + 1 的提交覆盖（新消费者重复消费 n + 1 的数据），验证代码如下</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"context"</span></span><br><span class="line">	<span class="string">"log"</span></span><br><span class="line">	<span class="string">"time"</span></span><br><span class="line"></span><br><span class="line">	<span class="string">"github.com/IBM/sarama"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	config := sarama.NewConfig()</span><br><span class="line">	config.Version = sarama.V1_0_0_0 <span class="comment">// 使用你的Kafka集群版本</span></span><br><span class="line">	config.Consumer.Return.Errors = <span class="literal">true</span></span><br><span class="line">	config.Consumer.Offsets.Initial = sarama.OffsetOldest</span><br><span class="line">	config.Consumer.Offsets.AutoCommit.Enable = <span class="literal">false</span> <span class="comment">// 关闭自动提交offset</span></span><br><span class="line"></span><br><span class="line">	brokers := []<span class="keyword">string</span>&#123;<span class="string">"kafka-cosmos-diaoyan.www.yq01.serv:9092"</span>&#125; <span class="comment">// 你的Kafka集群地址</span></span><br><span class="line">	group := <span class="string">"nzy_test_cg"</span>                                         <span class="comment">// 你的Consumer Group</span></span><br><span class="line">	topic := <span class="string">"nzy_test_consume_20241026"</span>                           <span class="comment">// 你的Kafka Topic</span></span><br><span class="line"></span><br><span class="line">	client, err := sarama.NewConsumerGroup(brokers, group, config)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Panicf(<span class="string">"Error creating consumer group client: %v"</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	consumer := Consumer&#123;&#125;</span><br><span class="line">	<span class="comment">// 暂时不考虑优雅退出</span></span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		err := client.Consume(context.Background(), []<span class="keyword">string</span>&#123;topic&#125;, &amp;consumer)</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			log.Panicf(<span class="string">"Error from consumer: %v"</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Consumer <span class="keyword">struct</span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> _ sarama.ConsumerGroupHandler = &amp;Consumer&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(consumer *Consumer)</span> <span class="title">Setup</span><span class="params">(sarama.ConsumerGroupSession)</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> <span class="literal">nil</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(consumer *Consumer)</span> <span class="title">Cleanup</span><span class="params">(sess sarama.ConsumerGroupSession)</span> <span class="title">error</span></span> &#123; <span class="keyword">return</span> <span class="literal">nil</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(consumer *Consumer)</span> <span class="title">ConsumeClaim</span><span class="params">(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> msg := <span class="keyword">range</span> claim.Messages() &#123;</span><br><span class="line">		<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(msg *sarama.ConsumerMessage)</span></span> &#123;</span><br><span class="line">			<span class="keyword">if</span> msg.Offset%<span class="number">5</span> == <span class="number">0</span> &amp;&amp; msg.Offset != <span class="number">0</span> &#123;</span><br><span class="line">				<span class="comment">// 模拟数据处理延迟</span></span><br><span class="line">				log.Printf(<span class="string">"Message [%v] process slow"</span>, msg.Offset)</span><br><span class="line">				time.Sleep(<span class="number">5</span> * time.Second)</span><br><span class="line">				log.Printf(<span class="string">"Message [%v] process done"</span>, msg.Offset)</span><br><span class="line">			&#125;</span><br><span class="line">			log.Printf(<span class="string">"Message [%v] : %v"</span>, msg.Offset, <span class="keyword">string</span>(msg.Value))</span><br><span class="line">			sess.MarkMessage(msg, <span class="string">""</span>) <span class="comment">// 标记消息，准备提交offset, 注意这里是异步提交</span></span><br><span class="line">			sess.Commit()             <span class="comment">// 显示声明提交offset</span></span><br><span class="line">		&#125;(msg)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>向这个 topic 写入数据，输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">nzy@yq01-build-rd2.yq01.baidu.com /home/disk2/nizhenyang/dev/kafka-pilot-util/cmd/demo/latency_consumer</span><br><span class="line">$ ./latency_consumer </span><br><span class="line">2024/10/26 16:29:49 Message [33] : 34</span><br><span class="line">2024/10/26 16:29:51 Message [34] : 35</span><br><span class="line">2024/10/26 16:29:52 Message [35] process slow</span><br><span class="line">2024/10/26 16:29:54 Message [36] : 37</span><br><span class="line">2024/10/26 16:29:57 Message [35] process done</span><br><span class="line">2024/10/26 16:29:57 Message [35] : 36</span><br><span class="line">^C</span><br><span class="line">nzy@yq01-build-rd2.yq01.baidu.com /home/disk2/nizhenyang/dev/kafka-pilot-util/cmd/demo/latency_consumer</span><br><span class="line">$ ./latency_consumer </span><br><span class="line">2024/10/26 16:30:08 Message [37] : 38</span><br></pre></td></tr></table></figure>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>并发处理一个 partition 中的数据，如果 offset 管理不慎，极端情况下可能会出现小概率数据丢失的情况。线上没出现问题的原因之一，可能是框架默认配置中，每个算子仅会创建一个线程，大部分实例运行时均使用的是默认配置。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2024/10/26/kafka-client-并发处理单-partition-异常场景分析/" data-id="cm2q61szl005sdqjhlf97b6z4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/10/12/使用-map-reduce-按行比较两组数据的-diff/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">使用 map-reduce 按行比较两组数据的 diff</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

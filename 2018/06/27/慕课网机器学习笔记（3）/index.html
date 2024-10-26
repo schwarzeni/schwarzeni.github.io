@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>慕课网机器学习笔记（3） | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="内容提要 一个小注意点 K临近算法 算法基本思想 使用sklearn中的鸢尾花进行测试 对方法进行封装 使用sklearn中的K临近算法库进行预测 对自己写的算法进行sklearn风格的封装 对提供的训练数据进行拆分 使用自己的写的方法对数据进行拆分 使用sklearn提供的方法对其进行拆分   使用K临近算法对手写体进行预测 初次查看 使用自己写的KNN对其进行训练和预判 对评估结果进行封装 为">
+<meta name="keywords" content="总结,机器学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="慕课网机器学习笔记（3）">
+<meta property="og:url" content="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="内容提要 一个小注意点 K临近算法 算法基本思想 使用sklearn中的鸢尾花进行测试 对方法进行封装 使用sklearn中的K临近算法库进行预测 对自己写的算法进行sklearn风格的封装 对提供的训练数据进行拆分 使用自己的写的方法对数据进行拆分 使用sklearn提供的方法对其进行拆分   使用K临近算法对手写体进行预测 初次查看 使用自己写的KNN对其进行训练和预判 对评估结果进行封装 为">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/image-3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/image-1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/image-2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/image-4.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:39.809Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="慕课网机器学习笔记（3）">
+<meta name="twitter:description" content="内容提要 一个小注意点 K临近算法 算法基本思想 使用sklearn中的鸢尾花进行测试 对方法进行封装 使用sklearn中的K临近算法库进行预测 对自己写的算法进行sklearn风格的封装 对提供的训练数据进行拆分 使用自己的写的方法对数据进行拆分 使用sklearn提供的方法对其进行拆分   使用K临近算法对手写体进行预测 初次查看 使用自己写的KNN对其进行训练和预判 对评估结果进行封装 为">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/image-3.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-慕课网机器学习笔记（3）" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/06/27/慕课网机器学习笔记（3）/" class="article-date">
+  <time class="post-time" datetime="2018-06-27T13:16:25.000Z" itemprop="datePublished">
+    <span class="post-month">6月</span><br/>
+    <span class="post-day">27</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      慕课网机器学习笔记（3）
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="内容提要"><a href="#内容提要" class="headerlink" title="内容提要"></a>内容提要</h2><ul>
+<li><a href="#part1">一个小注意点</a></li>
+<li>K临近算法<ul>
+<li><a href="#part2">算法基本思想</a></li>
+<li><a href="#part3">使用sklearn中的鸢尾花进行测试</a></li>
+<li><a href="#part4">对方法进行封装</a></li>
+<li><a href="#part5">使用sklearn中的K临近算法库进行预测</a></li>
+<li><a href="#part6">对自己写的算法进行sklearn风格的封装</a></li>
+<li>对提供的训练数据进行拆分<ul>
+<li><a href="#part10">使用自己的写的方法对数据进行拆分</a></li>
+<li><a href="#part11">使用sklearn提供的方法对其进行拆分</a></li>
+</ul>
+</li>
+<li>使用K临近算法对手写体进行预测<ul>
+<li><a href="#part12">初次查看</a></li>
+<li><a href="#part13">使用自己写的KNN对其进行训练和预判</a></li>
+<li><a href="#part14">对评估结果进行封装</a></li>
+<li><a href="#part15">为自己写的KNNClassifier类添加评估准确性的方法</a></li>
+</ul>
+</li>
+<li>超参数概念<ul>
+<li><a href="#part16">对k进行调参</a></li>
+<li><a href="#part17">寻找最佳评估路径方法</a></li>
+<li><a href="#part18">对距离的定义</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<hr>
+<h2 id="一个小注意点"><a href="#一个小注意点" class="headerlink" title="一个小注意点"></a><a name="part1"></a>一个小注意点</h2><p>jupyter notebook 在导入模块的时候，如果模块修改了需要重新导入，使用 <code>importlib</code> 模块的 <code>reload</code> 方法，当然，也可以选择重启python内核，不过如果之前输入的有出错会打断其执行</p>
+<p><img src="image-3.png" alt=""></p>
+<hr>
+<h2 id="K临近算法"><a href="#K临近算法" class="headerlink" title="K临近算法"></a>K临近算法</h2><h3 id="算法基本思想"><a href="#算法基本思想" class="headerlink" title="算法基本思想"></a><a name="part2"></a>算法基本思想</h3><p>选取离测试数据最近的k个样本，统计哪个样本类型的数量多，则测试数据有很大可能与该种类样本类型相同</p>
+<p>对于kNN算法，训练集就是模型</p>
+<p><img src="image-1.png" alt=""></p>
+<hr>
+<h3 id="使用sklearn中的鸢尾花进行测试"><a href="#使用sklearn中的鸢尾花进行测试" class="headerlink" title="使用sklearn中的鸢尾花进行测试"></a><a name="part3"></a>使用sklearn中的鸢尾花进行测试</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> datasets</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> math <span class="keyword">import</span> sqrt</span><br><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> Counter</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line">iris = datasets.load_iris()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 取后两个列进行测试</span></span><br><span class="line">X = iris.data[:, <span class="number">2</span>:]</span><br><span class="line">y=iris.target</span><br><span class="line"></span><br><span class="line">new_point = np.array([<span class="number">2.1</span>, <span class="number">0.6</span>])</span><br><span class="line">k=<span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制图像</span></span><br><span class="line">plt.scatter(X[y==<span class="number">0</span>, <span class="number">0</span>], X[y==<span class="number">0</span>, <span class="number">1</span>], color=<span class="string">"red"</span>, marker=<span class="string">"o"</span>)</span><br><span class="line">plt.scatter(X[y==<span class="number">1</span>, <span class="number">0</span>], X[y==<span class="number">1</span>, <span class="number">1</span>], color=<span class="string">"green"</span>, marker=<span class="string">"+"</span>)</span><br><span class="line">plt.scatter(X[y==<span class="number">2</span>, <span class="number">0</span>], X[y==<span class="number">2</span>, <span class="number">1</span>], color=<span class="string">"black"</span>, marker=<span class="string">"*"</span>)</span><br><span class="line">plt.scatter(new_point[<span class="number">0</span>], new_point[<span class="number">1</span>], color=<span class="string">"blue"</span>)</span><br><span class="line">plt.show()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算每个数据距离测试点的距离</span></span><br><span class="line">distant = [sqrt(np.sum((train_data-new_point)**<span class="number">2</span>)) <span class="keyword">for</span> train_data <span class="keyword">in</span> X]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取最近点对应的坐标</span></span><br><span class="line">nearest = np.argsort(distant)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 根据其坐标找出其对应的类型</span></span><br><span class="line">result = [iris.target[i] <span class="keyword">for</span> i <span class="keyword">in</span> nearest]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用方法most_common判断最接近的数值分布情况</span></span><br><span class="line">result_type = Counter(result).most_common(<span class="number">1</span>)[<span class="number">0</span>][<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="对方法进行封装"><a href="#对方法进行封装" class="headerlink" title="对方法进行封装"></a><a name="part4"></a>对方法进行封装</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">from</span> math <span class="keyword">import</span> sqrt</span><br><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> Counter</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">KNN_classify</span><span class="params">(k: int, x_train: np.ndarray, y_train: np.ndarray, x: np.ndarray)</span> -&gt; int:</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="number">1</span> &lt;= k &lt;= x_train.shape[<span class="number">0</span>], <span class="string">"k must be valid"</span></span><br><span class="line">    <span class="keyword">assert</span> x_train.shape[<span class="number">0</span>] == y_train.shape[<span class="number">0</span>], \</span><br><span class="line">        <span class="string">"the size of x_train must equal to the size of y_train"</span></span><br><span class="line">    <span class="keyword">assert</span> x_train.shape[<span class="number">1</span>] == x.shape[<span class="number">0</span>], \</span><br><span class="line">        <span class="string">"the feature number of x must be equal to x_train"</span></span><br><span class="line"></span><br><span class="line">    distant = [sqrt(np.sum((train_data - x) ** <span class="number">2</span>)) <span class="keyword">for</span> train_data <span class="keyword">in</span> x_train]</span><br><span class="line">    nearest = np.argsort(distant)</span><br><span class="line">    result = [y_train[i] <span class="keyword">for</span> i <span class="keyword">in</span> nearest]</span><br><span class="line">    <span class="keyword">return</span> Counter(result).most_common(<span class="number">1</span>)[<span class="number">0</span>][<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="使用sklearn中的K临近算法库进行预测"><a href="#使用sklearn中的K临近算法库进行预测" class="headerlink" title="使用sklearn中的K临近算法库进行预测"></a><a name="part5"></a>使用sklearn中的K临近算法库进行预测</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.neighbors <span class="keyword">import</span> KNeighborsClassifier</span><br><span class="line"><span class="comment"># 生成一个实例</span></span><br><span class="line">KNN_classifier = KNeighborsClassifier(n_neighbors=<span class="number">5</span>)</span><br><span class="line"><span class="comment"># 生成模型</span></span><br><span class="line">KNN_classifier.fit(X, y)</span><br><span class="line"><span class="comment"># 进行预测</span></span><br><span class="line">KNN_classifier.predict(new_point.reshape(<span class="number">1</span>, <span class="number">-1</span>))</span><br><span class="line"><span class="comment"># array([0])</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="对自己写的算法进行sklearn风格的封装"><a href="#对自己写的算法进行sklearn风格的封装" class="headerlink" title="对自己写的算法进行sklearn风格的封装"></a><a name="part6"></a>对自己写的算法进行sklearn风格的封装</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">KNNClassifier</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, k: int)</span>:</span></span><br><span class="line">        <span class="string">"""初始化"""</span></span><br><span class="line">        <span class="keyword">assert</span> k &gt;= <span class="number">1</span>, <span class="string">"k must be valid"</span></span><br><span class="line">        self.k: int = k</span><br><span class="line">        self._x_train: np.ndarray = <span class="keyword">None</span></span><br><span class="line">        self._y_train: np.ndarray = <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fit</span><span class="params">(self, x_train: np.ndarray,y_train: np.ndarray)</span> -&gt; 'KNNClassifier':</span></span><br><span class="line">        <span class="keyword">assert</span> <span class="number">1</span> &lt;= self.k &lt;= x_train.shape[<span class="number">0</span>], <span class="string">"k must be valid"</span></span><br><span class="line">        <span class="keyword">assert</span> x_train.shape[<span class="number">0</span>] == y_train.shape[<span class="number">0</span>], \</span><br><span class="line">            <span class="string">"the size of x_train must equal to the size of y_train"</span></span><br><span class="line"></span><br><span class="line">        self._x_train = x_train</span><br><span class="line">        self._y_train = y_train</span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">predict</span><span class="params">(self, x_predict: np.ndarray)</span> -&gt; np.ndarray:</span></span><br><span class="line">        <span class="string">"""给定预测数据集，返回预测结果"""</span></span><br><span class="line">        <span class="keyword">assert</span> self._x_train <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> self._y_train <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>, \</span><br><span class="line">            <span class="string">"must fit before predict"</span></span><br><span class="line">        <span class="keyword">assert</span> x_predict.shape[<span class="number">1</span>] == self._x_train.shape[<span class="number">1</span>], \</span><br><span class="line">            <span class="string">"the feature number of x must be equal to x_train"</span></span><br><span class="line"></span><br><span class="line">        y_predict: list = [self._predict(x) <span class="keyword">for</span> x <span class="keyword">in</span> x_predict]</span><br><span class="line">        <span class="keyword">return</span> np.array(y_predict)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_predict</span><span class="params">(self, x: np.ndarray)</span> -&gt; int:</span></span><br><span class="line">        <span class="string">""" 给定单个待预测的数据x，返回x的预测结果值 """</span></span><br><span class="line">        <span class="keyword">assert</span> self._x_train.shape[<span class="number">1</span>] == x.shape[<span class="number">0</span>], \</span><br><span class="line">            <span class="string">"the feature number of x must be equal to x_train"</span></span><br><span class="line"></span><br><span class="line">        distant = [sqrt(np.sum((train_data - x) ** <span class="number">2</span>)) <span class="keyword">for</span> train_data <span class="keyword">in</span> self._x_train]</span><br><span class="line">        nearest = np.argsort(distant)</span><br><span class="line">        result = [self._y_train[i] <span class="keyword">for</span> i <span class="keyword">in</span> nearest[:self.k]]</span><br><span class="line">        <span class="keyword">return</span> Counter(result).most_common(<span class="number">1</span>)[<span class="number">0</span>][<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__repr__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"KNN(k=%d)"</span> % self.k</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="对提供的训练数据进行拆分"><a href="#对提供的训练数据进行拆分" class="headerlink" title="对提供的训练数据进行拆分"></a>对提供的训练数据进行拆分</h3><h4 id="使用自己的写的方法对数据进行拆分"><a href="#使用自己的写的方法对数据进行拆分" class="headerlink" title="使用自己的写的方法对数据进行拆分"></a><a name="part10"></a>使用自己的写的方法对数据进行拆分</h4><p>在输入的数据中抽出一部分数据作为训练的数据，而另一部分作为测试数据</p>
+<h3 id="使用自己的写的方法对数据进行拆分-1"><a href="#使用自己的写的方法对数据进行拆分-1" class="headerlink" title="使用自己的写的方法对数据进行拆分"></a>使用自己的写的方法对数据进行拆分</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">train_test_split</span><span class="params">(x_train: np.ndarray, y_train: np.ndarray, test_ratio=<span class="number">0.2</span>, seed=None)</span>:</span></span><br><span class="line">    <span class="string">"""将数据X和y按照test_ratio分割成new_x_train, x_test, new_y_train, y_test"""</span></span><br><span class="line">    <span class="keyword">assert</span> x_train.shape[<span class="number">0</span>] == y_train.shape[<span class="number">0</span>], \</span><br><span class="line">        <span class="string">"the size of x_train must be equal to the size of y_train"</span></span><br><span class="line">    <span class="keyword">assert</span> <span class="number">0.0</span> &lt;= test_ratio &lt;= <span class="number">1.0</span>, \</span><br><span class="line">        <span class="string">"test_train must be valid"</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> seed:</span><br><span class="line">        np.random.seed(seed)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 对矩阵的索引顺序进行打乱操作</span></span><br><span class="line">    shuffle_indexes = np.random.permutation(len(x_train))</span><br><span class="line"></span><br><span class="line">    test_size = int(len(x_train) * test_ratio)</span><br><span class="line">    test_indexes = shuffle_indexes[:test_size]</span><br><span class="line">    train_indexes = shuffle_indexes[test_size:]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 根据打乱的索引取出相对应的数值</span></span><br><span class="line">    new_x_train = x_train[train_indexes]</span><br><span class="line">    new_y_train = y_train[train_indexes]</span><br><span class="line"></span><br><span class="line">    x_test = x_train[test_indexes]</span><br><span class="line">    y_test = y_train[test_indexes]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> new_x_train, x_test, new_y_train, y_test</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="使用sklearn提供的方法对其进行拆分"><a href="#使用sklearn提供的方法对其进行拆分" class="headerlink" title="使用sklearn提供的方法对其进行拆分"></a><a name="part11"></a>使用sklearn提供的方法对其进行拆分</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.model_selection <span class="keyword">import</span>  train_test_split</span><br><span class="line">new_x_train, x_test, new_y_train, y_test = train_test_split(X, y, test_size=<span class="number">0.2</span>)</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="使用K临近算法对手写体进行预测"><a href="#使用K临近算法对手写体进行预测" class="headerlink" title="使用K临近算法对手写体进行预测"></a>使用K临近算法对手写体进行预测</h3><h4 id="初次查看"><a href="#初次查看" class="headerlink" title="初次查看"></a><a name="part12"></a>初次查看</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> datasets</span><br><span class="line"></span><br><span class="line"><span class="comment"># 载入手写体数据</span></span><br><span class="line">digits = datasets.load_digits</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看含有的数值：dict_keys(['data', 'target', 'target_names', 'images', 'DESCR'])</span></span><br><span class="line">digits.keys()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看一个图片</span></span><br><span class="line">some_digit = digits.data[<span class="number">666</span>]</span><br><span class="line">digits.target[<span class="number">666</span>]</span><br><span class="line">some_digit_image = some_digit.reshape(<span class="number">8</span>,<span class="number">8</span>)</span><br><span class="line">plt.imshow(some_digit_image,cmap=matplotlib.cm.binary)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="image-2.png" alt=""></p>
+<hr>
+<h4 id="使用自己写的KNN对其进行训练和预判"><a href="#使用自己写的KNN对其进行训练和预判" class="headerlink" title="使用自己写的KNN对其进行训练和预判"></a><a name="part13"></a>使用自己写的KNN对其进行训练和预判</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pycharm_project.knn <span class="keyword">as</span> knn</span><br><span class="line"><span class="keyword">import</span> pycharm_project.model_selection <span class="keyword">as</span> ms</span><br><span class="line"></span><br><span class="line">x_train, x_test, y_train, y_test = ms.train_test_split(digits.data, digits.target)</span><br><span class="line">kc = knn.KNNClassifier(<span class="number">6</span>)</span><br><span class="line">kc.fit(x_train, y_train)</span><br><span class="line">predict_result = kc.predict(x_test)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算预测准确率 0.9860724233983287</span></span><br><span class="line">sum(predict_result == y_test) / len(y_test)</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="对评估结果进行封装"><a href="#对评估结果进行封装" class="headerlink" title="对评估结果进行封装"></a><a name="part14"></a>对评估结果进行封装</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">""" metrics.py 对机器学习结果进行评估 """</span></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">accuracy_score</span><span class="params">(y_true: np.ndarray, y_predict: np.ndarray)</span> -&gt; float:</span></span><br><span class="line">    <span class="keyword">assert</span> y_true.shape[<span class="number">0</span>] == y_predict.shape[<span class="number">0</span>], \</span><br><span class="line">        <span class="string">"the size of y_ture must equal to to y_predict"</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> sum(y_true == y_predict) / len(y_predict)</span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="为自己写的KNNClassifier类添加评估准确性的方法"><a href="#为自己写的KNNClassifier类添加评估准确性的方法" class="headerlink" title="为自己写的KNNClassifier类添加评估准确性的方法"></a><a name="part15"></a>为自己写的KNNClassifier类添加评估准确性的方法</h4><p>有时并不关心预测结果，只是想查看正确率时，可以直接使用这个方法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#...</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">score</span><span class="params">(self, x_test: np.ndarray, y_test: np.ndarray)</span> -&gt; float:</span></span><br><span class="line">    y_predict = self.predict(x_test)</span><br><span class="line">    <span class="keyword">return</span> accuracy_score(y_test, y_predict)</span><br><span class="line"></span><br><span class="line"><span class="comment">#...</span></span><br></pre></td></tr></table></figure>
+<hr>
+<hr>
+<h3 id="超参数概念"><a href="#超参数概念" class="headerlink" title="超参数概念"></a>超参数概念</h3><p>在算法运行前需要决定的参数，比较：模型参数，算法过程中学习的参数</p>
+<p>KNN算法没有模型参数，k为典型的超参数</p>
+<h4 id="对k进行调参"><a href="#对k进行调参" class="headerlink" title="对k进行调参"></a><a name="part16"></a>对k进行调参</h4><p>先对1-11进行测试，但是如果最佳参数为10的话，可能就要对10-20再一次进行测试</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">best_score = <span class="number">0.0</span></span><br><span class="line">best_k = <span class="number">-1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">11</span>):</span><br><span class="line">    kc_tmp = KNeighborsClassifier(n_neighbors=i)</span><br><span class="line">    kc_tmp.fit(train_x, train_y)</span><br><span class="line">    score_tmp = kc_tmp.score(test_x, test_y)</span><br><span class="line">    <span class="keyword">if</span> score_tmp &gt; best_score:</span><br><span class="line">        best_score = score_tmp</span><br><span class="line">        best_k = i</span><br><span class="line">print(best_score, best_k)</span><br><span class="line"><span class="comment"># 0.9916666666666667 4</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="寻找最佳评估路径方法"><a href="#寻找最佳评估路径方法" class="headerlink" title="寻找最佳评估路径方法"></a><a name="part17"></a>寻找最佳评估路径方法</h4><p>是否考虑点距离的权重</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">best_score = <span class="number">0.0</span></span><br><span class="line">best_k = <span class="number">-1</span></span><br><span class="line">best_method = <span class="string">""</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 是否引入权重</span></span><br><span class="line"><span class="keyword">for</span> m <span class="keyword">in</span> [<span class="string">"distance"</span>, <span class="string">"uniform"</span>]:</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">11</span>):</span><br><span class="line">        kc_tmp = KNeighborsClassifier(n_neighbors=i, weights=m)</span><br><span class="line">        kc_tmp.fit(train_x, train_y)</span><br><span class="line">        score_tmp = kc_tmp.score(test_x, test_y)</span><br><span class="line">        <span class="keyword">if</span> score_tmp &gt; best_score:</span><br><span class="line">            best_score = score_tmp</span><br><span class="line">            best_k = i</span><br><span class="line">            best_method = m</span><br><span class="line">print(best_score, best_k, best_method)</span><br><span class="line"><span class="comment"># 0.9916666666666667 4 uniform</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h4 id="对距离的定义"><a href="#对距离的定义" class="headerlink" title="对距离的定义"></a><a name="part18"></a>对距离的定义</h4><p><img src="image-4.png" alt=""></p>
+<p>寻找最佳距离在1-5之间</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">%%time</span><br><span class="line">best_score = <span class="number">0.0</span></span><br><span class="line">best_k = <span class="number">-1</span></span><br><span class="line">best_p = <span class="number">-1</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>, <span class="number">11</span>):</span><br><span class="line">    <span class="keyword">for</span> p <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">6</span>):</span><br><span class="line">    		<span class="comment"># 对p进行设置</span></span><br><span class="line">        kc_tmp = KNeighborsClassifier(n_neighbors=i, weights=<span class="string">"distance"</span>, p=p)</span><br><span class="line">        kc_tmp.fit(train_x, train_y)</span><br><span class="line">        score_tmp = kc_tmp.score(test_x, test_y)</span><br><span class="line">        <span class="keyword">if</span> score_tmp &gt; best_score:</span><br><span class="line">            best_score = score_tmp</span><br><span class="line">            best_k = i</span><br><span class="line">            best_p = p</span><br><span class="line">print(best_score, best_k, best_p)</span><br><span class="line"><span class="comment"># 0.9888888888888889 3 2</span></span><br><span class="line"><span class="comment"># CPU times: user 14.5 s, sys: 21.1 ms, total: 14.5 s</span></span><br><span class="line"><span class="comment"># Wall time: 14.6 s</span></span><br></pre></td></tr></table></figure>
+<hr>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2018/06/27/慕课网机器学习笔记（3）/" data-id="cm2q61t1400f0dqjh7vreghz7" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/机器学习/">机器学习</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/06/28/慕课网机器学习笔记（4）/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          慕课网机器学习笔记（4）
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/06/26/慕课网机器学习笔记（2）/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">慕课网机器学习笔记（2）</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

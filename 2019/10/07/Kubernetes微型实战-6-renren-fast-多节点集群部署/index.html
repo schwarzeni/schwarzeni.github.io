@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Kubernetes微型实战(6): renren_fast 多节点集群部署 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本篇将不再使用Minikube，而是在一个多节点的Kubernetes环境之中部署应用">
+<meta name="keywords" content="总结,Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kubernetes微型实战(6): renren_fast 多节点集群部署">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="本篇将不再使用Minikube，而是在一个多节点的Kubernetes环境之中部署应用">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/image.png">
+<meta property="og:updated_time" content="2019-10-07T11:29:10.544Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes微型实战(6): renren_fast 多节点集群部署">
+<meta name="twitter:description" content="本篇将不再使用Minikube，而是在一个多节点的Kubernetes环境之中部署应用">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/image.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Kubernetes微型实战-6-renren-fast-多节点集群部署" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/" class="article-date">
+  <time class="post-time" datetime="2019-10-07T11:29:00.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">07</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kubernetes微型实战(6): renren_fast 多节点集群部署
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本篇将不再使用Minikube，而是在一个多节点的Kubernetes环境之中部署应用</p>
+<a id="more"></a>
+<h2 id="本地情况"><a href="#本地情况" class="headerlink" title="本地情况"></a>本地情况</h2><p>我本地的Kubernetes有三个节点，全部运行在本地的虚拟机中，相关的信息如下</p>
+<p><img src="image.png" alt="image"></p>
+<p>关于如何搭建集群在这里就不详细论述了</p>
+<hr>
+<h2 id="我本机存在的问题"><a href="#我本机存在的问题" class="headerlink" title="我本机存在的问题"></a>我本机存在的问题</h2><p>调度到节点host1上的pod经常会报出 <code>disk pressure</code> 的问题</p>
+<p>集群一开始使用的是weave作为网络插件，但是一些pod之间无法正常通信，所以最后就又换成了Kubernetes官方提供的flannel</p>
+<hr>
+<h2 id="修改部分Docker镜像并重新打包"><a href="#修改部分Docker镜像并重新打包" class="headerlink" title="修改部分Docker镜像并重新打包"></a>修改部分Docker镜像并重新打包</h2><h3 id="MySQL部署"><a href="#MySQL部署" class="headerlink" title="MySQL部署"></a>MySQL部署</h3><p>由于本地的Minikube环境中的不存在字符串编码的问题，但是我在实际部署到集群中时出现了编码的问题，所以就需要事先对MySQL做相关的配置，重新打包。</p>
+<p>创建文件夹 <code>mysql-docker-deploy</code> ，结构如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql-docker-deploy</span><br><span class="line">├── Dockerfile</span><br><span class="line">└── mysql.cnf</span><br></pre></td></tr></table></figure>
+<p>可以运行一下MySQL镜像，登录到容器中查看它配置文件的组织形式，就会发现它就会读取 <code>/etc/mysql/conf.d/</code> 和 <code>/etc/mysql/mysql.conf.d/</code> 下所有以 <code>.cnf</code> 结尾的配置文件，所以在Dockerfile中可以这样书写，将我们自己写的 <code>mysql.cnf</code> 加入进去</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mysql:<span class="number">5.6</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> ./mysql.cnf /etc/mysql/conf.d/mysql.cnf</span></span><br></pre></td></tr></table></figure>
+<p>而 <code>mysql.cnf</code> 的具体内容如下，几乎全部都是这是字符编码相关的配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[mysql]</span><br><span class="line">bind-address=0.0.0.0</span><br><span class="line">default-character-set = utf8</span><br><span class="line"></span><br><span class="line">[mysqld]</span><br><span class="line">character_set_server= utf8</span><br><span class="line"></span><br><span class="line">[mysql.server]</span><br><span class="line">default-character-set = utf8</span><br><span class="line"></span><br><span class="line">[mysqld_safe]</span><br><span class="line">default-character-set = utf8</span><br><span class="line"></span><br><span class="line">[client]</span><br><span class="line">default-character-set = utf8</span><br></pre></td></tr></table></figure>
+<p>之后执行打包命令，打上最新的tag，推送至自己的私有仓库</p>
+<p>当然，为了免去后面还要登录运行容器导入数据等麻烦，可以像第二节中介绍的那样，编写如下的Dockerfile</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> mysql:<span class="number">5.6</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> ./mysql.cnf /etc/mysql/conf.d/mysql.cnf</span></span><br><span class="line"><span class="bash"></span></span><br><span class="line"><span class="bash">ADD ./mysql.sql /docker-entrypoint-initdb.d</span></span><br></pre></td></tr></table></figure>
+<p>将所有要加载的配置和导入的数据写到 <code>mysql.sql</code> 文件中</p>
+<hr>
+<h3 id="前端静态文件部署"><a href="#前端静态文件部署" class="headerlink" title="前端静态文件部署"></a>前端静态文件部署</h3><p>首先，将renren-fast-vue的前端文件  <code>static/config/index-prod.js</code> 中对于后端服务器地址的部分修改为主节点的ip地址，重新运行 <code>npm run build</code> 打包</p>
+<p>其次，为了防止字符编码问题的出现，需要对nginx的配置文件做如下的修改</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen       80;</span><br><span class="line">    server_name  localhost;</span><br><span class="line">    # 添加这一行</span><br><span class="line">    charset utf-8;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        root   /usr/share/nginx/html;</span><br><span class="line">        index  index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    error_page   500 502 503 504  /50x.html;</span><br><span class="line">    location = /50x.html &#123;</span><br><span class="line">        root   /usr/share/nginx/html;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改完成后，重新打包Docker镜像，打上最新的tag，并推送至自己的私有仓库</p>
+<hr>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><p>我的做法是将yaml的配置文件全部上传至主节点，然后执行 <code>kubectl apply -f</code>，相关细节和之前介绍的单节点部署相同，但是还是有几处不同的</p>
+<h3 id="MySQL-部署"><a href="#MySQL-部署" class="headerlink" title="MySQL 部署"></a>MySQL 部署</h3><p>由于还是使用的hostpath，所以为了保证数据不丢失，我希望每次MySQL的Pod实例都是存在于同一个节点上，这个可以使用为节点打label实现，例如此处，我希望使用host2节点，就执行如下操作</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl label nodes host2 db=mysql</span><br></pre></td></tr></table></figure>
+<p>这样，在MySQL的Deployment配置文件中，就需要使用 <code>nodeSelector</code> 对节点进行选择，部分代码如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">template:</span></span><br><span class="line"><span class="attr">  spec:</span></span><br><span class="line"><span class="attr">    nodeSelector:</span></span><br><span class="line"><span class="attr">      db:</span> <span class="string">mysql</span></span><br></pre></td></tr></table></figure>
+<p>对于数据库初始化数据的导入，我是将文件上传至相应的pod中的，使用 <code>kubectl cp</code> 即可，就和 <code>scp</code> 的使用方式相同，例如</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl cp mysql.sql mysql-demo-946688857-978tf:/tmp/</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="后端部署"><a href="#后端部署" class="headerlink" title="后端部署"></a>后端部署</h3><p>由于SpringBoot非常耗性能，所以我希望它可以调度到任意适合的节点，当然包括主节点，但是在集群中主节点一般不允许有pod被调度到它那边，如果describe一下master节点的信息就会有如下的输出（部分）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Taints:             node-role.kubernetes.io/master:NoSchedule</span><br></pre></td></tr></table></figure>
+<p>所以对其deployment的配置文件可以做如下修改</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">template:</span></span><br><span class="line"><span class="attr">  spec:</span></span><br><span class="line"><span class="attr">    tolerations:</span></span><br><span class="line"><span class="attr">    - key:</span> <span class="string">"node-role.kubernetes.io/master"</span></span><br><span class="line"><span class="attr">      operator:</span> <span class="string">"Equal"</span></span><br><span class="line"><span class="attr">      effect:</span> <span class="string">"NoSchedule"</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="实用技巧"><a href="#实用技巧" class="headerlink" title="实用技巧"></a>实用技巧</h2><h3 id="批量删除-evicted-状态的Pod"><a href="#批量删除-evicted-状态的Pod" class="headerlink" title="批量删除 evicted 状态的Pod"></a>批量删除 evicted 状态的Pod</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods | grep Evicted | awk <span class="string">'&#123;print $1&#125;'</span> | xargs kubectl delete pod</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="去除taint"><a href="#去除taint" class="headerlink" title="去除taint"></a>去除taint</h3><p>例如去除节点host2的 <code>node.kubernetes.io/disk-pressure:NoSchedule</code>，指令如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl taint nodes host2 node.kubernetes.io/disk-pressure:NoSchedule-</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/10/07/Kubernetes微型实战-6-renren-fast-多节点集群部署/" data-id="cm2q61syh0032dqjhluausm6w" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/10/12/获取用户IP地址策略/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          获取用户IP地址策略
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/10/07/Kubernetes微型实战-5-Kubernetes集群搭建/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Kubernetes微型实战(5): Kubernetes集群搭建</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

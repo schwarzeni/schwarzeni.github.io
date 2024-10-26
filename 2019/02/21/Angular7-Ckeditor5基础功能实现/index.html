@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Angular7+Ckeditor5基础功能实现 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="网上居然没找到一则完整的入门教程…">
+<meta name="keywords" content="总结,Angular,Ckeditor">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Angular7+Ckeditor5基础功能实现">
+<meta property="og:url" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="网上居然没找到一则完整的入门教程…">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image3.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image4.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image5.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image6.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image7.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image8.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image9.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:39.591Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Angular7+Ckeditor5基础功能实现">
+<meta name="twitter:description" content="网上居然没找到一则完整的入门教程…">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/image1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Angular7-Ckeditor5基础功能实现" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/21/Angular7-Ckeditor5基础功能实现/" class="article-date">
+  <time class="post-time" datetime="2019-02-21T13:06:05.000Z" itemprop="datePublished">
+    <span class="post-month">2月</span><br/>
+    <span class="post-day">21</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Angular7+Ckeditor5基础功能实现
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>网上居然没找到一则完整的入门教程…</p>
+<a id="more"></a>
+<h2 id="环境参数"><a href="#环境参数" class="headerlink" title="环境参数"></a>环境参数</h2><ul>
+<li>@angular/cli 7.3.2</li>
+<li>macOS 10.14.3</li>
+<li>nodejs v9.0.0</li>
+<li><a href="https://github.com/schwarzeni/ckeditor-angular-demon" target="_blank" rel="noopener">其他信息参见package.json</a></li>
+</ul>
+<hr>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>首先，使用angular脚手架初始化项目（需要先全局安装 @angular/cli）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @angular/cli</span><br><span class="line">ng new ckeditor-angular</span><br></pre></td></tr></table></figure>
+<p>其次，安装 Ckeditor5 相关依赖，进入项目根目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm install --save @ckeditor/ckeditor5-angular</span><br><span class="line">npm install --save @ckeditor/ckeditor5-build-classic</span><br><span class="line">npm install --save @ckeditor/ckeditor5-ui</span><br></pre></td></tr></table></figure>
+<p>前两个是必须的，第三个是为了编写保存功能插件而安装的</p>
+<p>安装完毕后使用编辑器打开项目，我使用的是 Intellij IDEA</p>
+<p>在 src/app/app.module.ts 中添加 <code>CKEditorModule</code>，如下</p>
+<p><img src="image1.png" alt=""></p>
+<p>为了演示方便，将 <code>src/app/app.component.html</code> 和 <code>src/app/app.component.css</code> 删除，html内容在 <code>src/app/app.component.ts</code> 中编写，第一版代码具体代码如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src/app/app.component.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123;Component&#125; <span class="keyword">from</span> <span class="string">'@angular/core'</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> ClassicEditor <span class="keyword">from</span> <span class="string">'@ckeditor/ckeditor5-build-classic'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  selector: <span class="string">'app-root'</span>,</span><br><span class="line">  template: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;ckeditor [editor]="Editor" data="&lt;p&gt;Hello, world!&lt;/p&gt;"&gt;</span></span><br><span class="line"><span class="string">    &lt;/ckeditor&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> AppComponent &#123;</span><br><span class="line">  <span class="keyword">public</span> Editor = ClassicEditor;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>输入 <code>ng serve</code> 查看效果</p>
+<p><img src="image2.png" alt=""></p>
+<p>至此环境搭建完毕</p>
+<hr>
+<h2 id="对Ckeditor进行配置"><a href="#对Ckeditor进行配置" class="headerlink" title="对Ckeditor进行配置"></a>对Ckeditor进行配置</h2><p>完成两项配置：1，中文化；2，自己配置按钮的数量类型</p>
+<h3 id="中文化"><a href="#中文化" class="headerlink" title="中文化"></a>中文化</h3><p>顺着包路径 <code>/Users/nizhenyang/Desktop/ckeditor-angular/node_modules/@ckeditor/ckeditor5-build-classic/build/translations</code>一路找下去就会发现有一大堆地区语言的js文件，其中就有 <code>zh-cn.js</code>，将其加入到ts文件中，同时添加配置对象<code>config</code>，传入到 组件 <code>ckeditor</code> 中，app.component.ts修改如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;Component&#125; <span class="keyword">from</span> <span class="string">'@angular/core'</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> ClassicEditor <span class="keyword">from</span> <span class="string">'@ckeditor/ckeditor5-build-classic'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'@ckeditor/ckeditor5-build-classic/build/translations/zh-cn.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  selector: <span class="string">'app-root'</span>,</span><br><span class="line">  template: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;ckeditor</span></span><br><span class="line"><span class="string">      [editor]="Editor"</span></span><br><span class="line"><span class="string">      data="&lt;p&gt;Hello, world!&lt;/p&gt;"</span></span><br><span class="line"><span class="string">      [config]="config"</span></span><br><span class="line"><span class="string">    &gt;</span></span><br><span class="line"><span class="string">    &lt;/ckeditor&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> AppComponent &#123;</span><br><span class="line">  <span class="keyword">public</span> Editor = ClassicEditor;</span><br><span class="line">  <span class="comment">// 配置语言</span></span><br><span class="line">  <span class="keyword">public</span> config = &#123;</span><br><span class="line">    language: <span class="string">'zh-cn'</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>效果如下</p>
+<p><img src="image3.png" alt=""></p>
+<hr>
+<h3 id="配置按钮"><a href="#配置按钮" class="headerlink" title="配置按钮"></a>配置按钮</h3><p>这个也是在那个 <code>config</code> 对象中配置，就添加上传图片的按钮和加粗的按钮吧，中间再填个一个分隔符，配置如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//....</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> AppComponent &#123;</span><br><span class="line">  <span class="keyword">public</span> Editor = ClassicEditor;</span><br><span class="line">  <span class="keyword">public</span> config = &#123;</span><br><span class="line">    <span class="comment">// 配置语言</span></span><br><span class="line">    language: <span class="string">'zh-cn'</span>,</span><br><span class="line">    toolbar: [<span class="string">'imageUpload'</span>, <span class="string">'|'</span>, <span class="string">'bold'</span>]</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>效果如下</p>
+<p><img src="image4.png" alt=""></p>
+<p>更多按钮请参考<a href="https://ckeditor.com/docs/ckeditor5/latest/api/module_core_editor_editorconfig-EditorConfig.html#member-toolbar" target="_blank" rel="noopener">官网文档</a></p>
+<hr>
+<h2 id="添加上传图片的功能"><a href="#添加上传图片的功能" class="headerlink" title="添加上传图片的功能"></a>添加上传图片的功能</h2><h3 id="搭建测试文件服务器"><a href="#搭建测试文件服务器" class="headerlink" title="搭建测试文件服务器"></a>搭建测试文件服务器</h3><p>首先，先搭建一个简单的提供文件上传下载功能的nodejs服务器</p>
+<p>这里就在根目录下新建文件夹 file-server，进入其中，安装express等依赖</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 file-server 文件夹中</span></span><br><span class="line">npm init</span><br><span class="line">npm install --save express</span><br><span class="line">npm install --save express-fileupload</span><br><span class="line">npm install --save body-parser</span><br></pre></td></tr></table></figure>
+<p>新建app.js文件，向其中填写基础代码；新建uploads文件夹，作为上传文件的文件夹</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>);</span><br><span class="line"><span class="keyword">const</span> fileUpload = <span class="built_in">require</span>(<span class="string">'express-fileupload'</span>);</span><br><span class="line"><span class="keyword">const</span> app = express();</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PORT = <span class="number">8000</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于解析post请求</span></span><br><span class="line"><span class="keyword">const</span> bodyParser = <span class="built_in">require</span>(<span class="string">'body-parser'</span>)</span><br><span class="line">app.use(bodyParser.json());</span><br><span class="line">app.post(<span class="string">'/upload/content'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(req.body)</span><br><span class="line">  <span class="comment">// 就返回提交的数据</span></span><br><span class="line">  res.send(req.body)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理上传文件的插件</span></span><br><span class="line">app.use(fileUpload());</span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理静态资环</span></span><br><span class="line">app.use(<span class="string">'/uploads'</span>,express.static(<span class="string">'uploads'</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理上传文件的逻辑</span></span><br><span class="line">app.post(<span class="string">'/upload'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> sampleFile;</span><br><span class="line">  <span class="keyword">let</span> uploadPath;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">Object</span>.keys(req.files).length == <span class="number">0</span>) &#123;</span><br><span class="line">    res.status(<span class="number">400</span>).send(<span class="string">'No files were uploaded.'</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'req.files &gt;&gt;&gt;'</span>, req.files); <span class="comment">// eslint-disable-line</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 这里提交的文件表单名称为 file</span></span><br><span class="line">  sampleFile = req.files.file;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 为文件名打一个时间戳，保证不重名</span></span><br><span class="line">  <span class="keyword">const</span> filename = (<span class="keyword">new</span> <span class="built_in">Date</span>().getTime()) + sampleFile.name;</span><br><span class="line"></span><br><span class="line">  uploadPath = path.join(__dirname, <span class="string">'uploads'</span>, filename);</span><br><span class="line"></span><br><span class="line">  sampleFile.mv(uploadPath, <span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (err) &#123;</span><br><span class="line">      <span class="keyword">return</span> res.status(<span class="number">500</span>).send(err);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  res.send(&#123;<span class="attr">default</span>: path.join(<span class="string">'uploads'</span>, filename)&#125;)</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.listen(PORT, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'Express server listening on port '</span>, PORT); <span class="comment">// eslint-disable-line</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>启动app.js，监听8000端口；在uplaods文件夹中放入一个图片文件，通过浏览器可以访问，代表成功</p>
+<p><img src="image5.png" alt=""></p>
+<hr>
+<h3 id="前后端打通"><a href="#前后端打通" class="headerlink" title="前后端打通"></a>前后端打通</h3><p>不做任何配置的话前端是无法跨域访问后端文件服务器的，这里需要配置angular的server</p>
+<p>在ckeditor-angular根目录下新建文件 proxy.config.json，进行如下配置</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"/uploads/*"</span>: &#123;</span><br><span class="line">    <span class="attr">"target"</span>: <span class="string">"http://localhost:8000"</span>,</span><br><span class="line">    <span class="attr">"secure"</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">"changeOrigin"</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">"logLevel"</span>: <span class="string">"debug"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">"/upload/*"</span>: &#123;</span><br><span class="line">    <span class="attr">"target"</span>: <span class="string">"http://localhost:8000"</span>,</span><br><span class="line">    <span class="attr">"secure"</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">"changeOrigin"</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">"logLevel"</span>: <span class="string">"debug"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第一个是GET图片的所有请求，第二个是POST图片的所有请求</p>
+<p>重启 <code>ng serve</code>，但是需要让其读取这个配置文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ng serve --proxy-config proxy.config.json</span><br></pre></td></tr></table></figure>
+<p>修改 app.component.ts 内容，让其访问图片</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  selector: <span class="string">'app-root'</span>,</span><br><span class="line">  template: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;ckeditor</span></span><br><span class="line"><span class="string">      [editor]="Editor"</span></span><br><span class="line"><span class="string">      data= '&lt;img src="/uploads/quote_fallback.jpg" /&gt;'</span></span><br><span class="line"><span class="string">      [config]="config"</span></span><br><span class="line"><span class="string">    &gt;</span></span><br><span class="line"><span class="string">    &lt;/ckeditor&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+<p>效果如下，访问成功</p>
+<p><img src="image6.png" alt=""></p>
+<hr>
+<h3 id="编写上传图片插件"><a href="#编写上传图片插件" class="headerlink" title="编写上传图片插件"></a>编写上传图片插件</h3><p>在 app.component.ts 同级目录下创建文件 fileupload.ckeditor.ts ，在其中编写上传插件，大体框架如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 编写上传逻辑</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> FileUploadAdapter &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params">loader</span>) &#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">  &#125;</span><br><span class="line">  upload() &#123;</span><br><span class="line">    <span class="comment">// 上传文件</span></span><br><span class="line">  &#125;</span><br><span class="line">  abort() &#123;</span><br><span class="line">    <span class="comment">// 上传失败</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 工厂方法，提供给ckeditor调用</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">CustomUploadAdapterPlugin</span>(<span class="params">editor</span>) </span>&#123;</span><br><span class="line">  editor.plugins.get(<span class="string">'FileRepository'</span>).createUploadAdapter = <span class="function">(<span class="params">loader</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> FileUploadAdapter(loader);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，将第二个函数添加到 app.component.ts 中的config对象中（这里重构了一下，将config对象的初始化放到constructor中），部分代码如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// .........</span></span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params"><span class="keyword">private</span> http: HttpClient</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.config = &#123;</span><br><span class="line">      <span class="comment">// 配置语言</span></span><br><span class="line">      language: <span class="string">'zh-cn'</span>,</span><br><span class="line">      toolbar: [<span class="string">'imageUpload'</span>, <span class="string">'|'</span>, <span class="string">'bold'</span>],</span><br><span class="line">      <span class="comment">// 在这里添加</span></span><br><span class="line">      extraPlugins: [CustomUploadAdapterPlugin]</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">// ........</span></span><br></pre></td></tr></table></figure>
+<p>首先，这个第二个函数中的 <code>editor</code> 和 <code>loader</code> 是ckeditor注入的，和我们使用者无关；其次，由于它们没有什么关系，而angular发送http模块初始化也是有angular管理和注入的，和我们无关，所有说要在fileupload.ckeditor.ts中使用angular的模块就有点麻烦。使用函数参数传入的方法貌似也不好使，貌似this作用域改变了。</p>
+<p>我给出的解决方案是将其作为config对象的一个参数传入，然后在 fileupload.ckeditor.ts 文件中通过 <code>editor.config.get()</code> 来获得，app.component.ts文件如下，<strong>记得在 app.module.ts 中import添加 HttpClientModule</strong></p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;Component&#125; <span class="keyword">from</span> <span class="string">'@angular/core'</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> ClassicEditor <span class="keyword">from</span> <span class="string">'@ckeditor/ckeditor5-build-classic'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'@ckeditor/ckeditor5-build-classic/build/translations/zh-cn.js'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;HttpClient&#125; <span class="keyword">from</span> <span class="string">'@angular/common/http'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;CustomUploadAdapterPlugin&#125; <span class="keyword">from</span> <span class="string">'./fileupload.ckeditor'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  selector: <span class="string">'app-root'</span>,</span><br><span class="line">  template: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;ckeditor</span></span><br><span class="line"><span class="string">      [editor]="Editor"</span></span><br><span class="line"><span class="string">      data=''</span></span><br><span class="line"><span class="string">      [config]="config"</span></span><br><span class="line"><span class="string">    &gt;</span></span><br><span class="line"><span class="string">    &lt;/ckeditor&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> AppComponent &#123;</span><br><span class="line">  <span class="keyword">public</span> Editor = ClassicEditor;</span><br><span class="line">  <span class="keyword">public</span> config</span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params"><span class="keyword">private</span> http: HttpClient</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.config = &#123;</span><br><span class="line">      <span class="comment">// 配置语言</span></span><br><span class="line">      language: <span class="string">'zh-cn'</span>,</span><br><span class="line">      toolbar: [<span class="string">'imageUpload'</span>, <span class="string">'|'</span>, <span class="string">'bold'</span>],</span><br><span class="line">      <span class="comment">// 注入http</span></span><br><span class="line">      http,</span><br><span class="line">      extraPlugins: [CustomUploadAdapterPlugin]</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>fileupload.ckeditor.ts 完整代码如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> FileUploadAdapter &#123;</span><br><span class="line">  loader;</span><br><span class="line">  http;</span><br><span class="line">  editor;</span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params">loader, editor</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.loader = loader;</span><br><span class="line">    <span class="keyword">this</span>.editor = editor;</span><br><span class="line">    <span class="comment">// 获取传入的http模块</span></span><br><span class="line">    <span class="keyword">this</span>.http = <span class="keyword">this</span>.editor.config.get(<span class="string">'http'</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  upload() &#123;</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">new</span> FormData();</span><br><span class="line">    <span class="comment">// 表单name为file，和后端app.js中的 req.files.file 相对应</span></span><br><span class="line">    data.append(<span class="string">'file'</span>, <span class="keyword">this</span>.loader.file);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">this</span>.http.post(</span><br><span class="line">        <span class="string">'/upload'</span>,</span><br><span class="line">        data)</span><br><span class="line">        .subscribe(</span><br><span class="line">          (resp) =&gt; &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(resp)</span><br><span class="line">            resolve(&#123;</span><br><span class="line">              <span class="keyword">default</span>: resp.default</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;,</span><br><span class="line">          (err) =&gt; reject(err));</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">  abort() &#123;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">CustomUploadAdapterPlugin</span>(<span class="params">editor</span>) </span>&#123;</span><br><span class="line">  editor.plugins.get(<span class="string">'FileRepository'</span>).createUploadAdapter = <span class="function">(<span class="params">loader</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 将 editor 对象也注入其中</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> FileUploadAdapter(loader, editor);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于FileUploadAdapter，有几个注意点</p>
+<p>1.不要自作多情设置header <code>Content-Type:multipart/form-data</code></p>
+<p>2.注意返回给ckeditor的resolve传入的对象中 <code>default</code> 属性对应图片的路径</p>
+<p>进行测试，上传成功，同时查看 <code>file-server/uploads</code>中有刚才上传的文件</p>
+<p><img src="image7.png" alt=""></p>
+<p>至此文件上传服务编写完毕</p>
+<hr>
+<h2 id="编写保存功能"><a href="#编写保存功能" class="headerlink" title="编写保存功能"></a>编写保存功能</h2><p>这个需求是在ckeditor的按钮列表中添加保存选项，点击后将数据传输至服务器，这里的测试服务器也使用file-server</p>
+<h3 id="编写功能按钮"><a href="#编写功能按钮" class="headerlink" title="编写功能按钮"></a>编写功能按钮</h3><p>新建文件 savefile.ckeditor.ts，这其中编写如下代码</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ButtonView <span class="keyword">from</span> <span class="string">'@ckeditor/ckeditor5-ui/src/button/buttonview'</span>;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *  添加保存文件的功能</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">SaveFilePlugin</span>(<span class="params">editor</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 注册一个名字是 save 按钮</span></span><br><span class="line">  editor.ui.componentFactory.add( <span class="string">'save'</span>, <span class="function"><span class="params">locale</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> view = <span class="keyword">new</span> ButtonView( locale );</span><br><span class="line">    <span class="comment">// 由于没有图标，这里使用文字按钮</span></span><br><span class="line">    view.set( &#123;</span><br><span class="line">      label: <span class="string">'保存'</span>,</span><br><span class="line">      withText: <span class="literal">true</span>,</span><br><span class="line">    &#125; );</span><br><span class="line">    <span class="comment">// 点击时执行指令</span></span><br><span class="line">    view.on( <span class="string">'execute'</span>, <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'执行保存指令'</span>);</span><br><span class="line">    &#125; );</span><br><span class="line">    <span class="keyword">return</span> view;</span><br><span class="line">  &#125; );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改 app.component.ts，部分如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// .......</span></span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params"><span class="keyword">private</span> http: HttpClient</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.config = &#123;</span><br><span class="line">      language: <span class="string">'zh-cn'</span>,</span><br><span class="line">      <span class="comment">// 添加一个 save 按钮</span></span><br><span class="line">      toolbar: [<span class="string">'imageUpload'</span>, <span class="string">'|'</span>, <span class="string">'bold'</span>, <span class="string">'|'</span>, <span class="string">'save'</span>],</span><br><span class="line">      http,</span><br><span class="line">      <span class="comment">// 导入 SaveFilePlugin</span></span><br><span class="line">      extraPlugins: [CustomUploadAdapterPlugin, SaveFilePlugin]</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">// ......</span></span><br></pre></td></tr></table></figure>
+<p>测试如下图，点击按钮后控制台有如下输出</p>
+<p><img src="image8.png" alt=""></p>
+<hr>
+<h3 id="获取内容"><a href="#获取内容" class="headerlink" title="获取内容"></a>获取内容</h3><p>这里可以使用 <code>ngModel</code> 获取 ckeditor中的内容，<strong>注意要在app.module.ts中import添加 FormsModule 模块</strong></p>
+<p>app.component.ts 修改部分如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ......</span></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">  selector: <span class="string">'app-root'</span>,</span><br><span class="line">  template: <span class="string">`</span></span><br><span class="line"><span class="string">    &lt;ckeditor</span></span><br><span class="line"><span class="string">      [(ngModel)]="article.content"</span></span><br><span class="line"><span class="string">      [editor]="Editor"</span></span><br><span class="line"><span class="string">      [config]="config"</span></span><br><span class="line"><span class="string">    &gt;</span></span><br><span class="line"><span class="string">    &lt;/ckeditor&gt;</span></span><br><span class="line"><span class="string">  `</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> AppComponent &#123;</span><br><span class="line">  <span class="keyword">public</span> Editor = ClassicEditor;</span><br><span class="line">  <span class="keyword">public</span> config</span><br><span class="line">  article = &#123;content: <span class="string">''</span>&#125;;</span><br><span class="line"><span class="comment">// ......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="前后端打通-1"><a href="#前后端打通-1" class="headerlink" title="前后端打通"></a>前后端打通</h3><p>我希望可以在 app.component.ts 中实现上传文章的逻辑；这里可以使用闭包的技术将这个函数注入到 savefile.ckeditor.ts 文件的 SaveFilePlugin 中，同时保留this的作用域，如下</p>
+<p>app.component.ts 修改部分如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//.....</span></span><br><span class="line"><span class="keyword">constructor</span>(<span class="params"><span class="keyword">private</span> http: HttpClient</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.config = &#123;</span><br><span class="line">      <span class="comment">// 配置语言</span></span><br><span class="line">      language: <span class="string">'zh-cn'</span>,</span><br><span class="line">      toolbar: [<span class="string">'imageUpload'</span>, <span class="string">'|'</span>, <span class="string">'bold'</span>, <span class="string">'|'</span>, <span class="string">'save'</span>],</span><br><span class="line">      http,</span><br><span class="line">      <span class="comment">// 还是将其添加到config中，使用 editor.config.get 可以获取</span></span><br><span class="line">      uploadContent: <span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">this</span>.uploadContent(),</span><br><span class="line">      extraPlugins: [CustomUploadAdapterPlugin, SaveFilePlugin]</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 上传文件的逻辑</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  uploadContent() &#123;</span><br><span class="line">    <span class="keyword">this</span>.http.post(<span class="string">'/upload/content'</span>, <span class="keyword">this</span>.article)</span><br><span class="line">      .subscribe(<span class="function">(<span class="params">resp</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(resp);</span><br><span class="line">      &#125;, <span class="function">(<span class="params">err</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(err);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"><span class="comment">//.....</span></span><br></pre></td></tr></table></figure>
+<p>savefile.ckeditor.ts 修改部分如下</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// .....</span></span><br><span class="line">    view.on( <span class="string">'execute'</span>, <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> func = editor.config.get(<span class="string">'uploadContent'</span>);</span><br><span class="line">      <span class="comment">// 这里获取了传入的闭包，并执行</span></span><br><span class="line">      func();</span><br><span class="line">    &#125; );</span><br><span class="line"><span class="comment">// .....</span></span><br></pre></td></tr></table></figure>
+<p>点击按钮进行上传，查看后台服务器输出：</p>
+<p><img src="image9.png" alt=""></p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><a href="https://github.com/schwarzeni/ckeditor-angular-demon" target="_blank" rel="noopener">完整代码</a></p>
+<p>踩了不少的坑，总结一下，但是官方文档还是很重要的</p>
+<ul>
+<li><a href="https://ckeditor.com/docs/ckeditor5/latest/builds/guides/integration/frameworks/angular.html#integration-with-ngmodel" target="_blank" rel="noopener">Rich text editor component for Angular 2+</a></li>
+<li><a href="https://ckeditor.com/docs/ckeditor5/latest/framework/guides/deep-dive/upload-adapter.html" target="_blank" rel="noopener">Custom image upload adapter</a>下</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2019/02/21/Angular7-Ckeditor5基础功能实现/" data-id="cm2q61swg000edqjhuup21cbr" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Angular/">Angular</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Ckeditor/">Ckeditor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/02/27/Javascript中的this🏹/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Javascript中的this🏹
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/02/19/笑着的人是最强大的/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">笑着的人是最强大的</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

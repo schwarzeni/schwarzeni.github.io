@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>慕课网机器学习笔记（2） | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="内容提要 numpy基础（接笔记（1）） 矩阵运算 聚合操作 索引 矩阵大小判断 numpy综合小实战   matplotlib 绘制折线图 绘制散点图   小综合 对鸢尾花的数据进行绘制">
+<meta name="keywords" content="总结,机器学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="慕课网机器学习笔记（2）">
+<meta property="og:url" content="http://blog.schwarzeni.com/2018/06/26/慕课网机器学习笔记（2）/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="内容提要 numpy基础（接笔记（1）） 矩阵运算 聚合操作 索引 矩阵大小判断 numpy综合小实战   matplotlib 绘制折线图 绘制散点图   小综合 对鸢尾花的数据进行绘制">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/26/慕课网机器学习笔记（2）/image-1.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/26/慕课网机器学习笔记（2）/image-2.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2018/06/26/慕课网机器学习笔记（2）/image-3.png">
+<meta property="og:updated_time" content="2019-06-19T00:52:39.726Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="慕课网机器学习笔记（2）">
+<meta name="twitter:description" content="内容提要 numpy基础（接笔记（1）） 矩阵运算 聚合操作 索引 矩阵大小判断 numpy综合小实战   matplotlib 绘制折线图 绘制散点图   小综合 对鸢尾花的数据进行绘制">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2018/06/26/慕课网机器学习笔记（2）/image-1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-慕课网机器学习笔记（2）" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/06/26/慕课网机器学习笔记（2）/" class="article-date">
+  <time class="post-time" datetime="2018-06-26T13:10:21.000Z" itemprop="datePublished">
+    <span class="post-month">6月</span><br/>
+    <span class="post-day">26</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      慕课网机器学习笔记（2）
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="内容提要"><a href="#内容提要" class="headerlink" title="内容提要"></a>内容提要</h2><ul>
+<li>numpy基础（接笔记（1））<ul>
+<li><a href="#part1">矩阵运算</a></li>
+<li><a href="#part2">聚合操作</a></li>
+<li><a href="#part3">索引</a></li>
+<li><a href="#part4">矩阵大小判断</a></li>
+<li><a href="#part8">numpy综合小实战</a></li>
+</ul>
+</li>
+<li>matplotlib<ul>
+<li><a href="#part5">绘制折线图</a></li>
+<li><a href="#part6">绘制散点图</a></li>
+</ul>
+</li>
+<li>小综合<ul>
+<li><a href="#part7">对鸢尾花的数据进行绘制</a></li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<hr>
+<h2 id="矩阵运算"><a href="#矩阵运算" class="headerlink" title="矩阵运算"></a><a name="part1"></a>矩阵运算</h2><ul>
+<li>对一个矩阵的每个数据乘2</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">n = <span class="number">10</span></span><br><span class="line">L = np.arange(n)</span><br><span class="line">np.array([<span class="number">2</span>*e <span class="keyword">for</span> e <span class="keyword">in</span> L])</span><br><span class="line"><span class="comment"># array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])</span></span><br><span class="line">L*<span class="number">2</span></span><br><span class="line"><span class="comment"># array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>对矩阵进行加减乘除等基本运算</li>
+</ul>
+<p><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>//</code>, <code>%</code></p>
+<p><code>np.abs</code>, <code>np.sin</code>, <code>np.cos</code>, <code>np.tan</code>, <code>np.exp</code>, <code>np.log</code>, <code>np.power</code>(<code>n**M</code>)</p>
+<ul>
+<li>矩阵间的乘法</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">M1 = np.arange(start=<span class="number">1</span>, stop=<span class="number">10</span>).reshape([<span class="number">3</span>,<span class="number">3</span>])</span><br><span class="line">M2 = np.arange(<span class="number">6</span>).reshape([<span class="number">3</span>,<span class="number">2</span>])</span><br><span class="line">M1.dot(M2)</span><br><span class="line"><span class="comment"># array([[1, 2, 3],</span></span><br><span class="line"><span class="comment">#        [4, 5, 6],</span></span><br><span class="line"><span class="comment">#        [7, 8, 9]])</span></span><br><span class="line"><span class="comment"># array([[0, 1],</span></span><br><span class="line"><span class="comment">#        [2, 3],</span></span><br><span class="line"><span class="comment">#        [4, 5]])</span></span><br><span class="line"><span class="comment"># array([[16, 22],</span></span><br><span class="line"><span class="comment">#        [34, 49],</span></span><br><span class="line"><span class="comment">#        [52, 76]])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>矩阵的反转</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">M2 = np.arange(<span class="number">6</span>).reshape([<span class="number">3</span>,<span class="number">2</span>])</span><br><span class="line">M2.T</span><br><span class="line"><span class="comment"># array([[0, 1],</span></span><br><span class="line"><span class="comment">#        [2, 3],</span></span><br><span class="line"><span class="comment">#        [4, 5]])</span></span><br><span class="line"><span class="comment"># array([[0, 2, 4],</span></span><br><span class="line"><span class="comment">#        [1, 3, 5]])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>向量堆叠</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">A1 = np.arange(<span class="number">2</span>)</span><br><span class="line">np.tile(A1, (<span class="number">2</span>,<span class="number">1</span>))</span><br><span class="line"><span class="comment"># array([[0, 1],</span></span><br><span class="line"><span class="comment">#        [0, 1]])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>矩阵的逆</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">M1 = np.arange(start=<span class="number">1</span>, stop=<span class="number">10</span>).reshape([<span class="number">3</span>,<span class="number">3</span>])</span><br><span class="line">np.linalg.inv(M1)</span><br><span class="line"><span class="comment"># array([[ 3.15251974e+15, -6.30503948e+15,  3.15251974e+15],</span></span><br><span class="line"><span class="comment">#        [-6.30503948e+15,  1.26100790e+16, -6.30503948e+15],</span></span><br><span class="line"><span class="comment">#        [ 3.15251974e+15, -6.30503948e+15,  3.15251974e+15]])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>矩阵的伪逆（原矩阵与逆矩阵相乘为单位矩阵）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">M1 = np.arange(start=<span class="number">0</span>, stop=<span class="number">10</span>).reshape([<span class="number">2</span>,<span class="number">5</span>])</span><br><span class="line">np.linalg.pinv(M1)</span><br><span class="line">array([[<span class="number">-3.20000000e-01</span>,  <span class="number">1.20000000e-01</span>],</span><br><span class="line">       [<span class="number">-1.80000000e-01</span>,  <span class="number">8.00000000e-02</span>],</span><br><span class="line">       [<span class="number">-4.00000000e-02</span>,  <span class="number">4.00000000e-02</span>],</span><br><span class="line">       [ <span class="number">1.00000000e-01</span>, <span class="number">-1.38777878e-17</span>],</span><br><span class="line">       [ <span class="number">2.40000000e-01</span>, <span class="number">-4.00000000e-02</span>]])</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="聚合操作"><a href="#聚合操作" class="headerlink" title="聚合操作"></a><a name="part2"></a>聚合操作</h2><ul>
+<li>一维求和</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">big_array = np.random.rand(<span class="number">1000000</span>)</span><br><span class="line">%timeit sum(big_array)  		<span class="comment"># 81.3 ms ± 1.23 ms per loop</span></span><br><span class="line">%timeit np.sum(big_array)   <span class="comment"># 382 µs ± 5.38 µs per loop</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>二维沿行求和，沿列求和</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">M = np.arange(<span class="number">6</span>).reshape([<span class="number">2</span>,<span class="number">3</span>])</span><br><span class="line"><span class="comment"># array([[0, 1, 2],</span></span><br><span class="line"><span class="comment">#        [3, 4, 5]])</span></span><br><span class="line">np.sum(M, axis=<span class="number">0</span>)</span><br><span class="line"><span class="comment"># array([3, 5, 7])</span></span><br><span class="line">np.sum(M, axis=<span class="number">1</span>)</span><br><span class="line"><span class="comment"># array([ 3, 12])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>乘积</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">M = np.arange(<span class="number">6</span>).reshape([<span class="number">2</span>,<span class="number">3</span>])</span><br><span class="line">np.prod(M+<span class="number">1</span>)</span><br><span class="line"><span class="comment"># 720</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>均值，中位数</li>
+</ul>
+<p><code>mean</code>, <code>median</code></p>
+<ul>
+<li>百分位点</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">big_array = np.random.rand(<span class="number">10000000</span>)</span><br><span class="line"><span class="keyword">for</span> precent <span class="keyword">in</span> [<span class="number">0</span>, <span class="number">25</span>, <span class="number">50</span>, <span class="number">75</span>, <span class="number">100</span>]:</span><br><span class="line">    print(np.percentile(big_array, q=precent))</span><br><span class="line"><span class="comment"># 2.8120511030849116e-08</span></span><br><span class="line"><span class="comment"># 0.2497396828047649</span></span><br><span class="line"><span class="comment"># 0.49990547450366424</span></span><br><span class="line"><span class="comment"># 0.7499534919847901</span></span><br><span class="line"><span class="comment"># 0.9999999687386607</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>打乱顺序</li>
+</ul>
+<p><code>np.random.shuffle</code></p>
+<hr>
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a><a name="part3"></a>索引</h2><ul>
+<li>最大最小值的索引</li>
+</ul>
+<p><code>argmin</code>, <code>argmax</code></p>
+<ul>
+<li>排序索引</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">arr = np.arange(<span class="number">10</span>)</span><br><span class="line">np.random.shuffle(arr)</span><br><span class="line"><span class="comment"># array([2, 4, 9, 6, 7, 8, 3, 0, 5, 1])</span></span><br><span class="line">np.sort(arr)</span><br><span class="line">np.argsort(arr)</span><br><span class="line"><span class="comment"># array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])</span></span><br><span class="line"><span class="comment"># array([7, 9, 0, 6, 1, 8, 3, 4, 5, 2])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>根据指定坐标访问矩阵（例：访问第0，2行的第1个元素）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">MM = np.arange(<span class="number">12</span>).reshape([<span class="number">3</span>,<span class="number">4</span>])</span><br><span class="line">MM[[<span class="number">0</span>,<span class="number">2</span>], [<span class="number">1</span>]]</span><br><span class="line"><span class="comment"># array([[ 0,  1,  2,  3],</span></span><br><span class="line"><span class="comment">#        [ 4,  5,  6,  7],</span></span><br><span class="line"><span class="comment">#        [ 8,  9, 10, 11]])</span></span><br><span class="line"><span class="comment"># array([1, 9])</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MM[:MM.shape[<span class="number">0</span>], [<span class="number">1</span>]]</span><br><span class="line"><span class="comment"># array([[1],</span></span><br><span class="line"><span class="comment">#        [5],</span></span><br><span class="line"><span class="comment">#        [9]])</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>根据布尔值访问矩阵（例：访问第0，2行的第1个元素）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">MM = np.arange(<span class="number">12</span>).reshape([<span class="number">3</span>,<span class="number">4</span>])</span><br><span class="line">row = [<span class="keyword">True</span>, <span class="keyword">False</span>, <span class="keyword">True</span>]</span><br><span class="line">col = [<span class="keyword">False</span>, <span class="keyword">True</span>, <span class="keyword">False</span>, <span class="keyword">False</span>]</span><br><span class="line">MM[row, col]</span><br><span class="line"><span class="comment"># array([[ 0,  1,  2,  3],</span></span><br><span class="line"><span class="comment">#        [ 4,  5,  6,  7],</span></span><br><span class="line"><span class="comment">#        [ 8,  9, 10, 11]])</span></span><br><span class="line"><span class="comment"># array([1, 9])</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="矩阵大小判断"><a href="#矩阵大小判断" class="headerlink" title="矩阵大小判断"></a><a name="part4"></a>矩阵大小判断</h2><ul>
+<li><p>比较运算符都是支持的，返回的是布尔矩阵</p>
+</li>
+<li><p>与和或运算 <code>all</code>, <code>any</code></p>
+</li>
+<li><p>统计非0元素 <code>count_nonzero</code></p>
+</li>
+<li><p>多个逻辑相叠加</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arr = np.arange(<span class="number">12</span>)</span><br><span class="line">np.sum((arr &gt; <span class="number">5</span>) &amp; ~(arr % <span class="number">2</span> == <span class="number">0</span>))</span><br><span class="line"><span class="comment"># array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])</span></span><br><span class="line"><span class="comment"># 3</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="numpy综合小实战"><a href="#numpy综合小实战" class="headerlink" title="numpy综合小实战"></a><a name="part8"></a>numpy综合小实战</h2><p>取出矩阵中的一些行，满足每一行最后一列的元素值能被3整除</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">XX = np.arange(<span class="number">16</span>).reshape((<span class="number">4</span>,<span class="number">4</span>))</span><br><span class="line"><span class="comment"># array([[ 0,  1,  2,  3],</span></span><br><span class="line"><span class="comment">#        [ 4,  5,  6,  7],</span></span><br><span class="line"><span class="comment">#        [ 8,  9, 10, 11],</span></span><br><span class="line"><span class="comment">#        [12, 13, 14, 15]])</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 我的解法</span></span><br><span class="line">XX[(XX[:XX.shape[<span class="number">0</span>], [<span class="number">-1</span>]] % <span class="number">3</span> == <span class="number">0</span>)[:, <span class="number">0</span>], :XX.shape[<span class="number">1</span>]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 老师的解法</span></span><br><span class="line">XX[XX[:, <span class="number">3</span>] % <span class="number">3</span> == <span class="number">0</span>, :]</span><br></pre></td></tr></table></figure>
+<p><em>注：表格数据处理类库 Pandas</em></p>
+<hr>
+<h2 id="绘制折线图"><a href="#绘制折线图" class="headerlink" title="绘制折线图"></a><a name="part5"></a>绘制折线图</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">X = np.linspace(<span class="number">0</span>, <span class="number">10</span>, <span class="number">100</span>)</span><br><span class="line">Y = np.sin(X)</span><br><span class="line">Y2 = np.cos(X)</span><br><span class="line">plt.plot(X, Y, color=<span class="string">"red"</span>, linestyle=<span class="string">"--"</span>, label=<span class="string">"sin(x)"</span>)</span><br><span class="line">plt.plot(X, Y2, linestyle=<span class="string">"-."</span>, label=<span class="string">"cos(x)"</span>)</span><br><span class="line">plt.xlim(<span class="number">-5</span>, <span class="number">15</span>)</span><br><span class="line">plt.ylim(<span class="number">0</span>, <span class="number">1.5</span>)</span><br><span class="line">plt.xlabel(<span class="string">"X axis"</span>)</span><br><span class="line">plt.ylabel(<span class="string">"Y value"</span>)</span><br><span class="line"><span class="comment"># 添加plot中的label</span></span><br><span class="line">plt.legend()</span><br><span class="line">plt.title(<span class="string">"Welcome to ML world"</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="image-1.png" alt=""></p>
+<hr>
+<h2 id="绘制散点图"><a href="#绘制散点图" class="headerlink" title="绘制散点图"></a><a name="part6"></a>绘制散点图</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="comment"># 绘制正态分布</span></span><br><span class="line">xx = np.random.normal(<span class="number">0</span>, <span class="number">10</span>, <span class="number">100000</span>)</span><br><span class="line">yy = np.random.normal(<span class="number">0</span>, <span class="number">10</span>, <span class="number">100000</span>)</span><br><span class="line"><span class="comment"># 设置透明度</span></span><br><span class="line">plt.scatter(xx, yy, alpha=<span class="number">0.5</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p><img src="image-2.png" alt=""></p>
+<hr>
+<h2 id="对鸢尾花的数据进行绘制"><a href="#对鸢尾花的数据进行绘制" class="headerlink" title="对鸢尾花的数据进行绘制"></a><a name="part7"></a>对鸢尾花的数据进行绘制</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> datasets</span><br><span class="line">iris = datasets.load_iris()</span><br><span class="line">X = iris.data[:, :<span class="number">2</span>]</span><br><span class="line">y=iris.target</span><br><span class="line">plt.scatter(X[y==<span class="number">0</span>, <span class="number">0</span>], X[y==<span class="number">0</span>, <span class="number">1</span>], color=<span class="string">"red"</span>, marker=<span class="string">"o"</span>)</span><br><span class="line">plt.scatter(X[y==<span class="number">1</span>, <span class="number">0</span>], X[y==<span class="number">1</span>, <span class="number">1</span>], color=<span class="string">"green"</span>, marker=<span class="string">"+"</span>)</span><br><span class="line">plt.scatter(X[y==<span class="number">2</span>, <span class="number">0</span>], X[y==<span class="number">2</span>, <span class="number">1</span>], color=<span class="string">"black"</span>, marker=<span class="string">"*"</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="image-3.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2018/06/26/慕课网机器学习笔记（2）/" data-id="cm2q61t1400exdqjh27ytivpl" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/机器学习/">机器学习</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/06/27/慕课网机器学习笔记（3）/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          慕课网机器学习笔记（3）
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/06/25/慕课网机器学习笔记（1）/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">慕课网机器学习笔记（1）</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>199</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
