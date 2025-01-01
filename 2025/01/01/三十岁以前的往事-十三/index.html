@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>三十岁以前的往事（十三）：持续进化 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="continue envolving …">
+<meta name="keywords" content="总结,回忆录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三十岁以前的往事（十三）：持续进化">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/01/01/三十岁以前的往事-十三/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="continue envolving …">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2025-01-01T08:55:24.474Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="三十岁以前的往事（十三）：持续进化">
+<meta name="twitter:description" content="continue envolving …">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>200</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="blog-三十岁以前的往事-十三" class="wow slideInRight article article-type-blog" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/01/01/三十岁以前的往事-十三/" class="article-date">
+  <time class="post-time" datetime="2025-01-01T08:49:48.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">01</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      三十岁以前的往事（十三）：持续进化
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/回忆录/">回忆录</a>
+  </div>
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>continue envolving …</p>
+<a id="more"></a>
+<ul>
+<li>工作<ul>
+<li>建库标准化工作，存量库种汉语、bank 混合库、音乐迁移及业务需求支持。库种所涉及的业务细节这里不详细介绍了，主要想简要概述一下对新架构的一些理解<ul>
+<li><strong>数据引入</strong>：老架构中人工编码了大量的 trick 逻辑，分散在老引入和老计算系统模块中，不利于维护。在新架构中，将这部分逻辑从计算模块中拆分出来，通过配置来进行明确定义<ul>
+<li>数据是从哪里来的：消息队列？列存储？RPC？</li>
+<li>原始数据的格式，pb？json？ulpack？</li>
+<li>数据类型，走 json schema 校验；架构 c++ 库统一注册和管理数据类型，从简单的 c++ 类型到复杂的自定义数据类型，自己实现序列化和反序列化接口，各模块通过 lib 的形式联编这个 c++ 库。</li>
+</ul>
+</li>
+<li><strong>数据计算</strong>：<ul>
+<li>老计算系统模块中，如果想新增一个由业务算子产出的数据，流程大概是这样的：<ul>
+<li>首先先在平台网页上注册算子名称、输入输出字段、算子所属代码库等算子基础信息。</li>
+<li>然后在平台网页上注册数据，需要填写产生这个数据的算子名称，也就是第一步注册的算子，以及这个算子输入的字段对应的数据，这些数据都需要在平台上注册过。</li>
+<li>最后，由一个编排脚本根据数据血缘关系生成计算系统的配置，包括计算拓扑和算子配置，由架构 rd 将配置同步到计算系统模块代码库，编译后上线。</li>
+</ul>
+</li>
+<li>这种方式看似非常理想，一个平台可以管理所有的数据以及数据间的血缘关系，并可以根据这些信息自动生成计算系统的配置，但是在实际使用过程中，存在一些问题：<ul>
+<li>由于缺乏亲民的文档说明，架构师对于数据管理的设计思想没法传递给一线架构 rd 以及业务 rd ，导致很多数据注册的不规范，生成的计算系统配置不符合预期，最终部署前往往需要人工调整，甚至出现过由于计算拓扑生成存在问题，部分数据生成失败，导致线上事故。</li>
+<li>如果有需求需要注册二十个数据，那么就需要在平台页面上操作二十次，且数据注册的流程较长，效率低下。尤其是去年部分库种从更老的系统往这个系统做迁移时，需要注册百二十个数据，当时只能找平台的同学开放平台 api 接口以及平台数据库表权限，通过脚本来完成批量数据注册。</li>
+</ul>
+</li>
+<li>对于新架构来说，对于整体的建库通路来说，计算系统是一个黑盒，当前只用明确计算模块的输入和输出格式、字段、类型即可。中间的计算方式由计算系统自定义，灵活度较高。当前有两套新计算系统，一套完全适配老系统算子，支持 c++ 算子以及 python 算子，c++ 算子通过 so 加载，python 算子通过 pybind 加载，算子代码、配置和计算拓扑配置托管在库种独立的业务代码库，这套主要是用来承接老计算系统中包含业务算子较多的库种；另一套会将业务算子作为静态库联编至计算系统中，只支持 c++ 算子，所有库种的算子代码及配置托管在架构计算系统代码库中，计算拓扑根据数据血缘关系自动推导，一般新业务或者老计算系统中算子较少的业务会走这套系统。</li>
+</ul>
+</li>
+<li><strong>数据生效</strong>：<ul>
+<li>老架构中，数据生效配置存在多种模式，包括：<ul>
+<li>在架构模块中，业务编码配置生效方式。</li>
+<li>在架构代码库中，业务提交生效配置。</li>
+<li>在平台上，业务在网页上填写生效配置。</li>
+</ul>
+</li>
+<li>对于建库架构来说，数据生效配置的分散不利于一个库种的数据生效有一个整体的视角，维护难度大。新架构中，均通过配置明确定义，某个数据生效到哪个容器中，正排？摘要？索引？消费队列？等。配置托管在一个独立的配置代码库中，生效方式由统一的建库模块完成。</li>
+</ul>
+</li>
+<li><strong>配置管理</strong>：<ul>
+<li>从前面三个部分的配置可以看出，老架构中配置分散，管理困难，没有统一的规范和标准。在新架构中，所有建库配置均托管在独立的配置代码库中，架构师对于建库中涉及的各个方面进行了抽象，新架构下业务提交的配置本质上就是对数据的描述，主要包括<strong>数据引入</strong>（从哪里来）和<strong>数据生效</strong>（到哪里去） ，而建库中涉及的各个架构模块通过自己的脚本将这些配置转化为模块本身的配置，在业务合入配置后，由流水线触发各个架构模块的脚本执行，最终生成的各模块的配置也托管在代码库中的分支上。这些配置均采用 json 格式，每一个配置项均有对应的 json schema 定义，在提交配置时会进行 json schema 校验。在建库配置里，对于数据描述的配置由架构师把关，各模块的配置由各模块的 owner 负责。</li>
+<li>全部采用以 json 格式的纯文本化配置带来的优势，作为 rd，我对以下几点有明确的感知：<ul>
+<li>在老库种往新架构迁移时，方便使用脚本批量生成数据配置，效率很高。</li>
+<li>可以使用 json diff 工具比较一次变更前后，最终生成的数据配置和各模块配置有哪些变更。</li>
+<li>通过阅读 json schema 即可知道一个配置的大概功能，无需维护额外的文档，并且由于 json schema 校验的存在，可以大大降低配置填错的风险。</li>
+</ul>
+</li>
+<li>虽然架构师对于系统和数据的抽象已经很完善了，然而免不了还存在一些特殊的业务场景无法用当前的配置进行描述，只能在模块层面编写 trick 代码逻辑进行适配，不过和老系统比，数量少了很多。目前的主要工作还是以存量库种迁新架构为主，配置的机制，例如测试流水线以及预上线环境，建设的还不完善，例如在跑测试流水线时，存在因为数据未对齐而造成的非预期 diff ，不过随着去年一年迁移工作的收敛，机制优化的工作也会逐步提上日程。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>离线中间件模块，mongo 和 kafka，主要负责维护工作：<ul>
+<li>对于 kafka ，影响最深的线上问题在另外的博文中也有介绍，就是 kafka controller 启动失败的问题以及业务频繁请求 kafka 导致其 gc 时间暴涨的问题，排查的过程还是挺有意思的（但是查了三四个小时）。</li>
+<li>对于 mongo，今年上半年给各集群把 iptable 白名单都加上了，结了安全漏洞工单，这个工单我从 22 年就开始延期了。后续业务必须通过一个 http restapi 来访问 mongo ，或者申请给服务或者物理机添加 iptable 来直连 mongo 。我额外在一个物理机上搭了一个 23 年没完工的 mongos proxy ，供业务临时连接 mongo 使用，它本质上就是一个实现了 mongo 的协议 tcp proxy ，在收到业务请求后，将其转发给对应的 mongos 服务。</li>
+</ul>
+</li>
+<li>效率：<ul>
+<li>开始尝试在工作中使用大模型的能力处理一些问题，例如给出需求描述让大模型来生成代码片段，效果非常不错。公司内部有平台集成了各大主流大模型的服务，每天的 token 很足，可以直接白嫖。</li>
+<li>使用滴答清单来托管工作和生活中的代办项，减轻大脑的记忆负担。对于一个项目，现在会在滴答清单里建一个独立的清单，拆分子任务注册到清单里，添加任务描述及目标，并配置 deadline 提醒。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>生活<ul>
+<li>运动：<ul>
+<li>恢复了撸铁，工作日晚上会抽时间，周末会在下午</li>
+<li>身高体重：179cm / 76.5 kg</li>
+<li>杠铃卧推 80kg 6/6/5/4/4</li>
+<li>上斜哑铃卧推 30kg 6/6/5/4</li>
+<li>杠铃深蹲 95kg 4/4/4/4</li>
+<li>硬拉 120kg 6/5/4/4</li>
+<li>杠铃推举 55kg 6/6/5/4</li>
+<li>杠铃划船 100kg 6/6/6/5</li>
+<li>15kg 负重引体 6/6/6/5</li>
+</ul>
+</li>
+<li>游戏：<ul>
+<li>戒掉了星际酒馆，但还会看游戏直播和视频</li>
+<li>kingdomrush5、thronefall、making lovers</li>
+</ul>
+</li>
+<li>院线电影<ul>
+<li>《沙丘2》、《异形：夺命舰》、《间谍过家家 代号白》</li>
+</ul>
+</li>
+<li>学习：<ul>
+<li>周末来公司看会书</li>
+<li>《乔布斯传》、《小米创业思考》、《清醒思考的艺术》、《沙丘》（二刷）、《设计数据密集型应用》</li>
+</ul>
+</li>
+<li>常用设备：<ul>
+<li>手机：iPhone 15 Pro（新增，替换 iPhone 11）</li>
+<li>电脑：MacBookPro M2 13寸（公司）、MacBookPro M3Max 16寸（个人）</li>
+<li>耳机：AirPods Pro 2</li>
+<li>笔记：Obisdian ，其它调研中，例如 logseq</li>
+<li>日程：滴答清单</li>
+<li>阅读：微信读书</li>
+<li>浏览器：Arc</li>
+<li>AI 助手：GPT4、Claude3.5</li>
+</ul>
+</li>
+<li>一些软件的年度总结<ul>
+<li>B 站 年度  UP 主：影视飓风</li>
+<li>网易云音乐 年度音乐人：ClariS</li>
+<li>招商银行 年度收入增加 15% ，存款增加 30%</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>总结<ul>
+<li>对于数据处理系统如何管理数据有了一定的理解。熟悉了 c++ 代码的编写。</li>
+<li>身体力量有所增长。有一定的知识摄入。对于知识的管理方式有了一定的思考和优化。</li>
+</ul>
+</li>
+<li>未来<ul>
+<li>在工作方面，熟悉业务、打好基础，前者是为了能更好地完成当前工作，后者是为了可以随时寻找新的工作机会。目前已经工作了 2.5 年了，新的一年暂时苟着，但是不排除换工作的打算，不过概率很低。</li>
+<li>在生活方面，坚持运动和读书，尝试新的模式，例如借助 AI 来学习新知识、通过新模式来记录和管理知识等。</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/01/01/三十岁以前的往事-十三/" data-id="cm5dny63t00a88r9kcaxb52ij" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/10/26/kafka-client-并发处理单-partition-异常场景分析/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka client 并发处理单 partition 异常场景分析</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>200</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
