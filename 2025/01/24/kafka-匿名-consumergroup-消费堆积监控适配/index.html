@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka 匿名 consumergroup 消费堆积监控适配 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="需要有些关于 __consumer_offsets 作用的小知识">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka 匿名 consumergroup 消费堆积监控适配">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="需要有些关于 __consumer_offsets 作用的小知识">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/匿名消费者组样例.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/非预期kafka监控样例.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/异常监控样例.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/kafka-manager样例_.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2016.33.58.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2016.36.56.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2016.51.35.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2016.53.51.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2016.58.47.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2017.02.44.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2017.05.52.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/截屏2025-01-20%2022.29.55.png">
+<meta property="og:updated_time" content="2025-01-24T03:10:56.385Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka 匿名 consumergroup 消费堆积监控适配">
+<meta name="twitter:description" content="需要有些关于 __consumer_offsets 作用的小知识">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/匿名消费者组样例.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>201</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kafka-匿名-consumergroup-消费堆积监控适配" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/" class="article-date">
+  <time class="post-time" datetime="2025-01-24T03:08:42.000Z" itemprop="datePublished">
+    <span class="post-month">1月</span><br/>
+    <span class="post-day">24</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kafka 匿名 consumergroup 消费堆积监控适配
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>需要有些关于 <code>__consumer_offsets</code> 作用的小知识</p>
+<a id="more"></a>
+<h2 id="背景及问题"><a href="#背景及问题" class="headerlink" title="背景及问题"></a>背景及问题</h2><p>某个 kafka 集群中，消费者在消费数据时，使用的是框架自动生成的 consumergroup ，也即一个 consumer 新建一个 consumergroup ，样例如下：</p>
+<p><img src="匿名消费者组样例.png" alt=""></p>
+<p>在配置完 kafka_exporter 和 prometheus 采集任务后，在 grafana 上配置表达式，但是发现结果不符合预期，一些 consumergroup 的 lag 异常，从表象上看，感觉是因为实例迁移/重启而产生的废弃的旧 consumergroup。</p>
+<p><img src="非预期kafka监控样例.png" alt=""></p>
+<h2 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h2><p>从 kafka manager 上看，这些异常的 consumergroup 都是不存在的。以 <code>_bjdd-ps-beehive-agent254112.bjdd.baidu.com172480</code>为例：</p>
+<h3 id="监控"><a href="#监控" class="headerlink" title="监控"></a>监控</h3><p>从监控上看，这个 tag 是异常的：</p>
+<p><img src="异常监控样例.png" alt=""></p>
+<h3 id="kafka-manager"><a href="#kafka-manager" class="headerlink" title="kafka-manager"></a>kafka-manager</h3><p>从 kafka-manager 上看，没有这个 consumergroup 信息：</p>
+<p><img src="kafka-manager样例_.png" alt=""></p>
+<h3 id="kafka-cli"><a href="#kafka-cli" class="headerlink" title="kafka cli"></a>kafka cli</h3><p>通过 kafka 自带的 cli 工具查询 consumergroup 的信息，其中是有这个 consumergroup 的：</p>
+<p><img src="截屏2025-01-20 16.33.58.png" alt=""></p>
+<h3 id="kafka-golang-client"><a href="#kafka-golang-client" class="headerlink" title="kafka golang client"></a>kafka golang client</h3><p>kafka_exporter 使用 golang 实现。这里使用 kafka golang client 编码以模拟 kafka_exporter 的执行方式。在结果中，也是有这个 consumergroup ：</p>
+<p><img src="截屏2025-01-20 16.36.56.png" alt=""></p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>kafka-manager 获取 consumergroup 的方式肯定和 kafka cli 和 kafka golang client 的方式不同，前者的方式更为精确。</p>
+<h2 id="解决步骤"><a href="#解决步骤" class="headerlink" title="解决步骤"></a>解决步骤</h2><h3 id="kafka-manager-consumergroup-信息采集流程分析"><a href="#kafka-manager-consumergroup-信息采集流程分析" class="headerlink" title="kafka-manager consumergroup 信息采集流程分析"></a>kafka-manager consumergroup 信息采集流程分析</h3><p>代码库为：<a href="https://github.com/yahoo/CMAK/tree/2.0.0.2" target="_blank" rel="noopener">https://github.com/yahoo/CMAK/tree/2.0.0.2</a> 。整体通过 Scala 实现，由于对 Scala 的语法完全不了解，所以只能连蒙带猜地看。</p>
+<p>首先，这是一个 http web 服务，那么先找处理 http 的代码，按照 Java 项目的规范，猜测在 controller 目录下： <a href="https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/controllers/Consumer.scala#L1-L40" target="_blank" rel="noopener">https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/controllers/Consumer.scala#L1-L40</a>。看代码的意思，主要是调用了 <code>kafkaManager</code>来获取 consumergroup 的信息。</p>
+<p><img src="截屏2025-01-20 16.51.35.png" alt=""></p>
+<p>找到方法 <code>getConsumerListExtended</code>实现的地方，<a href="https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/KafkaManager.scala#L640-L656" target="_blank" rel="noopener">https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/KafkaManager.scala#L640-L656</a>，前面的 <code>tryWithKafkaManagerActor</code>感觉像是对执行逻辑的封装，和业务逻辑无关，那么和业务逻辑相关的函数感觉是在 <code>KSGetConsumers</code>中</p>
+<p><img src="截屏2025-01-20 16.53.51.png" alt=""></p>
+<p>全局搜索 <code>KSGetConsumers</code>的实现，如下 <a href="https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/actor/cluster/KafkaStateActor.scala#L1266-L1269" target="_blank" rel="noopener">https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/actor/cluster/KafkaStateActor.scala#L1266-L1269</a> ，发现是调用了一个 cache</p>
+<p><img src="截屏2025-01-20 16.58.47.png" alt=""></p>
+<p>相关的 cache 类找了一圈，感觉 <code>KafkaManagedOffsetCache</code>比较可疑，<a href="https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/actor/cluster/KafkaStateActor.scala#L178-L197" target="_blank" rel="noopener">https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/actor/cluster/KafkaStateActor.scala#L178-L197</a> ，看到类定义中的 <code>val ConsumerOffsetTopic = &quot;__consumer_offsets&quot;</code>，突然想起一件事情。kafka 中 consumergroup 的信息是存放在 topic <code>__consumer_offsets</code> 中的，那么我直接将代码改造成消费这个 topic 的数据来统计有效的 consumergroup 信息不就行了吗？看这个类的实现，也确实是消费这个 topic 中的数据，解析出 consumergroup 的信息然后存到内存中 <a href="https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/actor/cluster/KafkaStateActor.scala#L322-L373" target="_blank" rel="noopener">https://github1s.com/yahoo/CMAK/blob/2.0.0.2/app/kafka/manager/actor/cluster/KafkaStateActor.scala#L322-L373</a></p>
+<p><img src="截屏2025-01-20 17.02.44.png" alt=""></p>
+<p><img src="截屏2025-01-20 17.05.52.png" alt=""></p>
+<h3 id="consumer-offsets-数据结构"><a href="#consumer-offsets-数据结构" class="headerlink" title="__consumer_offsets 数据结构"></a>__consumer_offsets 数据结构</h3><p>这个 topic 中每条数据的内容如下所示</p>
+<p>Kafka 的 <code>__consumer_offsets</code> 主题存储了消费者组的偏移量信息，其中的消息格式主要包含以下几种：</p>
+<h4 id="偏移量提交记录格式"><a href="#偏移量提交记录格式" class="headerlink" title="偏移量提交记录格式"></a>偏移量提交记录格式</h4><p>Key:</p>
+<ul>
+<li><p>version: 版本号</p>
+</li>
+<li><p>group.id: 消费者组ID</p>
+</li>
+<li><p>topic: 主题名称</p>
+</li>
+<li><p>partition: 分区号</p>
+</li>
+</ul>
+<p>Value:</p>
+<ul>
+<li><p>offset: 偏移量</p>
+</li>
+<li><p>metadata: 元数据（通常为空字符串）</p>
+</li>
+<li><p>commit_timestamp: 提交时间戳</p>
+</li>
+<li><p>expire_timestamp: 过期时间戳</p>
+</li>
+</ul>
+<h4 id="消费者组元数据格式"><a href="#消费者组元数据格式" class="headerlink" title="消费者组元数据格式"></a>消费者组元数据格式</h4><p>Key:</p>
+<ul>
+<li><p>version: 版本号</p>
+</li>
+<li><p>group.id: 消费者组ID</p>
+</li>
+</ul>
+<p>Value:</p>
+<ul>
+<li><p>protocol_type: 协议类型</p>
+</li>
+<li><p>generation_id: 代数</p>
+</li>
+<li><p>protocol: 分区分配协议</p>
+</li>
+<li><p>leader: leader成员ID</p>
+</li>
+<li><p>members: 成员列表信息</p>
+</li>
+</ul>
+<h4 id="消费者组过期格式（墓碑消息）"><a href="#消费者组过期格式（墓碑消息）" class="headerlink" title="消费者组过期格式（墓碑消息）"></a>消费者组过期格式（墓碑消息）</h4><p>Key: 与上述格式相同</p>
+<p>Value: null（表示删除）</p>
+<h3 id="解析-Key-的代码"><a href="#解析-Key-的代码" class="headerlink" title="解析 Key 的代码"></a>解析 Key 的代码</h3><p>核心对于 Key 的解析代码如下（由 claude 生成）：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> consumergroup</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"encoding/binary"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消息类型常量</span></span><br><span class="line"><span class="keyword">const</span> (</span><br><span class="line">	TYPE_OffsetCommitKey  = <span class="number">0</span></span><br><span class="line">	TYPE_GroupMetadataKey = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// OffsetKey 表示偏移量提交的 key 结构</span></span><br><span class="line"><span class="keyword">type</span> OffsetKey <span class="keyword">struct</span> &#123;</span><br><span class="line">	Version   <span class="keyword">int16</span></span><br><span class="line">	GroupID   <span class="keyword">string</span></span><br><span class="line">	Topic     <span class="keyword">string</span></span><br><span class="line">	Partition <span class="keyword">int32</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// GroupMetadataKey 表示消费者组元数据的 key 结构</span></span><br><span class="line"><span class="keyword">type</span> GroupMetadataKey <span class="keyword">struct</span> &#123;</span><br><span class="line">	Version <span class="keyword">int16</span></span><br><span class="line">	GroupID <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// decodeOffsetKey 用于解码 __consumer_group 中的 key</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">decodeOffsetKey</span><span class="params">(data []<span class="keyword">byte</span>)</span> <span class="params">(<span class="keyword">interface</span>&#123;&#125;, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(data) &lt; <span class="number">2</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"key data too short"</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	version := <span class="keyword">int16</span>(binary.BigEndian.Uint16(data[:<span class="number">2</span>]))</span><br><span class="line">	offset := <span class="number">2</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 读取 group ID</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(data) &lt; offset+<span class="number">2</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid group ID length field"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	groupIDLen := <span class="keyword">int</span>(binary.BigEndian.Uint16(data[offset : offset+<span class="number">2</span>]))</span><br><span class="line">	offset += <span class="number">2</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(data) &lt; offset+groupIDLen &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid group ID data"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	groupID := <span class="keyword">string</span>(data[offset : offset+groupIDLen])</span><br><span class="line">	offset += groupIDLen</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 判断消息类型</span></span><br><span class="line">	keyType := <span class="number">-1</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(data) &gt; offset &#123;</span><br><span class="line">		keyType = TYPE_OffsetCommitKey</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		keyType = TYPE_GroupMetadataKey</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">switch</span> keyType &#123;</span><br><span class="line">	<span class="keyword">case</span> TYPE_OffsetCommitKey:</span><br><span class="line">		<span class="comment">// 读取 topic</span></span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(data) &lt; offset+<span class="number">2</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid topic length field"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		topicLen := <span class="keyword">int</span>(binary.BigEndian.Uint16(data[offset : offset+<span class="number">2</span>]))</span><br><span class="line">		offset += <span class="number">2</span></span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(data) &lt; offset+topicLen &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid topic data"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		topic := <span class="keyword">string</span>(data[offset : offset+topicLen])</span><br><span class="line">		offset += topicLen</span><br><span class="line"></span><br><span class="line">		<span class="comment">// 读取 partition</span></span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(data) &lt; offset+<span class="number">4</span> &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"invalid partition data"</span>)</span><br><span class="line">		&#125;</span><br><span class="line">		partition := <span class="keyword">int32</span>(binary.BigEndian.Uint32(data[offset:]))</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> &amp;OffsetKey&#123;</span><br><span class="line">			Version:   version,</span><br><span class="line">			GroupID:   groupID,</span><br><span class="line">			Topic:     topic,</span><br><span class="line">			Partition: partition,</span><br><span class="line">		&#125;, <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">case</span> TYPE_GroupMetadataKey:</span><br><span class="line">		<span class="keyword">return</span> &amp;GroupMetadataKey&#123;</span><br><span class="line">			Version: version,</span><br><span class="line">			GroupID: groupID,</span><br><span class="line">		&#125;, <span class="literal">nil</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">"unknown key type"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="整体实现思路"><a href="#整体实现思路" class="headerlink" title="整体实现思路"></a>整体实现思路</h3><p>整体的实现思路是，从头开始消费 <code>__consumer_offsets</code> 中的数据，如果<strong>数据写入的时间和当前时间比大于一个阈值</strong>，则忽略。将有效的 consumergroup 维护在内存的一个 map 中，如果后续有新增的 Key 则向 map 中补充，如果读到的 Value 为空，则代表这个 consumergroup 失效了，就会从 map 中移除，并且提供 http 接口支持人工删除 consumergroup。</p>
+<p>对于 exporter 程序，使用 kafka golang client 拉取全量 consumergroup 列表，用这个 map 把无效的 consumergroup 滤去后，再进一步获取相关监控数据。在过滤的同时，会检查 map 中的数据和当前的时间比是否大于一个阈值，如果是，则会将 map 中的 key 删除。改造完后看监控指标就正常了许多。</p>
+<p><img src="截屏2025-01-20 22.29.55.png" alt=""></p>
+<p>唯一的问题是，如果一个实例在消费时卡住了，不再向 <code>__consumer_group</code> 提交 offset 信息，那么这个实例消费的监控数据就会丢失。这个问题后面遇到再想想怎么解决吧。</p>
+<p>回到之前的问题，使用 kafka cli 和 kafka golang client 拉取全量 consumergroup 时包含很多无用 consumergroup 的原因，猜测可能是这部分 consumergroup 在 <code>__consumer_offsets</code>中虽然很久都没有新的 offset 更新，但是却一直都未过期（变成墓碑消息），所以才会被获取到。在 kafka manager 中可能也有对于 consumergroup 的过滤策略，没细研究代码，不确定（Scala 实在看不懂）。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/" data-id="cm6a6q7j4005wtojepb0r5bjd" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/01/01/三十岁以前的往事-十三/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">三十岁以前的往事（十三）：持续进化</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>201</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>66</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
