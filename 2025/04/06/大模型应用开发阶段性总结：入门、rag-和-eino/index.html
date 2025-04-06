@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>大模型应用开发阶段性总结：入门、rag 和 eino | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="最近几个月与大模型应用开发相关的一些总结">
+<meta name="keywords" content="大模型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大模型应用开发阶段性总结：入门、rag 和 eino">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="最近几个月与大模型应用开发相关的一些总结">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2014.57.27.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2014.59.25.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2015.08.27.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/截屏2025-04-06%2015.13.33.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/截屏2025-04-06%2015.13.03.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/截屏2025-04-06%2015.13.09.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2015.36.59.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2015.37.35.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2015.41.15.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2015.41.29.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/截屏2025-04-04%2013.31.27.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/截屏2025-04-04%2013.31.42.png">
+<meta property="og:updated_time" content="2025-04-06T08:32:21.755Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="大模型应用开发阶段性总结：入门、rag 和 eino">
+<meta name="twitter:description" content="最近几个月与大模型应用开发相关的一些总结">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/Screenshot%202025-04-06%20at%2014.57.27.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>202</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>67</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-大模型应用开发阶段性总结：入门、rag-和-eino" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/" class="article-date">
+  <time class="post-time" datetime="2025-04-06T08:30:23.000Z" itemprop="datePublished">
+    <span class="post-month">4月</span><br/>
+    <span class="post-day">06</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      大模型应用开发阶段性总结：入门、rag 和 eino
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近几个月与大模型应用开发相关的一些总结</p>
+<a id="more"></a>
+<hr>
+<h2 id="之前的事情"><a href="#之前的事情" class="headerlink" title="之前的事情"></a>之前的事情</h2><p>我大概是在 2024 年开始接触大模型的。和七八年前接触 web 开发的经历很像，最初都是使用其他人开发的应用，对其中的原理和概念基本不了解。</p>
+<p>在日常的工作中使用的的是公司内部提供的一个平台 panda，通过聊天的形式让 gpt/claude/文心给我做一些简单的工作：</p>
+<ul>
+<li><p>写一些简单的代码，例如编写 python 代码读取一个目录下所有的 json 文件并解析</p>
+</li>
+<li><p>咨询一些技术上的问题，例如 mongo shard 的新节点同步数据的流程</p>
+</li>
+</ul>
+<p>在代码开发的过程中，使用到了公司提供的基于大模型的代码补全/纠错插件 comate 。由于这个插件的补全效果还是挺不错的，现在已经习惯了写了一半代码后，等 comate 给我补全剩下的内容，以至于回到自用电脑上写代码，在没有 comate 的情况下，都有点不太会写代码了。</p>
+<p>在这期间也接触到了其它一些基于大模型开发的应用，例如 Perplexity，在向它提问后，它会主动地对问题进行拆解，然后对于每个子问题，在网上搜索相关资料，最终给出总结。</p>
+<p>我在整个 2024 年的工作都是围绕着离线建库架构迁移开展的，到年末快告一段落的时候，组长给我分配了一个和大模型相关的新的方向。</p>
+<p>从 2023 年到 2024 年，组内其它的同事参与建设了一个智能助手的项目，利用大模型的能力实现了如下功能：</p>
+<ul>
+<li><p>文档问答：基于组内沉淀的文档，对于用户在离线建库领域提出的问题进行回答</p>
+</li>
+<li><p>工具调用：根据用户的需求，调用工具来完成简单的需求</p>
+</li>
+</ul>
+<p>这个项目目前已经处于无人维护的状态。对于文档问答功能，在实现的时候调用的是一个千帆的接口来完成文档的检索和总结，但是目前处理接口返回的数据异常，且相关负责同事已经记不清这个接口在千帆上的管理页面了。对于工具调用，在实现的时候使用的模型是 gpt ，成本略高，且工具调用效果一般。组长希望我可以接手这个项目，作为智能化线条的一部分，利用最新的技术进行重构。</p>
+<p>对于我个人而言，对大模型相关的技术也是挺感兴趣的，借着这个机会，在学习相关知识的同时，也能有一个具体的场景进行实践，并且由于是上级安排的探索性质的方向，也即可以在工作时间进行知识学习以及编码开发，所以实际上算是公司给你付费学习？</p>
+<p>回想起本科接触 web 开发时，由于缺乏实践的场景，有很长一段时间只是看相关的技术书籍以及文档，非常枯燥，差点失掉了兴趣，万幸后面报了一个网上极客学院的训练营，虽然他授课的内容质量不高，但是有一个完整的只是体系，并提供了大量的项目实践，且有专门的人 review 代码，才使得我的 web 开发的能力有了质的提升。那一阶段的经历算是我第一次真正意义上从零到一的自学。在后续对于新技术的学习上，我都尽量保持着实践优先的原则。</p>
+<hr>
+<h2 id="基础入门"><a href="#基础入门" class="headerlink" title="基础入门"></a>基础入门</h2><p>2025 年 Q1 的工作中，主项是 2024 年建库架构迁移的收尾，所以在 Q1 上半段进行收尾工作时，利用周末的时间先进行了与大模型开发相关的基础知识的学习。这一阶段的学习资料主要是极客时间的课程「程序员的 AI 开发第一课」。课程里有一个完整的知识体系，并且每一个知识点都配有代码样例，感觉还是不错的。</p>
+<h3 id="提示词"><a href="#提示词" class="headerlink" title="提示词"></a>提示词</h3><p>第一个关键概念是提示词（prompt）。实际上在和模型聊天的时候，用户发送给模型的文本就是提示词。模型会根据提示词生成对应的回答文本。</p>
+<p>在给人安排工作任务时，只有把任务的内容描述的足够细致，执行任务的人才可以理解并正确地完成，例如在安排任务的时候，需要说明任务的背景、任务的总目标、可以做怎样的拆解、可以使用哪些工具、得到最终结果的格式等。</p>
+<p>和大模型交互也是类似的，如果想让模型的回答更加精确，需要使用一些特定的提问格式，提供给大模型足够多的信息，例如定义角色 + 背景信息 + 任务目标 + 输出要求。并且就像是和人协作时，事前需要多次进行沟通对齐，事中需要多次检验子任务完成情况以及整体进度，事后需要验收一样，在和大模型交互时，需要根据模型执行的结果多次校准和优化提示词的内容，以达到最优的效果。</p>
+<h3 id="chat-api"><a href="#chat-api" class="headerlink" title="chat api"></a>chat api</h3><p>大模型的供应商提供了和大模型进行交互的 http 接口，开发者可以基于这个接口构建多种多样的应用，最常见的就是大模型聊天应用。</p>
+<p>和一般 http api 不同的是，为了降低用户可感知的延迟，大模型 chat api 接口使用了 sse 技术，流式返回大模型相应的 token，让用户可以感知到的响应延迟从模型完全输出结果提前到模型输出第一个 token。</p>
+<h3 id="agent"><a href="#agent" class="headerlink" title="agent"></a>agent</h3><p>在我的理解中，利用大模型的能力来完成特定任务的功能模块，就可以被称为 agent。</p>
+<p>agent 封装了和模型交互的流程，并作为完成一个任务的其中一个环节。为了更好地让模型来完成特定的任务，agent 内部预制了系统提示词（system prompt），请求大模型时的 prompt 为系统提示词 + 当前用户提示词。</p>
+<p>由于当前在调用大模型时一般为纯 http 接口，大模型侧不维护对话的上下文，所以如果有多轮对话的需求，需要由 agent 负责统一管理一次对话的上下文，以及在组装发给大模型的完整的 prompt 时，对历史对话进行裁切，在节约 token 的同时，避免大模型丢失重点。</p>
+<h3 id="ReAct"><a href="#ReAct" class="headerlink" title="ReAct"></a>ReAct</h3><p>一般来说，一个领域都会有一些最佳实践，例如编程领域的设计模式。在大模型应用开发中，也出现了一些优秀的范式，从而使得模型能更好地完成任务，ReAct 就是其中之一。</p>
+<p>通过 system prompt，让大模型在执行任务时，经历 思考 -&gt; 行动 -&gt; 观察 -&gt; 思考 -&gt; … 这一流程，以实现大模型对一个任务的拆解、子任务的执行以及自我检查执行结果。在行动阶段，可以提供给大模型一系列的工具，让它来执行 tool call 来获取额外的信息或者执行子任务。</p>
+<h3 id="RAG"><a href="#RAG" class="headerlink" title="RAG"></a>RAG</h3><p>全称为 Retrieval-Augmented Generation，这也算是一种大模型应用的执行范式。当用户在向大模型提问时，如果这个问题依赖某一特定领域的知识，或者对时效性要求较高，那么就需要在向大模型发起请求时，在请求的 prompt 中添加上这些知识，并告诉大模型需要结合提供的知识来进行回答。</p>
+<h3 id="大模型应用开发-lib-和框架"><a href="#大模型应用开发-lib-和框架" class="headerlink" title="大模型应用开发 lib 和框架"></a>大模型应用开发 lib 和框架</h3><p>之前看过一个形象的比喻，lib 是盖房子的工具，例如锤子，而框架是房子的脚手架。lib 可以使模块的一个功能更为高效地实现，而框架定义了整个模块应该如何实现。在大模型应用开发领域，一个流行的 lib 和框架分别是 python 库 openai 和 langchain 框架。</p>
+<p>实际上在极客时间的文章中，并没有一开始就上来介绍 lib 和框架的使用，而是通过裸调 openai http api 的方式，实现了一个简单的聊天机器人，通过这个 demo，可以清晰地展示出在交互时 request 和 response 的 body 的 json 格式，而 lib 无非就是对这个调用流程的封装以及增加一些切面。</p>
+<p>langchain 框架则是对大模型应用执行流程做了抽象，抽象为了类似于 linux 的 pipe 调用形式，模型调用作为其中的一个环节加入到调用链中。在这个调用链上可以动态增减组件，例如提示词模板、对话管理器等。一个样例为 <code>chain = template | history_msg | trim_msg | model | parser</code>  ，然后执行 <code>chain.invoke(messages)</code> 或 <code>for msg in chain.stream(messages):</code> 实现了一次应用业务逻辑的执行。</p>
+<p>我按照文章中的 demo，使用 langchain 框架实现了一个最简单的聊天机器人时的感觉，和七八年前学习 http server 的时候用 nodejs 实现第一个简单的 MEAN （MongoDB + Express.js + Angular + Nodejs）服务时的感觉差不多，了解了一种全新的领域以及开发范式。</p>
+<hr>
+<h2 id="文档问答模块重构"><a href="#文档问答模块重构" class="headerlink" title="文档问答模块重构"></a>文档问答模块重构</h2><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>服务号「 搜索离线建库help」 对于问答问答的场景，原服务直接调用了千帆的接口，且这个接口目前调用出错。实际上原先这个接口返回的结果也不是特别好，于是决定重新搞一个可控的问答模块。</p>
+<p><img src="Screenshot 2025-04-06 at 14.57.27.png" alt=""></p>
+<h3 id="选型"><a href="#选型" class="headerlink" title="选型"></a>选型</h3><p>其它团队建设过一个智能问答机器人，看着效果不错。咨询了相关负责的同学，是基于自建的 RAG 服务实现的。</p>
+<p>RAG 的流程简单来说是：</p>
+<ol>
+<li><p>用户提问</p>
+</li>
+<li><p>使用用户的问题检索关联的文档</p>
+</li>
+<li><p>将用户的问题和检索到的文档内容一起发给大模型</p>
+</li>
+<li><p>大模型结合文档的内容对问题进行解答</p>
+</li>
+</ol>
+<p>也就是补充了额外的知识给大模型。正好极客时间上有一门「RAG 快速开发实践」的课程，系统地介绍了 RAG 的实现细节，所以我就边学着课程，边利用学到的技术来重构文档问答模块。</p>
+<h3 id="检索数据生成"><a href="#检索数据生成" class="headerlink" title="检索数据生成"></a>检索数据生成</h3><p><img src="Screenshot 2025-04-06 at 14.59.25.png" alt=""></p>
+<p>简单来说，就是将原始文档转换为 markdown 的形式，并按照一定的规则进行第一次切块，切块后的原始数据存入到 sqlite 中。接着进行更细粒度的切块，并将切块结果向量化后，存入 chroma 向量数据库中。</p>
+<p>按照一般 markdown 文档向量化的流程，首先先基于标题进行第一次切割，这里使用到了 <code>langchain_text_splitters.MarkdownHeaderTextSplitter</code>库进行处理。</p>
+<p>按照标题切块的结果列表中，每一个块的 meta 信息中都会存有它所在的标题信息，另外我还为每一个块的 meta 信息中添加了一个唯一的 id 以及它来自的 markdown 文件 id 信息，用于在召回阶段使用。meta 信息的样例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">'Header_2'</span>: <span class="string">'快速开始'</span>, <span class="string">'Header_3'</span>: <span class="string">'请求示例'</span>, <span class="string">'__page_id_key'</span>: <span class="string">'mongo_restapi_doc.md_page_39fc7ddb-8322-472e-8def-ae819b556d7d'</span>, <span class="string">'__file_id_key'</span>: <span class="string">'mongo_restapi_doc.md'</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>这部分数据会落一份到本地的存储 sqlite 中，使用的 key 为 <code>__page_id_key</code>，value 为序列化为字符串的块数据。由于切块的库 <code>langchain_text_splitters</code>是在 langchain 体系下的，切块的结果为 <code>langchain_core.documents.Document</code>类型，所以可以调用 langchain 提供的工具进行序列化和反序列化</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain_core.load <span class="keyword">import</span> dumps <span class="keyword">as</span> langchain_obj_dumps</span><br><span class="line"><span class="keyword">from</span> langchain_core.load <span class="keyword">import</span> loads <span class="keyword">as</span> langchain_obj_loads</span><br></pre></td></tr></table></figure>
+<p>基于存量文档的现状，其中存量大量的无用文本，包括：</p>
+<ul>
+<li><p>图片链接</p>
+</li>
+<li><p>样例代码（这个待商榷，目前是删除的）</p>
+</li>
+<li><p>网页（文档）链接</p>
+</li>
+</ul>
+<p>在召回阶段进行向量匹配的时候，无用数据的存在会影响召回的效果（自己的感觉，暂时没空做对比实验 … ），所以在二次切块前，会将上述的文本从块中删除。</p>
+<p>需要注意的是，如果一个标题块中文本在清洗完被完全清空了，例如原块中只有代码，那么会为其添加这个块最小标题的内容。例如一个块来自于一个三级标题，如果这个块的内容被清空了，那么就会为其补充上三级标题的内容。</p>
+<p>为了提升召回时的精度，会对第一次切块得到的结果进行二次切块，这次切块是基于文本的长度，使用 <code>langchain_text_splitters.RecursiveCharacterTextSplitter</code>进行处理。目前的配置是每 100 个字符切一个块，相邻两个块之间重合的字符为 30。</p>
+<p>在梳理存量的文档时，我发现文档的一个特点是，一般标题中表达的是问题的现象，而正文中是问题的解决方案，类似于下面这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># section1</span><br><span class="line">## q1</span><br><span class="line">xxxxx</span><br><span class="line"></span><br><span class="line">## q2</span><br><span class="line">xxxxx</span><br></pre></td></tr></table></figure>
+<p>所以个人感觉，需要将标题的内容添加到最终的切块结果中，这样应该可以提升召回的效果。最终得到的块内容格式为 <code>&quot;\t&quot;.join([ 多级标题 ... ]) \t 切块文本</code> 。样例如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">块内容：慢查询屏蔽    新增的功能    判断每次请求where字段中每个键是否是索引键，如果不是则屏蔽</span><br><span class="line">meta信息：&#123;<span class="string">'Header_1'</span>: <span class="string">'新增的功能'</span>, <span class="string">'Header_2'</span>: <span class="string">'慢查询屏蔽'</span>, <span class="string">'__page_id_key'</span>: <span class="string">'mongo_restapi_doc.md_page_b73e21f5-f641-47b6-84cb-604749ae7fca'</span>, <span class="string">'__file_id_key'</span>: <span class="string">'mongo_restapi_doc.md'</span>, <span class="string">'__page_split_id_key'</span>: <span class="string">'mongo_restapi_doc.md_page_b73e21f5-f641-47b6-84cb-604749ae7fca_chunk_689f4ced-de01-4428-b2e7-f3d492ea1d1b'</span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="切块数据存储与更新"><a href="#切块数据存储与更新" class="headerlink" title="切块数据存储与更新"></a>切块数据存储与更新</h3><p>为了尽快实现一版可用的简易 rag 服务，目前采用的是数据全量更新的方式，也即参考批量库的建库流程，每次都生成全量的数据（批量建库），然后通知（传库） rag query 服务切换数据地址（换库）。当前因为基本没有人使用，所以就是简单的先停 query 服务，然后更新 chroma 和 sqlite 数据，最后启动 query 服务。</p>
+<p>对于第一次切块得到的标题粒度的数据，存入 sqlite 中，用于在召回阶段返回给用户以及发给大模型进行总结。</p>
+<p>对于第二次切块得到的数据，使用本地 embedding 模型 <code>bge-small-zh-v1.5</code>进行向量化后，存入 chroma 中，用于在召回阶段和用户 query 进行向量匹配。</p>
+<h3 id="query-召回"><a href="#query-召回" class="headerlink" title="query 召回"></a>query 召回</h3><p><img src="Screenshot 2025-04-06 at 15.08.27.png" alt=""></p>
+<p>在收到用户的 query 后，会将 query 使用 <code>bge-small-zh-v1.5</code>向量化后，调用 chroma 的接口进行向量召回，召回 topk 的结果。这里召回的是第二次切块后的内容，样例如下，其中 chunk_a 、chunk_b 和 chunk_d 来自于第一次按照标题切块得到的 page_1_xxxxx ，chunk_c 来自于 page_2_yyyyy，chunk_e 来自于 page_3_zzzzz 。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">chunk_a  metadata: &#123; <span class="string">'__page_id_key'</span>: <span class="string">'page_1_xxxxx'</span> &#125; distance: <span class="number">0.11</span></span><br><span class="line">chunk_b  metadata: &#123; <span class="string">'__page_id_key'</span>: <span class="string">'page_1_xxxxx'</span> &#125; distance: <span class="number">0.12</span></span><br><span class="line">chunk_c  metadata: &#123; <span class="string">'__page_id_key'</span>: <span class="string">'page_2_yyyyy'</span> &#125; distance: <span class="number">0.32</span></span><br><span class="line">chunk_d  metadata: &#123; <span class="string">'__page_id_key'</span>: <span class="string">'page_1_xxxxx'</span> &#125; distance: <span class="number">0.52</span></span><br><span class="line">chunk_e  metadata: &#123; <span class="string">'__page_id_key'</span>: <span class="string">'page_3_zzzzz'</span> &#125; distance: <span class="number">0.8</span></span><br></pre></td></tr></table></figure>
+<p>那么这里按照标题块粒度生成最终的排序结果，并从 sqlite 中标题块对应的内容读取出来，作为最终的结果。这里之所以使用标题块粒度作为最终结果的原因是，存量的文档中，一般标题下正文的内容都不是特别多，不会出现大几千字的情况。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">page_1_xxxxx</span><br><span class="line">page_2_yyyyy</span><br><span class="line">page_3_zzzzz</span><br></pre></td></tr></table></figure>
+<p>这里会将上一步中得到结果的 topk 发给大模型，让其进行总结。目前只发了首位的结果。</p>
+<p>prompt 模板如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">    你是问答任务的助手,只能使用以下上下文来回答问题.上下文分为多个段落,每个段落的内容为markdown格式.和问题相关的优先级按照段落先后顺序从高到低排序.保持回答的简洁,回答内容需要符合markdown语法规范,并根据上下文补充代码样例以及图片.如果你根据上下文无法得出回答,就说请参考下列文档.</span><br><span class="line">    问题: &#123;&#125;</span><br><span class="line">    上下文: &#123;&#125;</span><br><span class="line">    回答:</span><br></pre></td></tr></table></figure>
+<p>请求样例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">你是问答任务的助手,只能使用以下上下文来回答问题.上下文分为多个段落,每个段落的内容为markdown格式.和问题相关的优先级按照段落先后顺序从高到低排序.保持回答的简洁,回答内容需要符合markdown语法规范,并根据上下文补充代码样例以及图片.如果你根据上下文无法得出回答,就说请参考下列文档.</span><br><span class="line">问题: k8s 如何查看 pod 的机器信息</span><br><span class="line">上下文:</span><br><span class="line">段落0开始</span><br><span class="line">k8s跳坑流程,查看pod所在机器</span><br><span class="line">./kubectl --kubeconfig=.kube/config get pod $&#123;pod_name&#125; -o wide</span><br><span class="line"># e.g.</span><br><span class="line">./kubectl --kubeconfig=.kube/config get pod shop-order-zh-2024-678497c8f6-d45j6 -o wide</span><br><span class="line"></span><br><span class="line">段落0结束</span><br><span class="line"></span><br><span class="line">回答:</span><br></pre></td></tr></table></figure>
+<p>目前由于模型对于发给它的上下文的总结并不是特别准确，所以在最终返回给用户的结果中，也会加上首位的结果，以及 topk 的原始文档链接及其中的标题，大概格式如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">    构建最终模型响应的结果, 主要做的是:</span><br><span class="line">    最相近原始文档链接 xxxx + headers</span><br><span class="line">    文档内容 xxxx</span><br><span class="line">    模型总结 xxxx</span><br><span class="line">    其它文档链接 xxxx + headers</span><br></pre></td></tr></table></figure>
+<h3 id="样例展示"><a href="#样例展示" class="headerlink" title="样例展示"></a>样例展示</h3><p>文档段落返回：</p>
+<p><img src="截屏2025-04-06 15.13.33.png" alt=""></p>
+<p>模型总结：</p>
+<p><img src="截屏2025-04-06 15.13.03.png" alt=""></p>
+<p>关联文档：</p>
+<p><img src="截屏2025-04-06 15.13.09.png" alt=""></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>对于已经接入的存量文档，做了一个简单的评估，文档链接召回成功率 90%，文档段落召回成功率 70%，感觉还算不错。不过对于一个工程项目来说各个模块的功能比较简略，但是对于两周不到搞出来的项目来说，至少算是基本可用，应该有 60 分的水平了。并且接着这个机会，熟悉了 RAG 的基本流程，并且还额外学习到了向量检索相关的知识。</p>
+<hr>
+<h2 id="对接建库大脑"><a href="#对接建库大脑" class="headerlink" title="对接建库大脑"></a>对接建库大脑</h2><h3 id="背景-1"><a href="#背景-1" class="headerlink" title="背景"></a>背景</h3><p>当前离线建库的一些信息会在建库大脑平台上展示，主要包含离线建库 2.0 的库种信息及其相关建库任务的执行信息。平台上展示的信息有限，希望有一种便捷的方式可以在查询建库信息的时候起到辅助的作用，例如输出某个库种某次重建任务的执行情况。目前实现的一版方案是基于大模型 tool call 的能力，在理解用户需求后，指定执行计划，在调用对应的查询工具后，对结果进行总结，最终输出结果。算是一种实验性质的功能实现。</p>
+<h3 id="tool-call"><a href="#tool-call" class="headerlink" title="tool call"></a>tool call</h3><p>现阶段给来带来最大震撼的大模型的能力就是 tool call 了。简单来说，就是提供给大模型一系列工具，描述其作用以及调用参数，它就能根据用户提出的问题给出需要调用的工具的名字以及参数的值。也就是说，不同于调用 API/CLI/GUI 时，用户需要明确选择调用的工具以及填写对应的参数，现在只需要通过自然语言描述需求，大模型就可以基于需求生成调用工具的参数了，这简直是接口调用模式的一大飞跃。</p>
+<p>并且基于类似于 ReAct 的模式，大模型甚至可以自主调用多个工具来完成需求，这意味着只用给大模型提供几个最基础的工具，它就可以自行编排各个工具执行的先后顺序以及参数，并且甚至可以在调用工具的过程中根据之前工具返回的结果，自主发现错误并做调整。</p>
+<p>不过我个人认为，目前这种模式主要还是使用 Get 类型的工具比较靠谱，因为如果工具执行结果不可逆，那么如果模型执行工具调用存在问题，就会对整个系统造成影响。错误的响应有可能比不响应更有危害。</p>
+<h3 id="eino-框架"><a href="#eino-框架" class="headerlink" title="eino 框架"></a>eino 框架</h3><p>基于 golang 的大模型应用开发框架，目前我个人觉得它的优势在于</p>
+<ul>
+<li><p>基于 golang，强类型</p>
+</li>
+<li><p>抽象较好，业务逻辑和架构逻辑解耦</p>
+</li>
+<li><p>支持切面</p>
+</li>
+</ul>
+<p>功能点1：对一个模型的访问方式做了统一的抽象。目前提供了几个典型的模型 API 实现，包括 OpenAI 和 Ollama</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ChatModel support openai and maas.</span></span><br><span class="line"><span class="comment">// use Generate for completed output, use Stream as for stream output.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//go:generate  mockgen -destination ../../internal/mock/components/model/ChatModel_mock.go --package model -source interface.go</span></span><br><span class="line"><span class="keyword">type</span> ChatModel <span class="keyword">interface</span> &#123;</span><br><span class="line">    Generate(ctx context.Context, input []*schema.Message, opts ...Option) (*schema.Message, error)</span><br><span class="line">    Stream(ctx context.Context, input []*schema.Message, opts ...Option) (</span><br><span class="line">        *schema.StreamReader[*schema.Message], error)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// BindTools bind tools to the model.</span></span><br><span class="line">    <span class="comment">// BindTools before requesting ChatModel generally.</span></span><br><span class="line">    <span class="comment">// notice the non-atomic problem of BindTools and Generate.</span></span><br><span class="line">    BindTools(tools []*schema.ToolInfo) error</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>功能点2：对一个请求处理的流程及流程中的节点做了<a href="https://www.cloudwego.io/zh/docs/eino/overview/#%E5%AE%8C%E5%96%84%E7%9A%84%E6%B5%81%E5%A4%84%E7%90%86streaming" target="_blank" rel="noopener">统一的抽象</a>，支持编排。目前提供了两个和大模型交互的典型流程：ReAct 和 Multi Agent</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Runnable is the interface for an executable object. Graph, Chain can be compiled into Runnable.</span></span><br><span class="line"><span class="comment">// runnable is the core conception of eino, we do downgrade compatibility for four data flow patterns,</span></span><br><span class="line"><span class="comment">// and can automatically connect components that only implement one or more methods.</span></span><br><span class="line"><span class="comment">// eg, if a component only implements Stream() method, you can still call Invoke() to convert stream output to invoke output.</span></span><br><span class="line"><span class="keyword">type</span> Runnable[I, O any] <span class="keyword">interface</span> &#123;</span><br><span class="line">    Invoke(ctx context.Context, input I, opts ...Option) (output O, err error)</span><br><span class="line">    Stream(ctx context.Context, input I, opts ...Option) (output *schema.StreamReader[O], err error)</span><br><span class="line">    Collect(ctx context.Context, input *schema.StreamReader[I], opts ...Option) (output O, err error)</span><br><span class="line">    Transform(ctx context.Context, input *schema.StreamReader[I], opts ...Option) (output *schema.StreamReader[O], err error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>功能点3：支持切面能力，可以较好地支持通用逻辑注入，例如 trace</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> HandlerBuilder <span class="keyword">struct</span> &#123;</span><br><span class="line">    onStartFn                <span class="function"><span class="keyword">func</span><span class="params">(ctx context.Context, info *RunInfo, input CallbackInput)</span> <span class="title">context</span>.<span class="title">Context</span></span></span><br><span class="line"><span class="function">    <span class="title">onEndFn</span>                  <span class="title">func</span><span class="params">(ctx context.Context, info *RunInfo, output CallbackOutput)</span> <span class="title">context</span>.<span class="title">Context</span></span></span><br><span class="line"><span class="function">    <span class="title">onErrorFn</span>                <span class="title">func</span><span class="params">(ctx context.Context, info *RunInfo, err error)</span> <span class="title">context</span>.<span class="title">Context</span></span></span><br><span class="line"><span class="function">    <span class="title">onStartWithStreamInputFn</span> <span class="title">func</span><span class="params">(ctx context.Context, info *RunInfo, input *schema.StreamReader[CallbackInput])</span> <span class="title">context</span>.<span class="title">Context</span></span></span><br><span class="line"><span class="function">    <span class="title">onEndWithStreamOutputFn</span>  <span class="title">func</span><span class="params">(ctx context.Context, info *RunInfo, output *schema.StreamReader[CallbackOutput])</span> <span class="title">context</span>.<span class="title">Context</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="基于-eino-的多轮工具调用"><a href="#基于-eino-的多轮工具调用" class="headerlink" title="基于 eino 的多轮工具调用"></a>基于 eino 的多轮工具调用</h3><h4 id="v1"><a href="#v1" class="headerlink" title="v1"></a>v1</h4><p>在对接建库大脑时，将它提供的一些 http 接口封装为了 tool 供大模型在回答问题时进行工具调用。第一版的实现借鉴了 eino 的 plan - exec 执行流程，介绍文章见 <a href="https://mp.weixin.qq.com/s/9jf_dRyEZU_31rbfZMADqA" target="_blank" rel="noopener">DeepSeek + Function Call：基于 Eino 的“计划——执行”多智能体范式实战</a>，流程如下</p>
+<p><img src="Screenshot 2025-04-06 at 15.36.59.png" alt=""></p>
+<p>大致的执行流程如上图所示：</p>
+<p>首先，Planner 收到用户的提问后，会基于提问和可使用工具的简略信息，列出一个执行计划表。</p>
+<p>然后，Executor 会根据用户的提问、Planner 生成的执行计划表以及可使用工具的详细信息进行多轮工具调用。</p>
+<p>最后，Reviser 会基于 Executor 调用工具的执行结果以及其他输出进行总结，核实这些内容是否可以解答用户的提问。</p>
+<p>由于这里的场景较为简单，删去了原执行流程中 reviser -&gt; executor 的部分。</p>
+<p><img src="Screenshot 2025-04-06 at 15.37.35.png" alt=""></p>
+<p>在模型的选择方面：</p>
+<ul>
+<li><p>对于 Planner，由于目前需要执行的工具不多，且场景不是很复杂，没有必要使用 r1 的深度思考能力，所以使用 v3</p>
+</li>
+<li><p>对于 Executor，文心 3.5 执行 function call 的效果实测下来已经足够好了，没有必要升级为文心 4.0，所以使用 3.5</p>
+</li>
+<li><p>对于 Reviser，由于需要对 Executor 输出的数据进行分析，为了提升分析结果的准确度，所以这里使用了 r1 的深度思考能力</p>
+</li>
+</ul>
+<p>实测下来执行结果还算不错，但是在后续和组长交流时，他建议能否让 planner 一次只给 executor 一个子任务，而非整个计划。因为问题是，如果 executor 模型执行能力有限，那么它不一定能根据彻底执行执行计划的步骤，以及补全计划中的细节，有时甚至放弃执行了。</p>
+<h4 id="v2"><a href="#v2" class="headerlink" title="v2"></a>v2</h4><p>对上述流程做如下改造：</p>
+<ol>
+<li><p>planner</p>
+<ol>
+<li><p>负责分析用户的问题，为问题的解答准备额外的数据</p>
+</li>
+<li><p>为了获取需要的数据，planner 一次生成一个工具调用的指令，这个指令交给 tool_executor 执行</p>
+</li>
+<li><p>tool_executor 如果执行出错，planner 会根据出错信息进行反思</p>
+</li>
+<li><p>如果解答问题需要的数据已经收集全了，那么就交给 reviser 进行总结，reviser 可以使用有深度思考能力的模型</p>
+</li>
+<li><p>需要有工具的入参和出参详细信息，这样方案指定能准确一些</p>
+</li>
+</ol>
+</li>
+<li><p>tool_executor</p>
+<ol>
+<li><p>它接受的上下文只有 planner 生成的最后一条指令</p>
+</li>
+<li><p>不关心用户提出的原始问题。因为这个指令是细化过的，更加明确，所以弱一些的模型也可以执行</p>
+</li>
+<li><p>如果执行失败，透传错误信息给 planner</p>
+</li>
+<li><p>如果执行成功，返回给 planner 的只有工具的入参和出参</p>
+</li>
+</ol>
+</li>
+<li><p>reviser</p>
+<ol>
+<li>对 planner 的信息进行总结</li>
+</ol>
+</li>
+</ol>
+<p>改造后的执行流程大致如下：</p>
+<p><img src="Screenshot 2025-04-06 at 15.41.15.png" alt=""></p>
+<p>eino 框架编排细节</p>
+<p><img src="Screenshot 2025-04-06 at 15.41.29.png" alt=""></p>
+<p>planner 部分 prompt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">你会收到用户关于搜索离线建库单个buildspace及其相关信息的提问。你的工作是仔细倾听用户的问题，结合之前执行的历史记录，思考当前需要获取和分析哪些信息，形成一个分步骤的严谨的解决思路，或者对之前的解决思路进行调整。步骤拆分的尽量细致，最终输出你任务需要执行的下一步内容。</span><br><span class="line"></span><br><span class="line">在你拆分的各步骤中能调用的工具。请充分利用这每一个工具，尽可能多的获取事实信息作为解决问题的依据：</span><br><span class="line">- tool_buildspace_info: 查询一个buildspace的基础信息，包括其下有哪些job和source，输入参数为buildspace的名称</span><br><span class="line">- ...</span><br><span class="line"></span><br><span class="line">有几个注意事项：</span><br><span class="line">- 用户给出的buildspace名称是明确的，不要进行模糊匹配。例如在问到和bs时，不用额外关注其他包含bs的名称，比如xxx_bs_xxx</span><br><span class="line">- ...</span><br><span class="line"></span><br><span class="line">下面是对最终输出格式的要求:</span><br><span class="line">- 如果当前获取到的信息已经足够了，那么调用 inner_analyse_model 进行分析，输出为：&quot;将使用 inner_analyse_model 进行最终分析&quot;</span><br><span class="line">- 如果当前获取到的信息还不足以对问题进行解答，那么输出需要获取的信息以及需要调用的工具，一次只能调用一个工具。使用口语化的信息简洁精炼地描述调用工具的方式，其它信息不要输出，样例为：&quot;调用工具 xxx 来完成 xxx 查询，查询的内容为 xxxx&quot;</span><br><span class="line">- 如果当前获取到的信息还不足以对问题进行解答，且无法通过工具进一步获取到信息，请输出：&quot;无法继续执行&quot;</span><br></pre></td></tr></table></figure>
+<p>executor 部分 prompt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">你会收到关于工具使用的建议，你**必须执行建议中提到的API工具**。如果你认为建议中的工具有误，则使用简练的语言说明原因，格式为：&quot;工具调用失败，简略原因: xxx&quot;</span><br></pre></td></tr></table></figure>
+<p>reviser 部分 prompt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">你会收到用户关于搜索离线建库buildspace及其相关信息的提问，以及已完成的各步骤及其结果。你的工作是汇总执行过程中获取的所有信息，最终产出用户问题的回答。如果用户提到了重建任务，这个指的是名为resched-job的job。有下述输出选择：</span><br><span class="line">- 如果基于这些信息无法回答用户的问题，请输出&quot;最终答案：无法回答用户的问题&quot;。</span><br><span class="line">- 基于这些信息进行严谨的总结，输出条理清晰的最终答案，有必要的话可以使用表格作为辅助进行回答。格式为：&quot;最终答案：&#123;你的总结&#125;&quot;。</span><br><span class="line"></span><br><span class="line">需要注意的是:</span><br><span class="line">- 如果数据中包含成功率,只有在高于 99.9999% 时才能被称为良好,否则认为可能存在问题</span><br><span class="line">- ...</span><br></pre></td></tr></table></figure>
+<p>在使用 eino 框架的编排时，在跳转时添加的对应的判断</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// planner -&gt; planner_to_list</span></span><br><span class="line"><span class="comment">// planner -&gt; end 执行失败的情况</span></span><br><span class="line">_ = graph.AddBranch(nodeKeyPlanner, compose.NewGraphBranch(<span class="function"><span class="keyword">func</span><span class="params">(_ context.Context, msg *schema.Message)</span> <span class="params">(endNode <span class="keyword">string</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> strings.Contains(msg.Content, <span class="string">"无法继续执行"</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> compose.END, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nodeKeyPlannerToList, <span class="literal">nil</span></span><br><span class="line">&#125;, <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">bool</span>&#123;</span><br><span class="line">	nodeKeyPlannerToList: <span class="literal">true</span>,</span><br><span class="line">	compose.END:          <span class="literal">true</span>,</span><br><span class="line">&#125;))</span><br><span class="line"></span><br><span class="line"><span class="comment">// planner_to_list -&gt; executor 调用工具获取更多的信息</span></span><br><span class="line"><span class="comment">// planner_to_list -&gt; reviser 信息已经收集完全,进行总结</span></span><br><span class="line">_ = graph.AddBranch(nodeKeyPlannerToList, compose.NewGraphBranch(<span class="function"><span class="keyword">func</span><span class="params">(_ context.Context, msgs []*schema.Message)</span> <span class="params">(endNode <span class="keyword">string</span>, err error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(msgs) != <span class="number">1</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">""</span>, fmt.Errorf(<span class="string">"plannerPostBranchCondition: len(msgs) != 1"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	msg := msgs[<span class="number">0</span>]</span><br><span class="line">	<span class="keyword">if</span> strings.Contains(msg.Content, <span class="string">"inner_analyse_model"</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> nodeKeyReviser, <span class="literal">nil</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> nodeKeyExecutor, <span class="literal">nil</span></span><br><span class="line">&#125;, <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">bool</span>&#123;</span><br><span class="line">	nodeKeyExecutor: <span class="literal">true</span>,</span><br><span class="line">	nodeKeyReviser:  <span class="literal">true</span>,</span><br><span class="line">&#125;))</span><br></pre></td></tr></table></figure>
+<p>最终执行时的效果非常有意思，一个样例如下：</p>
+<p>首先 planner 告诉 executor 要调用工具 1，但是 executor 在调用时，由于缺少上下文信息，导致参数填的有问题，最终工具返回结果不符合预期。然后 planner 根据工具调用的结果进行了反思后，调用工具 2 获取了上下文信息，并告诉 executor 调用工具 1 时使用对应的参数，最后 executor 调用工具 1 成功了。</p>
+<p><img src="截屏2025-04-04 13.31.27.png" alt=""></p>
+<p><img src="截屏2025-04-04 13.31.42.png" alt=""></p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p>使用 eino 框架和 golang 代码进行开发很大程度上减少了心智负担，可以专注于业务逻辑和切面逻辑的开发，而不用关心执行拓扑之间联动的细节以及各个节点输入输出的类型。虽然在进行代码编写时，相较于 python，会多出来不少内容，因为需要显示定义各个接口的类型，但是在完成编码时，心里是非常踏实的。另外，好几年没关注 golang 了，没想到现在居然已经支持泛型了，终于不用将框架抽象接口的类型定义为 <code>interface{}</code> 了。</p>
+<hr>
+<h2 id="后续的计划"><a href="#后续的计划" class="headerlink" title="后续的计划"></a>后续的计划</h2><p>毕竟我所在的组主要负责的是搜索离线建库相关的业务，这个智能化线条只能算作是架构演进的一部分，并且还是探索性质的，优先级较低，所以如果后续有新的高优业务插入，那么也只能暂时 hold 了。</p>
+<p>到目前接触大模型应用开发的时间是两个多月，整体感觉这个领域能做的事情还是挺有意思的，问题是目前主要还是缺乏明确的跟已有业务结合的落地场景，上述段落中提到的 RAG 和 tool call ，基本都有成本更低的替代品。例如对于 RAG ，由于当前组内存量的文档并不多，实际上只要将其分门别类整理到一个统一的知识库下，需要的时候直接在知识库里按照关键词搜就可以了，而对于后者，由于目前查询的种类并不是很多，直接封装对应的 http api 接口 + 简单 web 界面也行。不过对于我个人来说，使用新的技术实现上述需求，通过实践可以加深对这些技术的理解，万一后面哪天真的有某个场景可以落地，也可以有能力可以感知到。</p>
+<p>如果 2025 Q2 没有高优业务插入的话，有两个方向：</p>
+<ol>
+<li><p>进一步补充大模型应用开发的相关知识，并尝试寻求落地的场景。不过这块目前没有找到合适的资料，还在探索中。</p>
+</li>
+<li><p>学习与大模型原理相关的知识，先从周志华的「机器学习」开始。</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/04/06/大模型应用开发阶段性总结：入门、rag-和-eino/" data-id="cm95dxp4q00b9u79kekzfh3so" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/大模型/">大模型</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/01/24/kafka-匿名-consumergroup-消费堆积监控适配/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka 匿名 consumergroup 消费堆积监控适配</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>202</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>67</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://zybtree.github.io/" target="_blank" title="斌哥哥">
+          斌哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://www.zhoujianguo.ltd/" target="_blank" title="国哥哥">
+          国哥哥
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://blog.yanqing-wu.com/" target="_blank" title="pwyq">
+          pwyq
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
