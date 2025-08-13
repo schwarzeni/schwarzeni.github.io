@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>KIP-853 功能验证 - kraft 模式下动态变更 kafka controller voter 列表 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="KIP-853: KRaft Controller Membership Changes ，其中较为重要的一点特性为，通过外围脚本对 controller 的成员进行动态增删。">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KIP-853 功能验证 - kraft 模式下动态变更 kafka controller voter 列表">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/08/13/KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="KIP-853: KRaft Controller Membership Changes ，其中较为重要的一点特性为，通过外围脚本对 controller 的成员进行动态增删。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2025-08-13T14:56:37.577Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="KIP-853 功能验证 - kraft 模式下动态变更 kafka controller voter 列表">
+<meta name="twitter:description" content="KIP-853: KRaft Controller Membership Changes ，其中较为重要的一点特性为，通过外围脚本对 controller 的成员进行动态增删。">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>204</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/08/13/KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表/" class="article-date">
+  <time class="post-time" datetime="2025-08-13T14:52:42.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">13</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      KIP-853 功能验证 - kraft 模式下动态变更 kafka controller voter 列表
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-853%3A+KRaft+Controller+Membership+Changes" target="_blank" rel="noopener">KIP-853: KRaft Controller Membership Changes</a> ，其中较为重要的一点特性为，通过外围脚本对 controller 的成员进行动态增删。</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近有个新的业务需求，想使用独立的 Kafka 集群。由于是新搭建的，没有历史负担，所以想直接用无 Zookeeper 的版本。在使用 Kraft 代替 Zookeeper 的场景下，需要在文件中配置 <code>controller.quorum.voters</code> 列表，样例为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># The connect string for the controller quorum</span></span><br><span class="line"><span class="comment"># 格式：brokerid @ ip : port</span></span><br><span class="line">controller.quorum.voters=0@10.62.173.11:17001,1@10.62.173.11:17011,2@10.62.173.11:17021</span><br></pre></td></tr></table></figure>
+<p>存在的问题是，如果 voters 中有实例发生了迁移，那么就需要更新配置文件中的列表，然后重启服务。虽然这可以用外围自动化的方案来解决，但是随着集群规模的增大，因为部分实例的迁移就需要重启其它全量的实例是有些不合理的。</p>
+<h2 id="如何了解到-KIP-853-的"><a href="#如何了解到-KIP-853-的" class="headerlink" title="如何了解到 KIP-853 的"></a>如何了解到 KIP-853 的</h2><p>在翻阅 Kafka 源码时，发现在 <code>KafkaRaftClient</code> 类（java/org/apache/kafka/raft/KafkaRaftClient.java）中存在动态更新 voter 的逻辑，大致样例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Specialized add voter handler</span></span><br><span class="line"><span class="keyword">this</span>.addVoterHandler = <span class="keyword">new</span> AddVoterHandler(</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Specialized remove voter handler</span></span><br><span class="line"><span class="keyword">this</span>.removeVoterHandler = <span class="keyword">new</span> RemoveVoterHandler(</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Specialized update voter handler</span></span><br><span class="line"><span class="keyword">this</span>.updateVoterHandler = <span class="keyword">new</span> UpdateVoterHandler(</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>在对应的逻辑中插入了一些日志，想确认一下在 voter 上线和下线时是否执行，发现没有执行，代码样例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">private</span> CompletableFuture&lt;AddRaftVoterResponseData&gt; <span class="title">handleAddVoterRequest</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">     RaftRequest.Inbound requestMetadata,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">long</span> currentTimeMs</span></span></span><br><span class="line"><span class="function"><span class="params"> )</span> </span>&#123;</span><br><span class="line">     AddRaftVoterRequestData data = (AddRaftVoterRequestData) requestMetadata.data();</span><br><span class="line">     <span class="comment">// <span class="doctag">TODO:</span> just for debugging</span></span><br><span class="line">     logger.info(<span class="string">"[debug] --&gt; add voter 1"</span>);</span><br><span class="line">     </span><br><span class="line">     <span class="comment">// ...</span></span><br><span class="line">     </span><br><span class="line">     <span class="comment">// <span class="doctag">TODO:</span> just for debugging</span></span><br><span class="line">     logger.info(<span class="string">"[debug] --&gt; add voter 2, info:&#123;&#125; , endpoint:&#123;&#125;"</span>, newVoter.get(), newVoterEndpoints);</span><br><span class="line"></span><br><span class="line">     <span class="keyword">return</span> addVoterHandler.handleAddVoterRequest(</span><br><span class="line">         quorum.leaderStateOrThrow(),</span><br><span class="line">         newVoter.get(),</span><br><span class="line">         newVoterEndpoints,</span><br><span class="line">         currentTimeMs</span><br><span class="line">     );</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>但是既然有代码实现，那么肯定会在哪儿用到。在二次查找后，发现 Kafka 对于 voter 的动态操作暴露了对应的 api（java/org/apache/kafka/common/message/ApiMessageType.java）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> ApiMessageType &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    ADD_RAFT_VOTER(<span class="string">"AddRaftVoter"</span>, (<span class="keyword">short</span>) <span class="number">80</span>, AddRaftVoterRequestData.SCHEMAS, AddRaftVoterResponseData.SCHEMAS, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) -<span class="number">1</span>, EnumSet.of(ListenerType.CONTROLLER, ListenerType.BROKER), <span class="keyword">false</span>),</span><br><span class="line">    REMOVE_RAFT_VOTER(<span class="string">"RemoveRaftVoter"</span>, (<span class="keyword">short</span>) <span class="number">81</span>, RemoveRaftVoterRequestData.SCHEMAS, RemoveRaftVoterResponseData.SCHEMAS, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) -<span class="number">1</span>, EnumSet.of(ListenerType.CONTROLLER, ListenerType.BROKER), <span class="keyword">false</span>),</span><br><span class="line">    UPDATE_RAFT_VOTER(<span class="string">"UpdateRaftVoter"</span>, (<span class="keyword">short</span>) <span class="number">82</span>, UpdateRaftVoterRequestData.SCHEMAS, UpdateRaftVoterResponseData.SCHEMAS, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) <span class="number">0</span>, (<span class="keyword">short</span>) -<span class="number">1</span>, EnumSet.of(ListenerType.CONTROLLER), <span class="keyword">false</span>),</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>本来想说既然有相关的 api 接口，那我就可以尝试自己去实现一个 client 去请求它，不过由于  golang 的 sdk 还不支持请求这个 api ，所以只能使用 java 来实现。由于对 java 不太熟悉，所以就想着看一下官方提供的 tool 是如何实现的，类似于 <code>./bin/kafka-topics.sh  ...</code> 的这种脚本。在搜索的过程中，居然发现 <code>kafka-metadata-quorum.sh</code> 就支持请求操作 voter 的 api ：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">exec</span> $(dirname <span class="variable">$0</span>)/kafka-run-class.sh org.apache.kafka.tools.MetadataQuorumCommand <span class="string">"<span class="variable">$@</span>"</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MetadataQuorumCommand</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ..... </span></span><br><span class="line">            <span class="keyword">if</span> (command.equals(<span class="string">"describe"</span>)) &#123;</span><br><span class="line">                <span class="comment">// ....</span></span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (command.equals(<span class="string">"add-controller"</span>)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (optionalCommandConfig == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> TerseException(<span class="string">"You must supply the configuration file of the controller you are "</span> +</span><br><span class="line">                        <span class="string">"adding when using add-controller."</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                handleAddController(admin,</span><br><span class="line">                    namespace.getBoolean(<span class="string">"dry_run"</span>),</span><br><span class="line">                    props);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (command.equals(<span class="string">"remove-controller"</span>)) &#123;</span><br><span class="line">                handleRemoveController(admin,</span><br><span class="line">                    namespace.getInt(<span class="string">"controller_id"</span>),</span><br><span class="line">                    namespace.getString(<span class="string">"controller_directory_id"</span>),</span><br><span class="line">                    namespace.getBoolean(<span class="string">"dry_run"</span>));</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(format(<span class="string">"Unknown command: %s"</span>, command));</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<p>我之前使用这个脚本查询 controller 状态时，执行过它的 <code>--help</code>，当时没注意到这两指令。最后在网上搜了相关类和配置的关键词，就找到了这个特性对应的提案：<a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-853%3A+KRaft+Controller+Membership+Changes" target="_blank" rel="noopener"> KIP-853: KRaft Controller Membership Changes</a></p>
+<h2 id="本地验证"><a href="#本地验证" class="headerlink" title="本地验证"></a>本地验证</h2><p>我使用的 kafka 版本为 3.9.1 ，正好就是这个特性开始支持的版本。在进行本地验证时，有三点需要高优确认：</p>
+<ol>
+<li><p>初始的 controller 集群是如何构建的</p>
+</li>
+<li><p>controller 对应的实例应该如何进行切换</p>
+</li>
+<li><p>在 controller 发生变化时，broker 是否可以感知到</p>
+</li>
+</ol>
+<p>下文中，cx 代表 brokerid 为 x 的实例，cluster id 为 <code>pTAG7hqbRBGQwKg5Hujn8g</code>（<code>bin/kafka-storage.sh random-uuid</code>）</p>
+<h3 id="controller-集群初始化"><a href="#controller-集群初始化" class="headerlink" title="controller 集群初始化"></a>controller 集群初始化</h3><p>作为起始节点 c0 （–standalone），broker 端口为 15000 ，controller 端口为 15001</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --standalone --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br></pre></td></tr></table></figure>
+<p>c1（–no-initial-controllers），broker 端口为 15010 ，controller 端口为 15011</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br></pre></td></tr></table></figure>
+<p>c2（–no-initial-controllers），broker 端口为 15020 ，controller 端口为 15021</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br></pre></td></tr></table></figure>
+<p>此时，controller 的状态为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15001 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            1</span><br><span class="line">HighWatermark:          1036</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;3rDv-etwR2e90gwUcBllDg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15001&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>可以看到，此时 controller 中只有一个 broker 0 ，接下来需要将 1 和 2 提升为 controller。需要注意的是，在配置中，<code>listeners</code> 需要显示指定 ip 信息，否则会使用 localhost ，无法被外部访问</p>
+<ul>
+<li><p>✅ <code>listeners=PLAINTEXT://yq01-build-rd2.yq01.baidu.com:17020,CONTROLLER://yq01-build-rd2.yq01.baidu.com:17021</code></p>
+</li>
+<li><p>❌ <code>listeners=PLAINTEXT://:17020,CONTROLLER://:17021</code></p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> Set&lt;RaftVoterEndpoint&gt; <span class="title">getControllerAdvertisedListeners</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    Properties props</span></span></span><br><span class="line"><span class="function"><span class="params">)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    LinkedHashSet&lt;RaftVoterEndpoint&gt; results = <span class="keyword">new</span> LinkedHashSet&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (String listenerName : props.getProperty(</span><br><span class="line">        <span class="comment">// ....</span></span><br><span class="line">        results.add(<span class="keyword">new</span> RaftVoterEndpoint(endpoint.listenerName().get(),</span><br><span class="line">                endpoint.host() == <span class="keyword">null</span> ? <span class="string">"localhost"</span> : endpoint.host(),</span><br><span class="line">                endpoint.port()));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">c1</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15001 --<span class="built_in">command</span>-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line">c2</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15001 --<span class="built_in">command</span>-config config/kraft/server.properties.gen.properties add-controller</span><br></pre></td></tr></table></figure>
+<p>此时，可以看到，1 和 2 均成为了 controller 了:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15001 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            1</span><br><span class="line">HighWatermark:          2174</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;3rDv-etwR2e90gwUcBllDg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       []</span><br></pre></td></tr></table></figure>
+<h3 id="c3-作为-observer-加入及读写验证"><a href="#c3-作为-observer-加入及读写验证" class="headerlink" title="c3 作为 observer 加入及读写验证"></a>c3 作为 observer 加入及读写验证</h3><p>一般集群中除了 controller 外，还有其它普通的 broker ，这里将 broker 3 作为普通节点加入到集群中，端口为 15030</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># c3</span></span><br><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br></pre></td></tr></table></figure>
+<p>此时可以看到，c3 为 observer 成员</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            1</span><br><span class="line">HighWatermark:          2572</span><br><span class="line">MaxFollowerLag:         1</span><br><span class="line">MaxFollowerLagTimeMs:   487</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;3rDv-etwR2e90gwUcBllDg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>通过 c3 进行读写验证，均正常</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-topics.sh --create --topic hello_world_topic --bootstrap-server yq01-build-rd2.yq01.baidu.com:15030 --replication-factor 3 --partitions 2</span><br><span class="line">kaf topics -b yq01-build-rd2.yq01.baidu.com:15030</span><br><span class="line">kaf -b yq01-build-rd2.yq01.baidu.com:15030 produce hello_world_topic</span><br><span class="line">kaf -b yq01-build-rd2.yq01.baidu.com:15030 consume hello_world_topic -g nzy_test</span><br></pre></td></tr></table></figure>
+<h3 id="controller-实例异常退出"><a href="#controller-实例异常退出" class="headerlink" title="controller 实例异常退出"></a>controller 实例异常退出</h3><p>在上节的最后，leader 为 0 ，那么这个时候，把 leader 干掉会怎样？</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux |grep kafka | grep c0 | awk <span class="string">'&#123;print $2&#125;'</span> | xargs <span class="built_in">kill</span></span><br></pre></td></tr></table></figure>
+<p>此时 leader 切换为 1，但是 broker 0 依旧在 voter 列表中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            2</span><br><span class="line">HighWatermark:          3456</span><br><span class="line">MaxFollowerLag:         3458</span><br><span class="line">MaxFollowerLagTimeMs:   -1</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;3rDv-etwR2e90gwUcBllDg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>通过脚本将 broker 0 移除，可以看到，此时 broker 0 没了</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将 leader 删除</span></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 remove-controller --controller-id 0 --controller-directory-id 3rDv-etwR2e90gwUcBllDg</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            2</span><br><span class="line">HighWatermark:          3614</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<h3 id="controller-实例所在-ip-变更"><a href="#controller-实例所在-ip-变更" class="headerlink" title="controller 实例所在 ip 变更"></a>controller 实例所在 ip 变更</h3><p>为了模拟实例迁移的情况，将 0/1/2 分别修改端口，验证 3 的信息是否可以实时更新。</p>
+<p>修改 c0 的端口并启动, 15xxx -&gt; 17xxx。对于起始节点 0 的情况，需要确认参数为 –standalone 还是 –no-initial-controllers , 以及 bootstrap-controller 的信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># c0</span><br><span class="line">ps aux |grep kafka | grep c0 | awk &apos;&#123;print $2&#125;&apos; | xargs kill</span><br><span class="line">rm -rf data/*</span><br><span class="line"></span><br><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15011 --command-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line"></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            2</span><br><span class="line">HighWatermark:          4402</span><br><span class="line">MaxFollowerLag:         1</span><br><span class="line">MaxFollowerLagTimeMs:   435</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>修改 c1 的端口并启动，15xxx -&gt; 17xxx</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">ps aux |grep kafka | grep c1 | awk &apos;&#123;print $2&#125;&apos; | xargs kill</span><br><span class="line">rm -rf data/*</span><br><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 remove-controller --controller-id 1 --controller-directory-id 9dk70WRte2_p__mZ_O0Bhg</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 --command-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line"></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            3</span><br><span class="line">HighWatermark:          4823</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;wQAnhBv-4eltR9-Pfn5Ylw&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>修改 c2 的端口并启动，15xxx -&gt; 17xxx</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">ps aux |grep kafka | grep c2 | awk &apos;&#123;print $2&#125;&apos; | xargs kill</span><br><span class="line">rm -rf data/*</span><br><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:17001 remove-controller --controller-id 2 --controller-directory-id JCX-hbVdtxCJl7geeqjNmA</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:17001 --command-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line"></span><br><span class="line"> ./bin/kafka-metadata-quorum.sh --bootstrap-controller yq01-build-rd2.yq01.baidu.com:17021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            3</span><br><span class="line">HighWatermark:          5860</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;wQAnhBv-4eltR9-Pfn5Ylw&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;V5qRTKnQDpuMeRkLpkdOFA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>此时对于 broker 3 ，它的读写依旧是正常的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kaf topics -b yq01-build-rd2.yq01.baidu.com:15030 执行正常</span><br><span class="line">NAME                 PARTITIONS   REPLICAS</span><br><span class="line">__consumer_offsets   50           1</span><br><span class="line">hello_world_topic    2            3</span><br></pre></td></tr></table></figure>
+<p>通过它来查询集群元信息也是正常的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-server yq01-build-rd2.yq01.baidu.com:15030 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            3</span><br><span class="line">HighWatermark:          6305</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;wQAnhBv-4eltR9-Pfn5Ylw&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;V5qRTKnQDpuMeRkLpkdOFA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>在上节中提到的，在 kafka 的源码中加的日志逻辑，也在日志文件中有体现了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[2025-08-11 16:20:35,073] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=1, directoryId=Optional[9dk70WRte2_p__mZ_O0Bhg]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=localhost/&lt;unresolved&gt;:15011&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:20:35,178] INFO [RaftManager id=0] [debug] --&gt; update voter, info:ReplicaKey(id=1, directoryId=Optional[9dk70WRte2_p__mZ_O0Bhg]) , endpointEndpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:15011&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:22:53,375] INFO [RaftManager id=0] [debug] --&gt; remove voter, info:ReplicaKey(id=1, directoryId=Optional[9dk70WRte2_p__mZ_O0Bhg]) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:25:57,616] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=1, directoryId=Optional[9dk70WRte2_p__mZ_O0Bhg]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:15011&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:28:51,424] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=2, directoryId=Optional[JCX-hbVdtxCJl7geeqjNmA]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:15021&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:49:20,944] INFO [RaftManager id=0] [debug] --&gt; remove voter, info:ReplicaKey(id=1, directoryId=Optional[9dk70WRte2_p__mZ_O0Bhg]) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:49:43,102] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=1, directoryId=Optional[wQAnhBv-4eltR9-Pfn5Ylw]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:17011&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:52:34,300] INFO [RaftManager id=0] [debug] --&gt; remove voter, info:ReplicaKey(id=2, directoryId=Optional[JCX-hbVdtxCJl7geeqjNmA]) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:52:51,297] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=2, directoryId=Optional[V5qRTKnQDpuMeRkLpkdOFA]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:17021&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:54:51,243] INFO [RaftManager id=0] [debug] --&gt; remove voter, info:ReplicaKey(id=2, directoryId=Optional[JCX-hbVdtxCJl7geeqjNmA]) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:55:43,202] INFO [RaftManager id=0] [debug] --&gt; remove voter, info:ReplicaKey(id=2, directoryId=Optional[JCX-hbVdtxCJl7geeqjNmA]) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:56:05,005] INFO [RaftManager id=0] [debug] --&gt; remove voter, info:ReplicaKey(id=2, directoryId=Optional[V5qRTKnQDpuMeRkLpkdOFA]) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:56:17,098] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=2, directoryId=Optional[V5qRTKnQDpuMeRkLpkdOFA]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:17021&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br><span class="line">[2025-08-11 16:56:39,354] INFO [RaftManager id=0] [debug] --&gt; add voter, info:ReplicaKey(id=2, directoryId=Optional[V5qRTKnQDpuMeRkLpkdOFA]) , endpoint:Endpoints(endpoints=&#123;ListenerName(CONTROLLER)=yq01-build-rd2.yq01.baidu.com/&lt;unresolved&gt;:17021&#125;) (org.apache.kafka.raft.KafkaRaftClient)</span><br></pre></td></tr></table></figure>
+<h3 id="controller-leader-被-remove-了"><a href="#controller-leader-被-remove-了" class="headerlink" title="controller leader 被 remove 了"></a>controller leader 被 remove 了</h3><p>如果 leader 还在运行但是被 remove 了会怎样？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:17001 remove-controller --controller-id 0 --controller-directory-id t6JHGm7q3zwlOzX-4u0wHg</span><br><span class="line"></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-server yq01-build-rd2.yq01.baidu.com:15030 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            4</span><br><span class="line">HighWatermark:          8710</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;wQAnhBv-4eltR9-Pfn5Ylw&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;V5qRTKnQDpuMeRkLpkdOFA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;, &#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p>可以看到，它被降级为了 observers。那么再将其提升为 voter。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller yq01-build-rd2.yq01.baidu.com:17011 --command-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line"></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-server yq01-build-rd2.yq01.baidu.com:15030 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            4</span><br><span class="line">HighWatermark:          8936</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   117</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;wQAnhBv-4eltR9-Pfn5Ylw&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;V5qRTKnQDpuMeRkLpkdOFA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>就本地验证的结果而言，动态增删 controller 成员的功能是可用的。配以合适的外挂逻辑（设计中 …），无需重启集群的全部实例，可以实现 controller 成员信息的动态更新。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/08/13/KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表/" data-id="cmea3fyi2002740jfpx7e5xuf" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/07/22/prophet-安装及相关问题/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">prophet 安装及相关问题</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>204</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
