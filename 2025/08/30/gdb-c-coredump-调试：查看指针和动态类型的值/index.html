@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>gdb c++ coredump 调试：查看指针和动态类型的值 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="一般情况下，在调试 coredump 文件时，对于基础类型或者 struct ，可以直接 print 变量 来查看对应的值，但是如果为指针，或者更复杂的情况，是个动态类型，该如何查看呢？">
+<meta name="keywords" content="c++">
+<meta property="og:type" content="article">
+<meta property="og:title" content="gdb c++ coredump 调试：查看指针和动态类型的值">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="一般情况下，在调试 coredump 文件时，对于基础类型或者 struct ，可以直接 print 变量 来查看对应的值，但是如果为指针，或者更复杂的情况，是个动态类型，该如何查看呢？">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2025-08-30T04:40:05.697Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="gdb c++ coredump 调试：查看指针和动态类型的值">
+<meta name="twitter:description" content="一般情况下，在调试 coredump 文件时，对于基础类型或者 struct ，可以直接 print 变量 来查看对应的值，但是如果为指针，或者更复杂的情况，是个动态类型，该如何查看呢？">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>205</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-gdb-c-coredump-调试：查看指针和动态类型的值" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/" class="article-date">
+  <time class="post-time" datetime="2025-08-30T04:36:51.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">30</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      gdb c++ coredump 调试：查看指针和动态类型的值
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>一般情况下，在调试 coredump 文件时，对于基础类型或者 struct ，可以直接 <code>print 变量</code> 来查看对应的值，但是如果为指针，或者更复杂的情况，是个动态类型，该如何查看呢？</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>有一个消费 Kafka 数据的 Consumer 程序因为异常数据挂掉了，对应的 core 文件幸运地被 dump 了出来，关键栈信息如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// ....</span><br><span class="line">#10 pybind11::detail::accessor&lt;pybind11::detail::accessor_policies::generic_item&gt;::cast&lt;std::string&gt; (this=0x7ff9ee0a7790)</span><br><span class="line">    at bc_out/baidu/third-party/pybind11/output/include/pybind11/pytypes.h:463</span><br><span class="line">#11 lbd::PythonOperator::on_tuple (this=0x5c80d90, input=..., output=0x7ff9ee0a7ac0) at baidu/ps-aladdin/streaming-topology/src/python_operator.cc:91</span><br><span class="line">#12 0x00000000005dae2f in vs::common::Operator::check_data_process_on_tuple (this=0x5c80d90, msg=..., output_vector=0x7ff9ee0a7ac0)</span><br><span class="line">    at baidu/ps-aladdin/vs-common/core/topology/operator.h:172</span><br><span class="line">#13 0x00000000005d7984 in vs::common::Operator::process (this=0x5c80d90, tid=4) at baidu/ps-aladdin/vs-common/core/topology/operator.cc:210</span><br><span class="line">#14 0x00000000005d815b in operator() (__closure=0x60ed408) at baidu/ps-aladdin/vs-common/core/topology/operator.cc:254</span><br><span class="line">#15 0x00000000005d8bdc in std::__invoke_impl&lt;void, vs::common::Operator::start_process()::&lt;lambda()&gt; &gt;(std::__invoke_other, struct &#123;...&#125; &amp;&amp;) (__f=...)</span><br><span class="line">// ....</span><br></pre></td></tr></table></figure>
+<p>我们的目标是需要从中获取到 Kafka 数据的 partition 和 offset 信息，来从 Kafka 中获取异常数据的内容，以及用于线下复现问题。（原始数据为二进制压缩类型，需要 dump 到本地进行解码）</p>
+<hr>
+<h2 id="print-指针"><a href="#print-指针" class="headerlink" title="print 指针"></a>print 指针</h2><p>包含程序业务代码的栈为 11、12、13、14、15，其中并没有直接存储 partition 和 offset 信息的变量，找变量的过程这里就省略了。从 11 栈开始排查，看一下 partition 和 offset 信息是否存储在于某些变量中。</p>
+<p>函数 on_tuple 的入参 <code>input</code>的类型为 <code>std::shared_ptr&lt;vs::common::OperatorMessage&gt;</code>，其中类型为 <code>std::shared_ptr&lt;RdKafka::Message&gt;</code> 变量 <code>_kafka_message</code> 存储了 Kafka 消息的原始信息。这两变量实际均为 <code>std::shared_ptr</code>类型，可以通过打印它的 <code>_M_ptr</code> 来查看内层指针的值，在前面加上 <code>*</code> 来查看指针指向的变量的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">(gdb) set print pretty on</span><br><span class="line"></span><br><span class="line">(gdb) print input</span><br><span class="line">$1 = &#123;</span><br><span class="line">  &lt;std::__shared_ptr&lt;vs::common::OperatorMessage, (__gnu_cxx::_Lock_policy)2&gt;&gt; = &#123;</span><br><span class="line">    &lt;std::__shared_ptr_access&lt;vs::common::OperatorMessage, (__gnu_cxx::_Lock_policy)2, false, false&gt;&gt; = &#123;&lt;No data fields&gt;&#125;,</span><br><span class="line">    members of std::__shared_ptr&lt;vs::common::OperatorMessage, (__gnu_cxx::_Lock_policy)2&gt;:</span><br><span class="line">    _M_ptr = 0xe3a6490,</span><br><span class="line">    _M_refcount = &#123;</span><br><span class="line">      _M_pi = 0xe3a6480</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, &lt;No data fields&gt;&#125;</span><br><span class="line"></span><br><span class="line">(gdb) print input._M_ptr</span><br><span class="line">$2 = (std::__shared_ptr&lt;vs::common::OperatorMessage, (__gnu_cxx::_Lock_policy)2&gt;::element_type *) 0xe3a6490</span><br><span class="line">(gdb) print *input._M_ptr</span><br><span class="line">$3 = &#123;</span><br><span class="line">  _vptr.OperatorMessage = 0x1dd08e8 &lt;vtable for vs::common::OperatorMessage+16&gt;,</span><br><span class="line">  _kafka_message = &#123;</span><br><span class="line">    &lt;std::__shared_ptr&lt;RdKafka::Message, (__gnu_cxx::_Lock_policy)2&gt;&gt; = &#123;</span><br><span class="line">      &lt;std::__shared_ptr_access&lt;RdKafka::Message, (__gnu_cxx::_Lock_policy)2, false, false&gt;&gt; = &#123;&lt;No data fields&gt;&#125;,</span><br><span class="line">      members of std::__shared_ptr&lt;RdKafka::Message, (__gnu_cxx::_Lock_policy)2&gt;:</span><br><span class="line">      _M_ptr = 0x8af8c80,</span><br><span class="line">      _M_refcount = &#123;</span><br><span class="line">        _M_pi = 0x1ae1e400</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;, &lt;No data fields&gt;&#125;,</span><br><span class="line">    // .....</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">(gdb) print input._M_ptr-&gt;_kafka_message._M_ptr</span><br><span class="line">$5 = (std::__shared_ptr&lt;RdKafka::Message, (__gnu_cxx::_Lock_policy)2&gt;::element_type *) 0x8af8c80</span><br><span class="line">(gdb) print *input._M_ptr-&gt;_kafka_message._M_ptr</span><br><span class="line">$6 = &#123;</span><br><span class="line">  _vptr.Message = 0x1df0258 &lt;vtable for RdKafka::MessageImpl+16&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="print-动态类型"><a href="#print-动态类型" class="headerlink" title="print 动态类型"></a>print 动态类型</h2><p>但不幸的是，由于 <code>RdKafka::Message</code>是个动态类型，实际的实例是 <code>RdKafka::MessageImpl</code>，所以直接打印看不到其中的成员，此时可以设置 <code>set print object on</code> 强制打印变量真实类型（<code>dynamic_cast</code>类型强转后，最终打印出的值不太对，没细纠是啥原因）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">(gdb) set print object on</span><br><span class="line">(gdb) print *input._M_ptr-&gt;_kafka_message._M_ptr</span><br><span class="line">$12 = (RdKafka::MessageImpl) &#123;</span><br><span class="line">  &lt;RdKafka::Message&gt; = &#123;</span><br><span class="line">    _vptr.Message = 0x1df0258 &lt;vtable for RdKafka::MessageImpl+16&gt;</span><br><span class="line">  &#125;,</span><br><span class="line">  members of RdKafka::MessageImpl:</span><br><span class="line">  topic_ = 0x58b8a60,</span><br><span class="line">  rkmessage_ = 0xc774e38,</span><br><span class="line">  free_rkmessage_ = true,</span><br><span class="line">  rkmessage_err_ = &#123;</span><br><span class="line">    err = RD_KAFKA_RESP_ERR_OFFSET_OUT_OF_RANGE,</span><br><span class="line">    rkt = 0x5f6164626d616c5f,</span><br><span class="line">    partition = 1986290284,</span><br><span class="line">    payload = 0x6863735f7374726f,</span><br><span class="line">    len = 3472943151872042085,</span><br><span class="line">    key = 0x3131393238303532,</span><br><span class="line">    key_len = 7234014019578574644,</span><br><span class="line">    offset = 8390891584507309673,</span><br><span class="line">    _private = 0x7564656863735f73</span><br><span class="line">  &#125;,</span><br><span class="line">  key_ = 0x15240dd8,</span><br><span class="line">  headers_ = 0x0,</span><br><span class="line">  rk_type_ = RD_KAFKA_CONSUMER</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>翻了一下 librdkafka 的源码，partition 和 offset 的信息是存储在变量 <code>rkmessage_</code> 中的，需要获取到它的值。但是由于 <code>_kafka_message</code> 实际的类型为 <code>RdKafka::Message</code> ，其中不包含变量 <code>rkmessage_</code>，所以没法直接用 print 来打印</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">(gdb) print *(input._M_ptr-&gt;_kafka_message._M_ptr).rkmessage_</span><br><span class="line">There is no member or method named rkmessage_.</span><br><span class="line"></span><br><span class="line">(gdb) ptype *(input._M_ptr._kafka_message._M_ptr)</span><br><span class="line">type = class RdKafka::Message &#123;</span><br><span class="line">  public:</span><br><span class="line">    virtual std::string errstr(void) const;</span><br><span class="line">    virtual RdKafka::ErrorCode err(void) const;</span><br><span class="line">    virtual RdKafka::Topic * topic(void) const;</span><br><span class="line">    virtual std::string topic_name(void) const;</span><br><span class="line">    virtual int32_t partition(void) const;</span><br><span class="line">    virtual void * payload(void) const;</span><br><span class="line">    virtual size_t len(void) const;</span><br><span class="line">    virtual const std::string * key(void) const;</span><br><span class="line">    virtual const void * key_pointer(void) const;</span><br><span class="line">    virtual size_t key_len(void) const;</span><br><span class="line">    virtual int64_t offset(void) const;</span><br><span class="line">    virtual RdKafka::MessageTimestamp timestamp(void) const;</span><br><span class="line">    virtual void * msg_opaque(void) const;</span><br><span class="line">    ~Message();</span><br><span class="line">    virtual int64_t latency(void) const;</span><br><span class="line">    virtual rd_kafka_message_s * c_ptr(void);</span><br><span class="line">    virtual RdKafka::Message::Status status(void) const;</span><br><span class="line">    virtual RdKafka::Headers * headers(void);</span><br><span class="line">    virtual RdKafka::Headers * headers(RdKafka::ErrorCode *);</span><br><span class="line">    virtual int32_t broker_id(void) const;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以基于指针地址进行打印，根据源码，变量 <code>rkmessage_</code> 的类型为 <code>rd_kafka_message_t*</code>，地址为 <code>0xc774e38</code>（见 <code>print *input._M_ptr-&gt;_kafka_message._M_ptr</code>的打印结果），那么可以这样 print，可以看到其中的 partition 和 offset 值是正常的，最后也顺利根据这个信息拿到了问题数据并进行了本地问题复现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">(gdb) print *(rd_kafka_message_t *)0xc774e38</span><br><span class="line">$16 = &#123;</span><br><span class="line">  err = RD_KAFKA_RESP_ERR_NO_ERROR,</span><br><span class="line">  rkt = 0x55821c0,</span><br><span class="line">  partition = 1,</span><br><span class="line">  payload = 0x77c5044,</span><br><span class="line">  len = 1851,</span><br><span class="line">  key = 0x77c5006,</span><br><span class="line">  key_len = 60,</span><br><span class="line">  offset = 76573191,</span><br><span class="line">  _private = 0xc774dc0</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="进一步探索"><a href="#进一步探索" class="headerlink" title="进一步探索"></a>进一步探索</h2><p>对于其他变量也是同理，例如根据源码， <code>key_</code> 的类型为 <code>std::string *</code>，那么也可以通过类似的方式查看对应的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">(gdb) print *(std::string *)0x15240dd8</span><br><span class="line">$17 = &#123;</span><br><span class="line">  static npos = 18446744073709551615,</span><br><span class="line">  _M_dataplus = &#123;</span><br><span class="line">    &lt;std::allocator&lt;char&gt;&gt; = &#123;</span><br><span class="line">      &lt;std::__new_allocator&lt;char&gt;&gt; = &#123;&lt;No data fields&gt;&#125;, &lt;No data fields&gt;&#125;,</span><br><span class="line">    members of std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::_Alloc_hider:</span><br><span class="line">    _M_p = 0x1a667f18 &quot;http://kg.baidu.com/rawbase/012226d6ed5807455d7e402b801a31cd&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>甚至可以直接用 <code>ptype</code> 打印其包含的成员:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">(gdb) ptype *(RdKafka::MessageImpl *)0x8af8c80</span><br><span class="line">type = class RdKafka::MessageImpl : public RdKafka::Message &#123;</span><br><span class="line">  public:</span><br><span class="line">    RdKafka::Topic *topic_;</span><br><span class="line">    rd_kafka_message_t *rkmessage_;</span><br><span class="line">    bool free_rkmessage_;</span><br><span class="line">    rd_kafka_message_t rkmessage_err_;</span><br><span class="line">    std::string *key_;</span><br><span class="line">  private:</span><br><span class="line">    RdKafka::Headers *headers_;</span><br><span class="line">    const rd_kafka_type_t rk_type_;</span><br><span class="line"></span><br><span class="line">  public:</span><br><span class="line">    ~MessageImpl();</span><br><span class="line">    MessageImpl(rd_kafka_type_t, RdKafka::Topic *, rd_kafka_message_t *);</span><br><span class="line">    MessageImpl(rd_kafka_type_t, RdKafka::Topic *, rd_kafka_message_t *, bool);</span><br><span class="line">    MessageImpl(rd_kafka_type_t, rd_kafka_message_t *);</span><br><span class="line">    MessageImpl(rd_kafka_type_t, RdKafka::Topic *, RdKafka::ErrorCode);</span><br><span class="line">  private:</span><br><span class="line">    MessageImpl(const RdKafka::MessageImpl &amp;);</span><br><span class="line">  public:</span><br><span class="line">    virtual std::string errstr(void) const;</span><br><span class="line">    virtual RdKafka::ErrorCode err(void) const;</span><br><span class="line">    virtual RdKafka::Topic * topic(void) const;</span><br><span class="line">    virtual std::string topic_name(void) const;</span><br><span class="line">    virtual int32_t partition(void) const;</span><br><span class="line">    virtual void * payload(void) const;</span><br><span class="line">    virtual size_t len(void) const;</span><br><span class="line">    virtual const std::string * key(void) const;</span><br><span class="line">    virtual const void * key_pointer(void) const;</span><br><span class="line">--Type &lt;RET&gt; for more, q to quit, c to continue without paging--</span><br><span class="line">    virtual size_t key_len(void) const;</span><br><span class="line">    virtual int64_t offset(void) const;</span><br><span class="line">    virtual RdKafka::MessageTimestamp timestamp(void) const;</span><br><span class="line">    virtual void * msg_opaque(void) const;</span><br><span class="line">    virtual int64_t latency(void) const;</span><br><span class="line">    virtual rd_kafka_message_s * c_ptr(void);</span><br><span class="line">    virtual RdKafka::Message::Status status(void) const;</span><br><span class="line">    virtual RdKafka::Headers * headers(void);</span><br><span class="line">    virtual RdKafka::Headers * headers(RdKafka::ErrorCode *);</span><br><span class="line">    virtual int32_t broker_id(void) const;</span><br><span class="line">  private:</span><br><span class="line">    RdKafka::MessageImpl &amp; operator=(const RdKafka::MessageImpl &amp;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是相同的地址，用 <code>std::string</code> 类型打印，虽然没有报错，但是内容就不对了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">(gdb) print *(std::string *)0x8af8c80</span><br><span class="line">$18 = &#123;</span><br><span class="line">  static npos = 18446744073709551615,</span><br><span class="line">  _M_dataplus = &#123;</span><br><span class="line">    &lt;std::allocator&lt;char&gt;&gt; = &#123;</span><br><span class="line">      &lt;std::__new_allocator&lt;char&gt;&gt; = &#123;&lt;No data fields&gt;&#125;, &lt;No data fields&gt;&#125;,</span><br><span class="line">    members of std::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;::_Alloc_hider:</span><br><span class="line">    _M_p = 0x1df0258 &lt;vtable for RdKafka::MessageImpl+16&gt; &quot;\200e`&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>给人的感觉就是，给一个指针地址，然后用指定的类型来匹配地址中存储的数据内容，有点粗暴，hh</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/" data-id="cmexrwie9004olhjc7xo5rwbx" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c++</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/08/13/KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">KIP-853 功能验证 - kraft 模式下动态变更 kafka controller voter 列表</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>205</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
