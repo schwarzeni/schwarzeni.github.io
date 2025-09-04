@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka server 端数据压缩特性 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="也即：kafka topic 配置了数据压缩但是 producer 未压缩时，broker 会对数据进行压缩吗？">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka server 端数据压缩特性">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="也即：kafka topic 配置了数据压缩但是 producer 未压缩时，broker 会对数据进行压缩吗？">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/Pasted%20image%2020250904170712.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/截屏2025-09-04%2017.10.33.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/截屏2025-09-04%2017.10.59.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/截屏2025-09-04%2017.11.28.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/截屏2025-09-04%2017.11.54.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/截屏2025-09-04%2017.12.13.png">
+<meta property="og:updated_time" content="2025-09-04T16:31:16.130Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka server 端数据压缩特性">
+<meta name="twitter:description" content="也即：kafka topic 配置了数据压缩但是 producer 未压缩时，broker 会对数据进行压缩吗？">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/Pasted%20image%2020250904170712.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>206</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kafka-server-端数据压缩特性" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/09/05/kafka-server-端数据压缩特性/" class="article-date">
+  <time class="post-time" datetime="2025-09-04T16:29:24.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">05</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kafka server 端数据压缩特性
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>也即：kafka topic 配置了数据压缩但是 producer 未压缩时，broker 会对数据进行压缩吗？</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>目前发现线上部分 topic 虽然设置了 <code>compression.type</code> 为 <code>gzip</code>，但是 producer 在写入时，并没有压缩的相关配置，也即写入 topic 的数据是未压缩的。那么，在这种情况下，broker 会对数据进行压缩吗？</p>
+<p>分别问了 deepseek 和 claude，给的回答分别是不会和会，这就让我有些懵逼了。随后在网上搜了一下，confluent 有个<a href="https://www.confluent.io/blog/apache-kafka-message-compression/" target="_blank" rel="noopener">文章</a>给的结论和 claude 一致，即会由 broker 进行压缩。</p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>对 2.1.1 和 3.9.1 的源码进行分析。前者为当前线上使用的版本，后者为后续新集群部署时使用的版本。</p>
+<h3 id="3-9-1"><a href="#3-9-1" class="headerlink" title="3.9.1"></a>3.9.1</h3><p>在 3.9.1 版本中，管理 Kafka 数据的关键类为 <code>UnifiedLog.scala</code>（core/src/main/scala/kafka/log/UnifiedLog.scala），其中数据落盘使用的是 <code>append</code> 方法，删去了大量无用的逻辑，关键代码如下:</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">append</span></span>(records: <span class="type">MemoryRecords</span>,</span><br><span class="line">                  <span class="comment">// .....</span></span><br><span class="line">                   ignoreRecordSize: <span class="type">Boolean</span>): <span class="type">LogAppendInfo</span> = &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    <span class="comment">// they are valid, insert them in the log</span></span><br><span class="line">    lock synchronized &#123;</span><br><span class="line">      maybeHandleIOException(<span class="string">s"Error while appending records to <span class="subst">$topicPartition</span> in dir <span class="subst">$&#123;dir.getParent&#125;</span>"</span>) &#123;</span><br><span class="line">        localLog.checkIfMemoryMappedBufferClosed()</span><br><span class="line">        <span class="keyword">if</span> (validateAndAssignOffsets) &#123;</span><br><span class="line">          <span class="comment">// assign offsets to the message set</span></span><br><span class="line">          <span class="keyword">val</span> offset = <span class="type">PrimitiveRef</span>.ofLong(localLog.logEndOffset)</span><br><span class="line">          appendInfo.setFirstOffset(offset.value)</span><br><span class="line">          <span class="keyword">val</span> validateAndOffsetAssignResult = <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">val</span> targetCompression = <span class="type">BrokerCompressionType</span>.targetCompression(config.compression, appendInfo.sourceCompression())</span><br><span class="line">            <span class="keyword">val</span> validator = <span class="keyword">new</span> <span class="type">LogValidator</span>(validRecords,</span><br><span class="line">              <span class="comment">// ....</span></span><br><span class="line">              appendInfo.sourceCompression,</span><br><span class="line">              targetCompression,</span><br><span class="line">              <span class="comment">// .....</span></span><br><span class="line">            )</span><br><span class="line">            validator.validateMessagesAndAssignOffsets(offset,</span><br><span class="line">              validatorMetricsRecorder,</span><br><span class="line">              requestLocal.getOrElse(<span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span>(</span><br><span class="line">                <span class="string">"requestLocal should be defined if assignOffsets is true"</span>)</span><br><span class="line">              ).bufferSupplier</span><br><span class="line">            )</span><br><span class="line">          &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">            <span class="keyword">case</span> e: <span class="type">IOException</span> =&gt;</span><br><span class="line">              <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">KafkaException</span>(<span class="string">s"Error validating messages while appending to log <span class="subst">$name</span>"</span>, e)</span><br><span class="line">          &#125;</span><br><span class="line">        <span class="comment">// ....</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，首先会通过 <code>BrokerCompressionType.targetCompression(config.compression, appendInfo.sourceCompression())</code>  获取 topic 的数据压缩类型对应的处理对象，然后通过 <code>LogValidator</code> 的 <code>validateMessagesAndAssignOffsets</code> 来进行数据校验和写入。这里的 <code>targetCompression</code> 为 <code>org.apache.kafka.common.compress.Compression</code> 接口类型，Kafka 支持的压缩算法都实现了这个接口:</p>
+<p><img src="Pasted image 20250904170712.png" alt=""></p>
+<p>深入 <code>validateMessagesAndAssignOffsets</code> 方法，大致的调用顺序如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">LogValidator::validateMessagesAndAssignOffsets</span><br><span class="line">LogValidator::validateMessagesAndAssignOffsetsCompressed</span><br><span class="line">LogValidator::buildRecordsAndAssignOffsets</span><br></pre></td></tr></table></figure>
+<p>在方法 <code>buildRecordsAndAssignOffsets</code> 的关键代码如下，使用了 <code>MemoryRecordsBuilder</code> 对数据进行实际的写入，并且可以看到，在这之前，它根据压缩的类型，对预期写入的数据大小进行了估算，并且以此为基准申请了 buffer，所以实际上已经很明确了，对于 producer 未对数据进行压缩的场景，broker 会代为进行数据压缩。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">ValidationResult</span> buildRecordsAndAssignOffsets(<span class="type">LongRef</span> offsetCounter,</span><br><span class="line">                                                      long logAppendTime,</span><br><span class="line">                                                      <span class="type">RecordBatch</span> firstBatch,</span><br><span class="line">                                                      <span class="type">List</span>&lt;<span class="type">Record</span>&gt; validatedRecords,</span><br><span class="line">                                                      int uncompressedSizeInBytes) &#123;</span><br><span class="line">    long startNanos = time.nanoseconds();</span><br><span class="line">    int estimatedSize = <span class="type">AbstractRecords</span>.estimateSizeInBytes(toMagic, offsetCounter.value, targetCompression.<span class="keyword">type</span>(),</span><br><span class="line">        validatedRecords);</span><br><span class="line">    <span class="comment">// The current implementation of BufferSupplier is naive and works best when the buffer size</span></span><br><span class="line">    <span class="comment">// cardinality is low, so don't use it here</span></span><br><span class="line">    <span class="type">ByteBuffer</span> buffer = <span class="type">ByteBuffer</span>.allocate(estimatedSize);</span><br><span class="line">    <span class="type">MemoryRecordsBuilder</span> builder = <span class="type">MemoryRecords</span>.builder(buffer, toMagic, targetCompression,</span><br><span class="line">        timestampType, offsetCounter.value, logAppendTime, firstBatch.producerId(),</span><br><span class="line">        firstBatch.producerEpoch(), firstBatch.baseSequence(), firstBatch.isTransactional(),</span><br><span class="line">        partitionLeaderEpoch);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">Record</span> record : validatedRecords)</span><br><span class="line">        builder.appendWithOffset(offsetCounter.value++, record);</span><br><span class="line"></span><br><span class="line">    <span class="type">MemoryRecords</span> records = builder.build();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <code>MemoryRecordsBuilder</code>  中，最后实现数据写入的函数为 <code>appendDefaultRecord</code>，其中调用了 <code>DefaultRecord.writeTo</code> 将数据写入至 <code>appendStream</code> 中，这个 <code>appendStream</code> 就是在上初始化这个类时，基于传入的 <code>targetCompression</code> 生成的流式数据写入对象，<code>targetCompression</code> 实际对应的压缩算子实现，会对收到的数据进行流式压缩。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"> public <span class="type">MemoryRecordsBuilder</span>(<span class="type">ByteBufferOutputStream</span> bufferStream,</span><br><span class="line">                             byte magic,</span><br><span class="line">                             <span class="type">Compression</span> compression,</span><br><span class="line">                             <span class="comment">// .....</span></span><br><span class="line">                             ) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">this</span>.appendStream = <span class="keyword">new</span> <span class="type">DataOutputStream</span>(compression.wrapForOutput(<span class="keyword">this</span>.bufferStream, magic));</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span> void appendDefaultRecord(long offset, long timestamp, <span class="type">ByteBuffer</span> key, <span class="type">ByteBuffer</span> value,</span><br><span class="line">                                  <span class="type">Header</span>[] headers) <span class="keyword">throws</span> <span class="type">IOException</span> &#123;</span><br><span class="line">     ensureOpenForRecordAppend();</span><br><span class="line">     int offsetDelta = (int) (offset - baseOffset);</span><br><span class="line">     long timestampDelta = timestamp - baseTimestamp;</span><br><span class="line">     int sizeInBytes = <span class="type">DefaultRecord</span>.writeTo(appendStream, offsetDelta, timestampDelta, key, value, headers);</span><br><span class="line">     recordWritten(offset, timestamp, sizeInBytes);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>所以，对于 3.9.1 版本，结论为如果 topic 配置了压缩，但是收到的数据未压缩，那么 broker 会对数据进行压缩。</p>
+<h3 id="2-1-1"><a href="#2-1-1" class="headerlink" title="2.1.1"></a>2.1.1</h3><p>在 2.1.1 版本中，管理 Kafka 数据的关键类为 <code>Log.scala</code> （core/src/main/scala/kafka/log/Log.scala），数据落盘的方法为 <code>append</code> ，实现和 3.9.1 类似：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">append</span></span>(records: <span class="type">MemoryRecords</span>, isFromClient: <span class="type">Boolean</span>, assignOffsets: <span class="type">Boolean</span>, leaderEpoch: <span class="type">Int</span>): <span class="type">LogAppendInfo</span> = &#123;</span><br><span class="line">    <span class="comment">// ....</span></span><br><span class="line">    <span class="comment">// they are valid, insert them in the log</span></span><br><span class="line">    lock synchronized &#123;</span><br><span class="line">      checkIfMemoryMappedBufferClosed()</span><br><span class="line">      <span class="keyword">if</span> (assignOffsets) &#123;</span><br><span class="line">        <span class="comment">// assign offsets to the message set</span></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">val</span> validateAndOffsetAssignResult = <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="type">LogValidator</span>.validateMessagesAndAssignOffsets(validRecords,</span><br><span class="line">            offset,</span><br><span class="line">            time,</span><br><span class="line">            now,</span><br><span class="line">            appendInfo.sourceCodec,</span><br><span class="line">            appendInfo.targetCodec,</span><br><span class="line">             <span class="comment">// ....</span></span><br><span class="line">              )</span><br><span class="line">        &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> e: <span class="type">IOException</span> =&gt;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">KafkaException</span>(<span class="string">s"Error validating messages while appending to log <span class="subst">$name</span>"</span>, e)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ....</span></span><br></pre></td></tr></table></figure>
+<p>同样也是通过 <code>LogValidator</code> 的 <code>validateMessagesAndAssignOffsets</code> 进行数据的写入，老版本中 <code>LogValidator</code>  使用 scala ，而非 java ，实现，实际的逻辑不变，最终都是使用了 <code>MemoryRecordsBuilder</code> 对数据进行实际的写入，这段逻辑在 3.9.1 中分析过，这里不再赘述。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">buildRecordsAndAssignOffsets</span></span>(magic: <span class="type">Byte</span>,</span><br><span class="line">                                          offsetCounter: <span class="type">LongRef</span>,</span><br><span class="line">                                          time: <span class="type">Time</span>,</span><br><span class="line">                                          timestampType: <span class="type">TimestampType</span>,</span><br><span class="line">                                          compressionType: <span class="type">CompressionType</span>,</span><br><span class="line">                                           <span class="comment">// ...</span></span><br><span class="line">                                          uncompresssedSizeInBytes: <span class="type">Int</span>): <span class="type">ValidationAndOffsetAssignResult</span> = &#123;</span><br><span class="line">   <span class="keyword">val</span> startNanos = time.nanoseconds</span><br><span class="line">   <span class="keyword">val</span> estimatedSize = <span class="type">AbstractRecords</span>.estimateSizeInBytes(magic, offsetCounter.value, compressionType,</span><br><span class="line">     validatedRecords.asJava)</span><br><span class="line">   <span class="keyword">val</span> buffer = <span class="type">ByteBuffer</span>.allocate(estimatedSize)</span><br><span class="line">   <span class="keyword">val</span> builder = <span class="type">MemoryRecords</span>.builder(buffer, magic, compressionType, timestampType, offsetCounter.value,</span><br><span class="line">     logAppendTime, producerId, producerEpoch, baseSequence, isTransactional, partitionLeaderEpoch)</span><br><span class="line"></span><br><span class="line">   validatedRecords.foreach &#123; record =&gt;</span><br><span class="line">     builder.appendWithOffset(offsetCounter.getAndIncrement(), record)</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">val</span> records = builder.build()</span><br><span class="line">   <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="源码分析结论"><a href="#源码分析结论" class="headerlink" title="源码分析结论"></a>源码分析结论</h3><p>2.1.1 和 3.9.1 版本中，如果 topic 配置了压缩，但是收到的数据未压缩，那么 broker 会对数据进行压缩。</p>
+<h2 id="实际读取验证"><a href="#实际读取验证" class="headerlink" title="实际读取验证"></a>实际读取验证</h2><p>正好当前需要验证新业务场景下 gzip 对于二进制数据的压缩效率，该业务场景需要使用 3.9.1 版本的集群。正好借着这个机会验证一下 producer 端未配置压缩的场景下，broker 端对于数据的处理：</p>
+<p><img src="截屏2025-09-04 17.10.33.png" alt=""></p>
+<p>可以看到，在写入相同数据的情况下，broker 端会对数据进行压缩操作。为了验证确实走到了 <code>buildRecordsAndAssignOffsets</code> 中，在函数中添加了相关的日志：</p>
+<p><img src="截屏2025-09-04 17.10.59.png" alt=""></p>
+<p>在实际执行时，确实有日志输出：</p>
+<p><img src="截屏2025-09-04 17.11.28.png" alt=""></p>
+<h2 id="附录：deepseek-嘴硬记录"><a href="#附录：deepseek-嘴硬记录" class="headerlink" title="附录：deepseek 嘴硬记录"></a>附录：deepseek 嘴硬记录</h2><p><img src="截屏2025-09-04 17.11.54.png" alt=""></p>
+<p><img src="截屏2025-09-04 17.12.13.png" alt=""></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/" data-id="cmf5mjqza0068nd9ksh14ebg4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">gdb c++ coredump 调试：查看指针和动态类型的值</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>206</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
