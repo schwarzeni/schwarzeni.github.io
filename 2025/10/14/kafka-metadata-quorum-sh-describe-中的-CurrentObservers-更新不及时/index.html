@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka-metadata-quorum.sh describe 中的 CurrentObservers 更新不及时 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="./bin/kafka-metadata-quorum.sh describe --status 中 CurrentObservers 为什么有时候会包含已经下线的 broker 信息？">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka-metadata-quorum.sh describe 中的 CurrentObservers 更新不及时">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="./bin/kafka-metadata-quorum.sh describe --status 中 CurrentObservers 为什么有时候会包含已经下线的 broker 信息？">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2025-10-13T16:04:42.965Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka-metadata-quorum.sh describe 中的 CurrentObservers 更新不及时">
+<meta name="twitter:description" content="./bin/kafka-metadata-quorum.sh describe --status 中 CurrentObservers 为什么有时候会包含已经下线的 broker 信息？">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>208</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/" class="article-date">
+  <time class="post-time" datetime="2025-10-13T16:01:48.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">14</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kafka-metadata-quorum.sh describe 中的 CurrentObservers 更新不及时
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><code>./bin/kafka-metadata-quorum.sh describe --status</code> 中 <code>CurrentObservers</code> 为什么有时候会包含已经下线的 broker 信息？</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>今天有同事咨询了一个问题，他发现在本地测试 kraft 集群时，当一个 broker 下线后，执行 <code>./bin/kafka-metadata-quorum.sh describe --status</code> 的输出结果中，在 <code>CurrentObservers</code> 里依旧有这个 broker 的信息。我其实也挺好奇的，所以就探索了一下 <code>CurrentObservers</code> 的更新机制。kafka 的版本为 3.9.1</p>
+<p>注：源码分析基于 claude code + glm4.6 和 trae ，kafka 版本为 3.9.1</p>
+<h2 id="是什么"><a href="#是什么" class="headerlink" title="是什么"></a>是什么</h2><p>执行命令 <code>kafka-metadata-quorum.sh describe --status</code> 的输出样例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15001 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            1</span><br><span class="line">HighWatermark:          1036</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;3rDv-etwR2e90gwUcBllDg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15001&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<p><code>CurrentObservers</code> 位于最后一行，它记录了所有非 voter 的成员信息。在 kraft 的模式下，observer 不参与 raft 投票决策及元数据同步，也即是普通的 broker 节点。</p>
+<h2 id="如何定义"><a href="#如何定义" class="headerlink" title="如何定义"></a>如何定义</h2><p>它的核心数据结构定义在 <a href="https://github.com/apache/kafka/blob/b1b330e664ce6380adec873c410a36ef4664206b/raft/src/main/java/org/apache/kafka/raft/LeaderState.java#L81" target="_blank" rel="noopener">LeaderState.java:81</a> 中，是一个纯内存的数据结构，如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;ReplicaKey, ReplicaState&gt; observerStates = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br></pre></td></tr></table></figure>
+<p>其中：</p>
+<ul>
+<li><strong>Key</strong>: <code>ReplicaKey</code> - 包含节点ID和目录ID的唯一标识</li>
+<li><strong>Value</strong>: <code>ReplicaState</code> - 包含节点的状态信息，如日志偏移量、最后拉取时间等</li>
+</ul>
+<h2 id="如何新增"><a href="#如何新增" class="headerlink" title="如何新增"></a>如何新增</h2><h3 id="新-Observer-节点首次连接"><a href="#新-Observer-节点首次连接" class="headerlink" title="新 Observer 节点首次连接"></a>新 Observer 节点首次连接</h3><p>触发场景: 节点准备加入集群但尚未成为正式Voter时</p>
+<p>工作流程:  </p>
+<ol>
+<li>新节点启动后向Leader发送FetchRequest  </li>
+<li>由于节点不在Voter集合中，被自动识别为Observer  </li>
+<li>节点开始同步数据，为后续成为Voter做准备</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LeaderState</span></span><br><span class="line">   <span class="function"><span class="keyword">private</span> ReplicaState <span class="title">getOrCreateReplicaState</span><span class="params">(ReplicaKey replicaKey)</span> </span>&#123;</span><br><span class="line">       ReplicaState state = voterStates.get(replicaKey.id());</span><br><span class="line">       <span class="keyword">if</span> (state == <span class="keyword">null</span> || !state.matchesKey(replicaKey)) &#123;</span><br><span class="line">           observerStates.putIfAbsent(replicaKey, <span class="keyword">new</span> ReplicaState(replicaKey, <span class="keyword">false</span>, Endpoints.empty()));</span><br><span class="line">           <span class="keyword">return</span> observerStates.get(replicaKey);</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">return</span> state;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Voter-节点降级为-Observer"><a href="#Voter-节点降级为-Observer" class="headerlink" title="Voter 节点降级为 Observer"></a>Voter 节点降级为 Observer</h3><p>触发条件：</p>
+<ol>
+<li>执行集群重配置操作  </li>
+<li>某个Voter从VoterSet中被移除  </li>
+<li>该Voter的状态被保留并转移到Observer列表</li>
+</ol>
+<p>工作流程：</p>
+<ol>
+<li>接收新的VoterSet配置  </li>
+<li>识别出被移除的Voter节点  </li>
+<li>清除该节点的监听器信息  </li>
+<li>将其状态转移到<code>observerStates</code>中</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updateVoterAndObserverStates</span><span class="params">(VoterSet lastVoterSet)</span> </span>&#123;  </span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	<span class="comment">// Move any of the remaining old voters to observerStates  </span></span><br><span class="line">	<span class="keyword">for</span> (ReplicaState replicaStateEntry : oldVoterStates.values()) &#123;  </span><br><span class="line">	    replicaStateEntry.clearListeners();  </span><br><span class="line">	    observerStates.putIfAbsent(replicaStateEntry.replicaKey, replicaStateEntry);  </span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Observer-发送-Fetch-请求"><a href="#Observer-发送-Fetch-请求" class="headerlink" title="Observer 发送 Fetch 请求"></a>Observer 发送 Fetch 请求</h3><p>触发条件：</p>
+<ol>
+<li>节点向Leader发起FetchRequest请求  （<code>pollFollowerAsObserver</code>）</li>
+<li>该节点不在当前Voter集合中（<code>voterStates.get(replicaKey.id()) == null</code>）  </li>
+<li>或者节点的ReplicaKey与现有记录不匹配（<code>!state.matchesKey(replicaKey)</code>）</li>
+</ol>
+<p>工作流程:  </p>
+<ol>
+<li>Leader接收到非Voter节点的 FetchRequest  </li>
+<li>调用<code>updateReplicaState</code>方法  </li>
+<li><code>getOrCreateReplicaState</code>方法判断该节点不是Voter  </li>
+<li>自动将该节点添加到<code>observerStates</code>中</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ReplicaState <span class="title">getOrCreateReplicaState</span><span class="params">(ReplicaKey replicaKey)</span> </span>&#123;</span><br><span class="line">    ReplicaState state = voterStates.get(replicaKey.id());</span><br><span class="line">    <span class="keyword">if</span> (state == <span class="keyword">null</span> || !state.matchesKey(replicaKey)) &#123;</span><br><span class="line">        observerStates.putIfAbsent(replicaKey, <span class="keyword">new</span> ReplicaState(replicaKey, <span class="keyword">false</span>, Endpoints.empty()));</span><br><span class="line">        <span class="keyword">return</span> observerStates.get(replicaKey);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> state;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="如何删除"><a href="#如何删除" class="headerlink" title="如何删除"></a>如何删除</h2><h3 id="Observer-升级为-Voter"><a href="#Observer-升级为-Voter" class="headerlink" title="Observer 升级为 Voter"></a>Observer 升级为 Voter</h3><p>触发条件:</p>
+<ol>
+<li>执行AddVoter操作  </li>
+<li>Observer节点被正式添加到Voter集合中  </li>
+<li>新的VoterSet配置生效</li>
+</ol>
+<p>工作流程：</p>
+<ol>
+<li>接收AddVoter请求  </li>
+<li>验证Observer节点状态（是否追上Leader等）  </li>
+<li>更新VoterSet配置  </li>
+<li>从<code>observerStates</code>中移除该节点  </li>
+<li>在<code>voterStates</code>中添加该节点</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updateVoterAndObserverStates</span><span class="params">(VoterSet lastVoterSet)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	<span class="keyword">for</span> (VoterSet.VoterNode voterNode : lastVoterSet.voterNodes()) &#123;</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">		observerStates.remove(voterNode.voterKey());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="集群重新配置"><a href="#集群重新配置" class="headerlink" title="集群重新配置"></a>集群重新配置</h3><p>触发时机 ：当 VoterSet 发生变化时，会重新计算 observer 状态</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">updateLocalState</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      LogOffsetMetadata endOffsetMetadata,</span></span></span><br><span class="line"><span class="function"><span class="params">      VoterSet lastVoterSet</span></span></span><br><span class="line"><span class="function"><span class="params">  )</span> </span>&#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">      updateVoterAndObserverStates(lastVoterSet);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Observer-会话超时"><a href="#Observer-会话超时" class="headerlink" title="Observer 会话超时"></a>Observer 会话超时</h3><p>触发条件：</p>
+<ul>
+<li>Observer超过5分钟（300秒）未向Leader发送FetchRequest</li>
+<li>当前时间与最后拉取时间的差值超过<code>OBSERVER_SESSION_TIMEOUT_MS</code></li>
+<li>该Observer不是Leader节点本身</li>
+</ul>
+<p>触发时机：</p>
+<ul>
+<li><strong>仅在处理DESCRIBE_QUORUM请求时触发</strong>：当外部工具或客户端调用DescribeQuorum API时  </li>
+<li><code>observerStates(currentTimeMs)</code>方法被调用的唯一位置是在<code>handleDescribeQuorumRequest</code>中</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">clearInactiveObservers</span><span class="params">(<span class="keyword">final</span> <span class="keyword">long</span> currentTimeMs)</span> </span>&#123;</span><br><span class="line">    observerStates.entrySet().removeIf(integerReplicaStateEntry -&gt;</span><br><span class="line">        currentTimeMs - integerReplicaStateEntry.getValue().lastFetchTimestamp &gt;= OBSERVER_SESSION_TIMEOUT_MS &amp;&amp;</span><br><span class="line">        !integerReplicaStateEntry.getKey().equals(localReplicaKey)</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="如何检测会话超时"><a href="#如何检测会话超时" class="headerlink" title="如何检测会话超时"></a>如何检测会话超时</h2><p>也即 <code>clearInactiveObservers</code> 调用的时机是什么？经过分析，目前发现是由 <code>DESCRIBE_QUORUM</code> 请求触发执行，但是 kafka 集群本身不会执行这个请求，有如下几处调用：</p>
+<ul>
+<li><code>kafka-metadata-quorum.sh</code> ，底层会调用 <code>AdminClient</code></li>
+<li><code>AdminClient</code> ：<code>AdminClient.create(properties).describeMetadataQuorum().quorumInfo().get()</code></li>
+</ul>
+<h2 id="所以它有什么用？"><a href="#所以它有什么用？" class="headerlink" title="所以它有什么用？"></a>所以它有什么用？</h2><p>目前看来，它主要是用于为提升到 voter 做准备。当一个实例准备提升 voter 时，它是在线的，所以在 observer 中的信息必然是最新的。而对于 observer 列表中的过期数据，并不会对 kraft 机制造成什么实际的影响：不参与选举、不影响集群元信息 ，且只是主动从 leader 除拉数据。不过假如长时间不清理的话，会导致其中存了大量过期的 observer 数据。</p>
+<h2 id="同事的问题的原因是什么？"><a href="#同事的问题的原因是什么？" class="headerlink" title="同事的问题的原因是什么？"></a>同事的问题的原因是什么？</h2><p>在回到最初的问题，为什么 broker 下线了，但是在查询 Observers 的时候 broker 的信息未删除？查询的时候必定会执行 DESCRIBE_QUORUM 请求，所以 <code>clearInactiveObservers</code> 必定会触发。那么原因只可能是同事在下线 broker 后立刻就进行了查询，未到 5 min （<code>OBSERVER_SESSION_TIMEOUT_MS</code>）过期阈值。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/" data-id="cmgpbqjf1006be1jh3nwskzsu" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/10/13/kafka-kraft-模式下元数据更新浅析/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka kraft 模式下元数据更新浅析</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>208</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>

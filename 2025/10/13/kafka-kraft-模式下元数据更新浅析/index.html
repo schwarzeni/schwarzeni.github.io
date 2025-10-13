@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka kraft 模式下元数据更新浅析 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="broker 端的元数据缓存在 kraft 模式下是如何更新的？">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka kraft 模式下元数据更新浅析">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/10/13/kafka-kraft-模式下元数据更新浅析/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="broker 端的元数据缓存在 kraft 模式下是如何更新的？">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2025-10-13T16:03:27.949Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka kraft 模式下元数据更新浅析">
+<meta name="twitter:description" content="broker 端的元数据缓存在 kraft 模式下是如何更新的？">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>208</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kafka-kraft-模式下元数据更新浅析" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/10/13/kafka-kraft-模式下元数据更新浅析/" class="article-date">
+  <time class="post-time" datetime="2025-10-13T15:58:58.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">13</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kafka kraft 模式下元数据更新浅析
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>broker 端的元数据缓存在 kraft 模式下是如何更新的？</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在 kafka 下线 zk 后，每个 broker 维护集群元信息缓存的类由 <code>ZkMetadataCache</code> 切为了 <code>KRaftMetadataCache</code> ，和 <code>ZkMetadataCache</code> 中的 <code>MetadataSnapshot</code> 依赖 controller 的 <code>UpdateMetadataRequest</code> 来更新元数据不同的是，<code>KRaftMetadataCache</code> 中存储缓存的是 <code>MetadataImage</code> ，更新的方式就是通过 <code>setImage</code> 简单地覆盖原变量的值。需要了解 <code>setImage</code> 是由谁调用的，以及传入的参数是如何生成的。</p>
+<p>注：源码分析基于 claude code + glm4.6 和 trae ，kafka 版本为 3.9.1</p>
+<h2 id="相关类定义"><a href="#相关类定义" class="headerlink" title="相关类定义"></a>相关类定义</h2><h3 id="KRaftMetadataCache"><a href="#KRaftMetadataCache" class="headerlink" title="KRaftMetadataCache"></a>KRaftMetadataCache</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">KRaftMetadataCache</span>(<span class="params">...</span>) <span class="keyword">extends</span> <span class="title">MetadataCache</span> <span class="keyword">with</span> <span class="title">Logging</span> <span class="keyword">with</span> <span class="title">ConfigRepository</span> </span>&#123;</span><br><span class="line">  <span class="comment">// This is the cache state. Every MetadataImage instance is immutable, and updates</span></span><br><span class="line">  <span class="comment">// replace this value with a completely new one. This means reads (which are not under</span></span><br><span class="line">  <span class="comment">// any lock) need to grab the value of this variable once, and retain that read copy for</span></span><br><span class="line">  <span class="comment">// the duration of their operation. Multiple reads of this value risk getting different</span></span><br><span class="line">  <span class="comment">// image values.	</span></span><br><span class="line">  <span class="meta">@volatile</span> <span class="keyword">private</span> <span class="keyword">var</span> _currentImage: <span class="type">MetadataImage</span> = <span class="type">MetadataImage</span>.<span class="type">EMPTY</span></span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">setImage</span></span>(newImage: <span class="type">MetadataImage</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">    _currentImage = newImage</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="MetadataImage"><a href="#MetadataImage" class="headerlink" title="MetadataImage"></a>MetadataImage</h3><p><code>MetadataImage</code> 定义如下，包含集群众多的信息，是不可变的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">MetadataImage</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> MetadataProvenance provenance;      <span class="comment">// 元信息溯源信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> FeaturesImage features;             <span class="comment">// 功能特性信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ClusterImage cluster;               <span class="comment">// 集群Broker信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> TopicsImage topics;                 <span class="comment">// Topic和分区信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConfigurationsImage configs;        <span class="comment">// 配置信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ClientQuotasImage clientQuotas;     <span class="comment">// 客户端配额信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ProducerIdsImage producerIds;       <span class="comment">// 生产者ID信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> AclsImage acls;                     <span class="comment">// ACL访问控制信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ScramImage scram;                   <span class="comment">// SCRAM认证信息  </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DelegationTokenImage delegationTokens; <span class="comment">// 委托令牌信息  </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="MetadataDelta"><a href="#MetadataDelta" class="headerlink" title="MetadataDelta"></a>MetadataDelta</h3><p>表示元数据的增量变更，用于从一个 <code>MetadataImage</code> 生成另一个 <code>MetadataImage</code></p>
+<ul>
+<li>基于现有的 <code>MetadataImage</code> 创建</li>
+<li>通过 <code>replay()</code> 方法应用 Raft 记录</li>
+<li>通过 <code>apply()</code> 方法生成新的 <code>MetadataImage</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">MetadataDelta</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MetadataDelta</span><span class="params">(MetadataImage image)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.image = image;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> ClusterDelta clusterDelta = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">replay</span><span class="params">(ApiMessage record)</span> </span>&#123;</span><br><span class="line">        MetadataRecordType type = MetadataRecordType.fromId(record.apiKey());</span><br><span class="line">        <span class="keyword">switch</span> (type) &#123;</span><br><span class="line">            <span class="keyword">case</span> REGISTER_BROKER_RECORD:</span><br><span class="line">                replay((RegisterBrokerRecord) record);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> MetadataImage <span class="title">apply</span><span class="params">(MetadataProvenance provenance)</span> </span>&#123;</span><br><span class="line">        ClusterImage newCluster;</span><br><span class="line">        <span class="keyword">if</span> (clusterDelta == <span class="keyword">null</span>) &#123;</span><br><span class="line">            newCluster = image.cluster();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            newCluster = clusterDelta.apply();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> MetadataImage(</span><br><span class="line">	        newCluster,</span><br><span class="line">	        <span class="comment">// ...</span></span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="是谁调用的"><a href="#是谁调用的" class="headerlink" title="是谁调用的"></a>是谁调用的</h2><p><code>KRaftMetadataCachePublisher</code> 专门负责更新 <code>KRaftMetadataCache</code></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// core/src/main/scala/kafka/server/metadata/KRaftMetadataCachePublisher.scala:35</span></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">onMetadataUpdate</span></span>(  </span><br><span class="line">  delta: <span class="type">MetadataDelta</span>, newImage: <span class="type">MetadataImage</span>,  manifest: <span class="type">LoaderManifest</span>): <span class="type">Unit</span> = &#123;  </span><br><span class="line">  metadataCache.setImage(newImage)&#125;</span><br></pre></td></tr></table></figure>
+<p><code>BrokerMetadataPublisher</code> 更新元数据缓存并初始化其他管理器组件</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// core/src/main/scala/kafka/server/metadata/BrokerMetadataPublisher.scala:116</span></span><br><span class="line"><span class="comment">// Publish the new metadata image to the metadata cache.  </span></span><br><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">onMetadataUpdate</span></span>(delta: <span class="type">MetadataDelta</span>,</span><br><span class="line">	newImage: <span class="type">MetadataImage</span>, manifest: <span class="type">LoaderManifest</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	metadataCache.setImage(newImage)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述两个调用类均实现了接口 <code>MetadataPublisher</code> </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Publishes metadata deltas which we have loaded from the log and snapshots.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Publishers receive a stream of callbacks from the metadata loader which keeps them notified</span></span><br><span class="line"><span class="comment"> * of the latest cluster metadata. This interface abstracts away some of the complications of</span></span><br><span class="line"><span class="comment"> * following the cluster metadata. For example, if the loader needs to read a snapshot, it will</span></span><br><span class="line"><span class="comment"> * present the contents of the snapshot in the form of a delta from the previous state.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MetadataPublisher</span> <span class="keyword">extends</span> <span class="title">AutoCloseable</span> </span>&#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Publish a new cluster metadata snapshot that we loaded.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> delta    The delta between the previous state and the new one.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> newImage The complete new state.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> manifest A manifest which describes the contents of what was published.</span></span><br><span class="line"><span class="comment">     *                 If we loaded a snapshot, this will be a SnapshotManifest.</span></span><br><span class="line"><span class="comment">     *                 If we loaded a log delta, this will be a LogDeltaManifest.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onMetadataUpdate</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            MetadataDelta delta,</span></span></span><br><span class="line"><span class="function"><span class="params">            MetadataImage newImage,</span></span></span><br><span class="line"><span class="function"><span class="params">            LoaderManifest manifest</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="调用链路概览-KRaftMetadataCachePublisher"><a href="#调用链路概览-KRaftMetadataCachePublisher" class="headerlink" title="调用链路概览: KRaftMetadataCachePublisher"></a>调用链路概览: KRaftMetadataCachePublisher</h2><h3 id="事件注册"><a href="#事件注册" class="headerlink" title="事件注册"></a>事件注册</h3><p>在 kafka server 启动时，初始化了 <code>KRaftMetadataCachePublisher</code> ，并将其加到 <code>MetadataLoader</code> 中</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SharedServer</span>(<span class="params">...</span>) <span class="keyword">extends</span> <span class="title">Logging</span> </span>&#123;</span><br><span class="line">	<span class="meta">@volatile</span> <span class="keyword">var</span> loader: <span class="type">MetadataLoader</span> = _</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ControllerServer</span>(<span class="params">...</span>) <span class="keyword">extends</span> <span class="title">Logging</span> </span>&#123;</span><br><span class="line">	<span class="meta">@volatile</span> <span class="keyword">var</span> metadataCachePublisher: <span class="type">KRaftMetadataCachePublisher</span> = _</span><br><span class="line">	<span class="keyword">val</span> metadataPublishers: util.<span class="type">List</span>[<span class="type">MetadataPublisher</span>] = <span class="keyword">new</span> util.<span class="type">ArrayList</span>[<span class="type">MetadataPublisher</span>]()</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">startup</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">		<span class="comment">// Set up the metadata cache publisher.  </span></span><br><span class="line">		metadataCachePublisher = <span class="keyword">new</span> <span class="type">KRaftMetadataCachePublisher</span>(metadataCache)</span><br><span class="line">		metadataPublishers.add(metadataCachePublisher)</span><br><span class="line">		</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">		sharedServer.loader.installPublishers(metadataPublishers)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>MetadataLoader</code> 的关键定义如下，其中包含的类 <code>MetadataBatchLoader</code> 也很关键。</p>
+<p>从中我们可以看到，在 raft commit 事件发生时，<code>MetadataLoader</code> 会执行函数 <code>handleCommit</code> 来处理 commit 数据，具体的执行逻辑是交给 <code>MetadataBatchLoader</code> 来执行的。<code>MetadataLoader</code> 在 <code>maybePublishMetadata</code> 中定义了如何发布 raft 的 image 数据，主要的逻辑是调用各个 <code>MetadataPublisher</code> 实现的 <code>onMetadataUpdate</code> ，其中就包含 <code>KRaftMetadataCachePublisher</code>，但是函数的执行时机交给了 <code>MetadataBatchLoader</code> 。</p>
+<p>在 raft loadSnapshot 事件发生时，由 <code>MetadataLoader</code> 自己来完成了 <code>MetadataImage</code> 的生成及 <code>maybePublishMetadata</code> 的调用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MetadataLoader</span> <span class="keyword">implements</span> <span class="title">RaftClient</span>.<span class="title">Listener</span>&lt;<span class="title">ApiMessageAndVersion</span>&gt;, <span class="title">AutoCloseable</span> </span>&#123;</span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> MetadataBatchLoader batchLoader;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 存储 publisher，也就是上面 installPublishers 的</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> LinkedHashMap&lt;String, MetadataPublisher&gt; publishers;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="title">MetadataLoader</span><span class="params">(...)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.batchLoader = <span class="keyword">new</span> MetadataBatchLoader(  </span><br><span class="line">		    logContext,  </span><br><span class="line">		    time,  </span><br><span class="line">		    faultHandler,  </span><br><span class="line">		    <span class="keyword">this</span>::maybePublishMetadata); <span class="comment">// &lt;-- 最后一个变量为 callback		</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 监听 raft commit 事件，执行对应的逻辑</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleCommit</span><span class="params">(BatchReader&lt;ApiMessageAndVersion&gt; reader)</span> </span>&#123;</span><br><span class="line">        eventQueue.append(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">while</span> (reader.hasNext()) &#123;</span><br><span class="line">                Batch&lt;ApiMessageAndVersion&gt; batch = reader.next();</span><br><span class="line">                batchLoader.loadBatch(batch, currentLeaderAndEpoch);</span><br><span class="line">            &#125;</span><br><span class="line">            batchLoader.maybeFlushBatches(currentLeaderAndEpoch);  </span><br><span class="line">            reader.close();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理快照加载事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleLoadSnapshot</span><span class="params">(SnapshotReader&lt;ApiMessageAndVersion&gt; reader)</span> </span>&#123;</span><br><span class="line">        eventQueue.append(() -&gt; &#123;</span><br><span class="line">            String snapshotName = Snapshots.filenameFromSnapshotId(reader.snapshotId());</span><br><span class="line">            MetadataDelta delta = <span class="keyword">new</span> MetadataDelta.Builder().</span><br><span class="line">                setImage(image).</span><br><span class="line">                build();</span><br><span class="line">            SnapshotManifest manifest = loadSnapshot(delta, reader);</span><br><span class="line">            MetadataImage image = delta.apply(manifest.provenance());</span><br><span class="line">            batchLoader.resetToImage(image);</span><br><span class="line">            maybePublishMetadata(delta, image, manifest);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 执行各个 publisher</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">maybePublishMetadata</span><span class="params">(MetadataDelta delta, MetadataImage image, LoaderManifest manifest)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.image = image;</span><br><span class="line">        <span class="keyword">for</span> (MetadataPublisher publisher : publishers.values()) &#123;</span><br><span class="line">	        publisher.onMetadataUpdate(delta, image, manifest);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="MetadataDelta-的变更"><a href="#MetadataDelta-的变更" class="headerlink" title="MetadataDelta 的变更"></a>MetadataDelta 的变更</h3><p>从上述的分析中可以看出，关键的逻辑位于 <code>MetadataBatchLoader.loadBatch</code> 中。这里暂时不关注事务相关的逻辑，主要逻辑如下所示。我们可以看到，主要做的就是调用 <code>MetadataDelta.replay</code> 来进行回放，而这个方法在上面已经分析过了，是一大串 switch case 处理各种类型的 record 信息。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MetadataBatchLoader</span> </span>&#123;</span><br><span class="line">	<span class="comment">// meta 信息的增量变更</span></span><br><span class="line">	<span class="keyword">private</span> MetadataDelta delta;</span><br><span class="line">	<span class="comment">// meta 信息的快照</span></span><br><span class="line">	<span class="keyword">private</span> MetadataImage image;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">loadBatch</span><span class="params">(Batch&lt;ApiMessageAndVersion&gt; batch, LeaderAndEpoch leaderAndEpoch)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">for</span> (ApiMessageAndVersion record : batch.records()) &#123;</span><br><span class="line">			replay(record);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">replay</span><span class="params">(ApiMessageAndVersion record)</span> </span>&#123;</span><br><span class="line">		delta.replay(record.message());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="MetadataImage-的生成"><a href="#MetadataImage-的生成" class="headerlink" title="MetadataImage 的生成"></a>MetadataImage 的生成</h3><p> 接下来我们需要将增量信息应用至存量的镜像上，这里已经可以猜到，是 <code>MetadataBatchLoader.maybeFlushBatches</code> 来做的。同样暂时不关键事务相关的逻辑，主要逻辑如下所示。主要做的就是调用 <code>MetadataDelta.apply</code> 来，并调用 <code>MetadataLoader.maybePublishMetadata</code> 来发布新的镜像数据</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MetadataBatchLoader</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">maybeFlushBatches</span><span class="params">(LeaderAndEpoch leaderAndEpoch)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	applyDeltaAndUpdate(delta, ...);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">applyDeltaAndUpdate</span><span class="params">(MetadataDelta delta, LogDeltaManifest manifest)</span> </span>&#123;  </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 生成 image</span></span><br><span class="line"></span><br><span class="line">    image = delta.apply(manifest.provenance());  </span><br><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行 MetadataLoader.maybePublishMetadata 发布变更</span></span><br><span class="line"></span><br><span class="line">    callback.update(delta, image, manifest);</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重置相关信息</span></span><br><span class="line"></span><br><span class="line">    resetToImage(image);  </span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此，整个数据变更流程就串通了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">[Raft 层]</span><br><span class="line">Controller 写入元信息变更</span><br><span class="line">    ↓</span><br><span class="line">Raft Log</span><br><span class="line">    ↓</span><br><span class="line">KafkaRaftClient</span><br><span class="line">    ↓ (RaftClient.Listener.handleCommit)</span><br><span class="line"></span><br><span class="line">[元信息加载层]</span><br><span class="line">MetadataLoader</span><br><span class="line">	↓ (handleCommit)</span><br><span class="line">MetadataBatchLoader</span><br><span class="line">    ↓（loadBatch -&gt; maybeFlushBatches）</span><br><span class="line">MetadataLoader</span><br><span class="line">    ↓ (maybePublishMetadata)</span><br><span class="line"></span><br><span class="line">[Broker 应用层]</span><br><span class="line">xxxMetadataPublisher.onMetadataUpdate()</span><br><span class="line">    ↓</span><br><span class="line">┌─────────────────────────────────────────────────────────┐</span><br><span class="line">│                   分支调用路径                          │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  KRaftMetadataCache.setImage()                         │</span><br><span class="line">│  ↓                                                    │</span><br><span class="line">│  更新 _currentImage                                    │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  ReplicaManager.applyDelta()                           │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  GroupCoordinator 更新                                 │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  TransactionCoordinator 更新                           │</span><br><span class="line">├─────────────────────────────────────────────────────────┤</span><br><span class="line">│  其他组件更新                                         │</span><br><span class="line">└─────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/10/13/kafka-kraft-模式下元数据更新浅析/" data-id="cmgpbqjf00068e1jhidlcu9eo" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          kafka-metadata-quorum.sh describe 中的 CurrentObservers 更新不及时
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2025/09/05/kafka-server-端数据压缩特性/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka server 端数据压缩特性</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>208</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>69</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
