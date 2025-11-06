@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>三十岁以前的往事（十四）：工作后离惹出p0事故最近的一次 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="mongodb movePrimary 的问题。要是丢了存在 mongodb 中的数据，搜索阿拉丁的建库通路至少有 70% 的流量会受影响，包含天气、金融、智能体等重要业务，且丢的数据没法恢复。现在回想起来都脊背发凉冷汗直冒。">
+<meta name="keywords" content="总结,回忆录,mongodb">
+<meta property="og:type" content="article">
+<meta property="og:title" content="三十岁以前的往事（十四）：工作后离惹出p0事故最近的一次">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="mongodb movePrimary 的问题。要是丢了存在 mongodb 中的数据，搜索阿拉丁的建库通路至少有 70% 的流量会受影响，包含天气、金融、智能体等重要业务，且丢的数据没法恢复。现在回想起来都脊背发凉冷汗直冒。">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/Pasted%20image%2020251029204300.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/Pasted%20image%2020251029204316.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/Pasted%20image%2020251029221331.png">
+<meta property="og:updated_time" content="2025-11-06T15:45:25.710Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="三十岁以前的往事（十四）：工作后离惹出p0事故最近的一次">
+<meta name="twitter:description" content="mongodb movePrimary 的问题。要是丢了存在 mongodb 中的数据，搜索阿拉丁的建库通路至少有 70% 的流量会受影响，包含天气、金融、智能体等重要业务，且丢的数据没法恢复。现在回想起来都脊背发凉冷汗直冒。">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/Pasted%20image%2020251029204300.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>209</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>70</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-三十岁以前的往事（十四）：工作后离p0事故最近的一次" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/" class="article-date">
+  <time class="post-time" datetime="2025-11-06T15:40:29.000Z" itemprop="datePublished">
+    <span class="post-month">11月</span><br/>
+    <span class="post-day">06</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      三十岁以前的往事（十四）：工作后离惹出p0事故最近的一次
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/回忆录/">回忆录</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>mongodb movePrimary 的问题。要是丢了存在 mongodb 中的数据，搜索阿拉丁的建库通路至少有 70% 的流量会受影响，包含天气、金融、智能体等重要业务，且丢的数据没法恢复。现在回想起来都脊背发凉冷汗直冒。</p>
+<a id="more"></a>
+<h2 id="问题发生"><a href="#问题发生" class="headerlink" title="问题发生"></a>问题发生</h2><p>2025/10/28 晚 6 点半 ，用于存储架构元信息的 mongodb 集群单分片出现不稳定的情况，这个分片有三个副本，其中一个副本所在的机器负载较高，处于挂的边缘，另一个副本是新扩出来的，刚才开始同步数据，只有一个副本是正常的。排查时发现这个分片的读写流量较高，怀疑是这个分片是默认的 primary 分片导致的，因为这个集群中有很多表都未开启分片，还有一些表虽然开启了分片，但是分片键设置的不合理，大部分数据依旧位于一个分片上，也即和未开启分片的表一样，都在 primary 分片上。</p>
+<p>完成了临时止损后，想着能否改一个 primary 分片的配置，让新创建的表都首先写到新的分片上。问了一下大模型，说是可以使用 <code>movePrimary</code> 命令，相关聊天记录如下：</p>
+<p><img src="Pasted image 20251029204300.png" alt=""></p>
+<p><img src="Pasted image 20251029204316.png" alt=""></p>
+<p>当时已经是晚上七点多，脑子已经不转了，没细想，拿一个测试的 database 试了一下，执行的没报错，就直接在主库执行了。<strong>这里需要复盘的一个重要的点是，对于不熟悉的新命令，尤其是非只读命令，必须要去查官方文档，并分析其执行的流程，是否会对线上存量数据的读写造成影响</strong>。当前这些步骤都跳过了。噩梦开始了。我们假设老 primary 分片为 s1，新 primary 分片为 s5 。</p>
+<h2 id="第一次止损"><a href="#第一次止损" class="headerlink" title="第一次止损"></a>第一次止损</h2><p>在 mongo shell 中执行 <code>movePrimary</code> 后，等了三四分钟，发现还是没有执行完毕，猜测可能是集群负载还是有点高，执行命令慢，就直接  <code>ctrl + c</code> 终止了指令的执行，想着明天在执行看看，之后就开始忙别的事情了。大概到了快晚上九点，旁边的同事问我说现在 mongodb 是否还是有问题，因为我们维护的流式任务平台上的几乎所有 job 都无法展示了。</p>
+<p>我在确认了集群状态是正常后，想到了之前执行的 <code>movePrimary</code> 命令。于是执行了 <code>db.databases.find({ _id: &quot;&lt;database_name&gt;&quot; })</code> 进行确认，发现显示的分片还是位于 s1 ，但是在 s1 上查看流式任务平台存储 job 信息的表，发现没了，然后又去 s5 上查了一下，发现上面有 job 信息表的数据。由于 job 表没有开启分片，所以 <code>movePrimary</code> 将数据从 s1 移动至了 s5，但是由于路由中配置的 primary 为 s1，所以查不到数据了。当时吓出了一身冷汗，因为出了这个表外，还有一批存储着重要数据且未开启分片的表，包含 user 表存储有数据推送方的鉴权信息、xxxx_dispatch 表存储有建库链路的路由信息等。虽然线上服务在读取这些表的时候，都添加了降级机制，读不到数据不至于全面断流，但是大部分降级机制都是基于内存的，如果实例重启的话数据就没了。相关的管理平台也会对这些表的数据进行读写。万幸的是，其中特别重要的表都是用于存储配置信息的，所以基本是只读，数据状态比较好维护。当然也不是 100% 没有写，但是概率非常小。</p>
+<p>首先先人工处理了 user 表和 job 表，恢复平台的使用。首先为了保险起见，使用 mongoexport 导出了 s5 上的 user 和 job 数据。要是数据因为后续的操作丢了或者脏了就彻底完蛋了。接下来人工在 s1 上重建了表的索引，最后让大模型写了一个导数据的脚本，将数据从 s5 上导回了 s1。s5 上的数据保留没动。注意这个伏笔，幸好没有删 s5 上的数据。</p>
+<p>接下来需要将被从 s1 移动至 s5 的表在 s1 上重建索引以及数据。当时想出的方案如下：</p>
+<ol>
+<li><p>首先列出所有开启分片的表，记为 curr_shard_col_list ，接着列出 s5 上的所有表，记为 curr_s5_col_list。那么对于只存在于 curr_s5_col_list 而不存在于 curr_shard_col_list 的表，那么大概率是因为本次迁移而导致的。因为之前 s1 为 primary shard ，未开启 shard 的表预期应该都位于 s1 上，s5 上预期只有开启 shard 的表。</p>
+</li>
+<li><p>根据上述规则生成了集合列表，然后让大模型写了一个重建索引以及数据传输的脚本，对这批有问题的表进行了批量处理。</p>
+</li>
+</ol>
+<p>大模型写的脚本有不少 bug ，调了半天。数据传输是根据 <code>_id</code> 进行 upsert 操作。我这里默认数据基本不会发生非预期变更。总共 100 多张表，在自己开发机上运行时，并发度调的是 20 ，但是发现速度很慢，后面想到，可能是因为存在跨机房数据传输，因为数据库所在的机房是阳泉，而开发机所在的机房是苏州。于是找了一个位于阳泉机房的公用物理机来跑程序，发现速度快了很多。</p>
+<p>等忙完已经是晚上十点半了，在导数据的同时还在修一个建库监控 exporter 的 bug ，修到了晚上十一点。接着上面提到的不稳定分片 s1 中的一个副本所在的机器彻底挂了，也即只有一个正常的副本和一个在同步数据的副本，而如果后者直接从正常的主副本同步数据，会增加额外的压力，使得集群更不稳定。被逼的没办法只能打电话给 op ，拜托其发单对机器进行重启，等机器完成重启后再人工拉起其上的实例。等处理完这个问题，已经晚上十一点半了，打车回家。</p>
+<p>晚上十二点多洗完澡，看了一下工作群，发现还是有定时任务执行超时的报警。定时任务的执行状态也会存储在 mongodb 中，我怀疑是不是漏了啥表。找到定时任务的代码库，捋了一下代码，找到了对应的表，发现它也是存在于 s5 中但不在 s1 中，不过不在第一次止损的列表中。我当时仅仅觉得可能是筛选脚本写的有问题，重新让大模型生成了一版，又筛出了十几张表。此时我还是没有意识到，<code>movePrimary</code> 触发的任务可能并没有终止。在执行迁移的时候，我没想到其中有一个表有 3000w+ 的数据，所以执行程序时没有用 nohup 挂起，执行了一个多小时才 20% ，又不想重跑，就调了电脑的休眠时间，放到一个墙角边上挂着跑。</p>
+<p>那天晚上是两点多睡了，毕竟是线上事故，所以心理压力比较大，也没睡好觉，中间醒了一次，早上八点不到就起了。</p>
+<h2 id="第二次止损"><a href="#第二次止损" class="headerlink" title="第二次止损"></a>第二次止损</h2><p>第二天到公司，以为没事了，就忙其他的事情了。其中有一个事情是，我发现最近同事有例行任务会在 mongodb 建表，每天建一批，虽然这些表开启了 shard，但是因为没有使用 hash 索引，所以导致数据分布不均，数据全都写到了 primary shard 上。下午的时候找同事对建表逻辑进行了调整，修改为了 hash 索引。但是在调试的时候发现了新的问题。</p>
+<p>首先，当然预期 primary shard 还是 s1 。按照同事程序的执行逻辑，首先是建表，然后往里面写入一条数据验证是否成功，接着执行创建索引，最后设置开启分片。由于开启分片的代码写的有问题，需要频繁进行调试。在重新执行前，同事会在 mongo 可视化界面上操作删除表。此时发现，表总是删不干净，现象为通过 mongos 或者可视化界面查询时，表已经查不到了，s1 上也没有了，但是它依然存在于 s5 上。重试了几次发现都是这个现象。另外发现，建表成功后第一次写入的数据位于 s1 上。之前提到，对于未开启分片的表，都会默认建到 primary shard 上，所以这是符合预期的。</p>
+<p>又执行了一次 <code>db.databases.find({ _id: &quot;&lt;database_name&gt;&quot; })</code> ，但是发现主库对应的 primary shard 已经变成 s5 了。wtf？？？？这时我才意识到，之前 <code>ctrl + c</code> 获取并没有完全终止 <code>movePrimary</code> 。这个配置估计是 <code>movePrimary</code> 进行设置的。那么为什么建表成功后第一次写入的数据位于 s1 上，莫非是 mongos 上缓存的数据没更新？发单重启了 mongos 之后，定时任务执行超时的报警又被触发了。</p>
+<p>所以实际上从昨天晚上到现在，一直都是 s1 承接未开启分片的读写流量，但是在重启完 mongos 之后，现在变成 s5 了，但是期间 s5 的数据未更新。幸好在第一次止损的时候，在从 s5 往 s1 导入数据后，没有清理 s5 的数据，否则的话又读不到数据了。</p>
+<p>对于几个重要的表，又用之前导数据的脚本进行了数据导入，只不过现在改成了从 s1 导至 s5 。这时也不管是否有提前重启的 mongos 让新的数据写入到 s5 的情况了。在完成数据导入后，在业务群里发了通告，如果从昨晚到现在操作过流式任务变更，然后需要人工再 check 一下。</p>
+<p>本来想着应该问题都解决了，但是这个时候同事跟我说，他之前建的一些开启了分片的表在 mongo 可视化界面上查不到了。我顿时脑子嗡了一下，如果开启分片的表也收到了影响，丢失了数据，那影响面就更大了。在 mongo shell 中确认了一下，发现虽然通过 <code>show collections</code> 之类的查询指令查不到一些表，并且 <code>db.xxx.getIndexes()</code> 也是空的，但是通过 <code>db.xxx.find()</code> 是可以查到值的，<code>db.xxx.count()</code> 也有值。查询了 config 数据库中 collection 的分片信息，也是存在的，执行 <code>db.xxx.getShardDistribuition()</code> 是有值的。我怀疑是这次 <code>movePrimary</code> 操作导致了部分表的元信息丢失。万幸的是，执行在 s1 上执行 <code>show collections</code> 和 <code>db.xxx.getIndexes()</code> 是正常的，所以修复的方式为：</p>
+<ol>
+<li><p>挑选了其中一个不重要但是数据量大的分片表，尝试再次执行 <code>db.createCollection(...)</code> 和 <code>db.xxxx.createIndex(...)</code> 命令，确认了数据不会丢失，以及索引可以快速创建。因为如果给一个量级大的表建新索引，建索引的命令会卡很长时间。</p>
+</li>
+<li><p>让大模型写了一个脚本，首先导出 s1 中所有表的索引信息，然后根据这个信息修复 s2 的索引，prompt 如下。在进行了单表验证后，执行脚本重建了所有有问题的表。</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 索引数据导出脚本</span><br><span class="line">编写 python2 代码，dump mongodb 一个数据库中所有的表名以及其索引信息，并以 json 的格式保存在文件中</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"># 数据重建脚本</span><br><span class="line">当前 mongo 集群 aladdin 数据库存在表信息缺失的问题，你需要编写 python2 脚本对其进行修复。</span><br><span class="line">首先，读取 dump 的历史表信息文件</span><br><span class="line">其次，列出问题数据库当前存在的所有表，和历史表信息文件进行 diff，如果历史表信息文件中的表不存在于问题数据库中且执行 db.xxxx.count() 的值大于 0，则表示需要进行重建，进行记录</span><br><span class="line">然后，对于第二步筛选出来的表，执行表创建及索引创建的操作</span><br><span class="line">最后，对于问题集群中存量的表，比较其和历史表中索引信息的差异，如果有缺失，则进行索引的创建。</span><br><span class="line"></span><br><span class="line">需要支持可读模式，也即只输出执行计划，不实际执行。</span><br><span class="line">历史 dump 数据的样例如下：</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;host&quot;: &quot;10.182.62.16:17018&quot;, </span><br><span class="line">    &quot;collections&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;name&quot;: &quot;sql_commit_offset&quot;, </span><br><span class="line">            &quot;indexes&quot;: [</span><br><span class="line">                &#123;</span><br><span class="line">                    &quot;key&quot;: [</span><br><span class="line">                        [</span><br><span class="line">                            &quot;_id&quot;, </span><br><span class="line">                            1</span><br><span class="line">                        ]</span><br><span class="line">                    ], </span><br><span class="line">                    &quot;background&quot;: false, </span><br><span class="line">                    &quot;sparse&quot;: false, </span><br><span class="line">                    &quot;unique&quot;: false, </span><br><span class="line">                    &quot;expireAfterSeconds&quot;: null, </span><br><span class="line">                    &quot;name&quot;: &quot;_id_&quot;</span><br><span class="line">                &#125;, </span><br><span class="line">                // ...</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">        // ....</span><br><span class="line">     ]</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>当完成这篇文章时，时间是 2025/10/29 晚上十点，距离我惹出的故障已经过去一天多的时间了，这里再做一个总结：</p>
+<ul>
+<li>对于不熟悉的新命令，尤其是非只读命令，必须要去查<a href="https://www.mongodb.com/zh-cn/docs/manual/reference/command/movePrimary/" target="_blank" rel="noopener">官方文档</a>。我事后查了一下官方文档，上面用红字明确写了在执行指令时，数据库最好对外停止服务，以及执行完毕后，需要刷 mongos 的缓存 。线上操作无小事，神经必须时刻紧绷。</li>
+</ul>
+<p><img src="Pasted image 20251029221331.png" alt=""></p>
+<ul>
+<li><p>这次还是比较幸运的。一是这次出问题的集群主要是只读的，重要表的写流量基本没有。二来第二天协同同事调整 mongo 表设置分片的逻辑时发现了未恢复的故障，进行了及时的二次止损。当前，不确定是否还有别的问题，我最担心的就是在两次导数据期间，有一些更新可能被覆盖，这个后面再观察一周看一下，希望别是提前开香槟 … （二次更新：一周内暂未发现问题）</p>
+</li>
+<li><p>会建设 mongodb 重要数据及索引信息天级导出及恢复机制，这个安排给另一个同事做了，预期这个 Q 会完成。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/" data-id="cmhnlm30z00au50jhk1b87hgw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kafka-metadata-quorum.sh describe 中的 CurrentObservers 更新不及时</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>209</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>70</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
