@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="KIP-853: KRaft Controller Membership Changes ，其中较为重要的一点特性为，通过外围脚本对 controller 的成员进行动态增删。">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2025-08-13T14:56:37.577Z">
+<meta property="og:updated_time" content="2025-12-20T14:23:39.365Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="KIP-853 功能验证 - kraft 模式下动态变更 kafka controller voter 列表">
 <meta name="twitter:description" content="KIP-853: KRaft Controller Membership Changes ，其中较为重要的一点特性为，通过外围脚本对 controller 的成员进行动态增删。">
@@ -61,7 +61,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>210</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>211</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>72</strong><br>标签</div></a>
     </div>
@@ -192,7 +192,8 @@
 <p>通过脚本将 broker 0 移除，可以看到，此时 broker 0 没了</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将 leader 删除</span></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 remove-controller --controller-id 0 --controller-directory-id 3rDv-etwR2e90gwUcBllDg</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            2</span><br><span class="line">HighWatermark:          3614</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
-<h3 id="controller-实例所在-ip-变更"><a href="#controller-实例所在-ip-变更" class="headerlink" title="controller 实例所在 ip 变更"></a>controller 实例所在 ip 变更</h3><p>为了模拟实例迁移的情况，将 0/1/2 分别修改端口，验证 3 的信息是否可以实时更新。</p>
+<h3 id="controller-实例所在-ip-变更"><a href="#controller-实例所在-ip-变更" class="headerlink" title="controller 实例所在 ip 变更"></a>controller 实例所在 ip 变更</h3><p><strong>【注：这里验证错误，实际是无法感知的 20251220 update】</strong></p>
+<p>为了模拟实例迁移的情况，将 0/1/2 分别修改端口，验证 3 的信息是否可以实时更新。</p>
 <p>修改 c0 的端口并启动, 15xxx -&gt; 17xxx。对于起始节点 0 的情况，需要确认参数为 –standalone 还是 –no-initial-controllers , 以及 bootstrap-controller 的信息。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># c0</span><br><span class="line">ps aux |grep kafka | grep c0 | awk &apos;&#123;print $2&#125;&apos; | xargs kill</span><br><span class="line">rm -rf data/*</span><br><span class="line"></span><br><span class="line">./bin/kafka-storage.sh format --cluster-id pTAG7hqbRBGQwKg5Hujn8g --no-initial-controllers --config config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-server-start.sh -daemon config/kraft/server.properties.gen.properties</span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15011 --command-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line"></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller 0.0.0.0:15021 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            2</span><br><span class="line">HighWatermark:          4402</span><br><span class="line">MaxFollowerLag:         1</span><br><span class="line">MaxFollowerLagTimeMs:   435</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;9dk70WRte2_p__mZ_O0Bhg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;JCX-hbVdtxCJl7geeqjNmA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:15021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
 <p>修改 c1 的端口并启动，15xxx -&gt; 17xxx</p>
@@ -210,11 +211,12 @@
 <p>可以看到，它被降级为了 observers。那么再将其提升为 voter。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-controller yq01-build-rd2.yq01.baidu.com:17011 --command-config config/kraft/server.properties.gen.properties add-controller</span><br><span class="line"></span><br><span class="line">./bin/kafka-metadata-quorum.sh --bootstrap-server yq01-build-rd2.yq01.baidu.com:15030 describe --status</span><br><span class="line">ClusterId:              pTAG7hqbRBGQwKg5Hujn8g</span><br><span class="line">LeaderId:               1</span><br><span class="line">LeaderEpoch:            4</span><br><span class="line">HighWatermark:          8936</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   117</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;t6JHGm7q3zwlOzX-4u0wHg&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17001&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;wQAnhBv-4eltR9-Pfn5Ylw&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17011&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;V5qRTKnQDpuMeRkLpkdOFA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://yq01-build-rd2.yq01.baidu.com:17021&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;b_ZpCQSJ0LBWf4RS5-zuqg&quot;&#125;]</span><br></pre></td></tr></table></figure>
 <h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>就本地验证的结果而言，动态增删 controller 成员的功能是可用的。配以合适的外挂逻辑（设计中 …），无需重启集群的全部实例，可以实现 controller 成员信息的动态更新。</p>
+<p><strong>普通的 broker 无法感知到 voter 的动态变化，而是使用的固定的配置文件中配置的 voter 地址</strong>（20251220 update）</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/08/13/KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表/" data-id="cmj4cuutn002ovtjc61e1ecjf" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/08/13/KIP-853-功能验证-kraft-模式下动态变更-kafka-controller-voter-列表/" data-id="cmjee32rt002gdxjdld0tdjgl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
@@ -316,7 +318,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>210</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>211</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>72</strong><br>标签</div></a>
     </div>

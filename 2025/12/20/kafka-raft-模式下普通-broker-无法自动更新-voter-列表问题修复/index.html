@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
+<meta name="keywords" content="kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复">
+<meta property="og:url" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221437.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221446.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221455.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221504.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221514.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221523.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221531.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221539.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221550.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221557.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221636.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221645.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221712.png">
+<meta property="og:updated_time" content="2025-12-20T14:22:24.155Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复">
+<meta name="twitter:description" content="由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221437.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>211</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>72</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/" class="article-date">
+  <time class="post-time" datetime="2025-12-20T14:21:02.000Z" itemprop="datePublished">
+    <span class="post-month">12月</span><br/>
+    <span class="post-day">20</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …</p>
+<a id="more"></a>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在 <a href="https://blog.schwarzeni.com/2025/08/13/KIP-853-%E5%8A%9F%E8%83%BD%E9%AA%8C%E8%AF%81-kraft-%E6%A8%A1%E5%BC%8F%E4%B8%8B%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4-kafka-controller-voter-%E5%88%97%E8%A1%A8/">KIP-853 功能验证</a> 调研时，已经确认了普通的 broker 是可以同步 voter 列表的变更的，但是在排查其他问题时，发现普通的 broker 还是会尝试连接旧的 voter</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[2025-12-18 20:50:06,552] INFO [RaftManager id=157] Node 0 disconnected. (org.apache.kafka.clients.NetworkClient)</span><br><span class="line">[2025-12-18 20:50:06,552] WARN [RaftManager id=157] Connection to node 0 (bddwd-ps-beehive-agent187658.bddwd.baidu.com/10.41.70.215:9093) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)</span><br></pre></td></tr></table></figure>
+<p>当时吓出一身冷汗，之前调研的时候，做 broker 感知 voter 变化的测试，可能因为某些操作有问题，导致没有发现这个问题。让模型分析了一下相关代码，给出的结论时，当前 kafka broker 仅使用配置文件中配的 voter 列表来发现与连接 kraft leader 。虽然它同步的 raft log 中包含了最新的 voter 列表信息，但是它并不会使用。</p>
+<h2 id="模型相关问答"><a href="#模型相关问答" class="headerlink" title="模型相关问答"></a>模型相关问答</h2><h3 id="问题1：broker-如何感知到-voter-的变化"><a href="#问题1：broker-如何感知到-voter-的变化" class="headerlink" title="问题1：broker 如何感知到 voter 的变化"></a>问题1：broker 如何感知到 voter 的变化</h3><p>结论：无法感知到配置文件中 <code>controller.quorum.voters</code> 的值的变化。但是可以通过 raft log 中 voter record 来感知。 </p>
+<p><img src="Pasted image 20251220221437.png" alt=""></p>
+<p><img src="Pasted image 20251220221446.png" alt=""></p>
+<h3 id="问题2：再次确认-broker-可以通过-log-来感知-voter-的变更"><a href="#问题2：再次确认-broker-可以通过-log-来感知-voter-的变更" class="headerlink" title="问题2：再次确认 broker 可以通过 log 来感知 voter 的变更"></a>问题2：再次确认 broker 可以通过 log 来感知 voter 的变更</h3><p>结论：是可以的</p>
+<p><img src="Pasted image 20251220221455.png" alt=""></p>
+<p><img src="Pasted image 20251220221504.png" alt=""></p>
+<h3 id="问题3：确认为什么-broker-会去连接旧-voter-节点"><a href="#问题3：确认为什么-broker-会去连接旧-voter-节点" class="headerlink" title="问题3：确认为什么 broker 会去连接旧 voter 节点"></a>问题3：确认为什么 broker 会去连接旧 voter 节点</h3><p>结论：在网络连接层，broker 连接的 voter 列表是在初始化的时候就定死的，后续不会变更</p>
+<p><img src="Pasted image 20251220221514.png" alt=""></p>
+<p><img src="Pasted image 20251220221523.png" alt=""></p>
+<h3 id="问题4：确认这个初始化-voter-列表来自于哪里"><a href="#问题4：确认这个初始化-voter-列表来自于哪里" class="headerlink" title="问题4：确认这个初始化 voter 列表来自于哪里"></a>问题4：确认这个初始化 voter 列表来自于哪里</h3><p>结论：来自于配置 <code>controller.quorum.voters</code></p>
+<p><img src="Pasted image 20251220221531.png" alt=""></p>
+<p><img src="Pasted image 20251220221539.png" alt=""></p>
+<h3 id="问题5：为什么-voter-在选举的时候可以获取到最新的-voter-信息？"><a href="#问题5：为什么-voter-在选举的时候可以获取到最新的-voter-信息？" class="headerlink" title="问题5：为什么 voter 在选举的时候可以获取到最新的 voter 信息？"></a>问题5：为什么 voter 在选举的时候可以获取到最新的 voter 信息？</h3><p>结论：由于 voter 和 observer（普通 broker） 是不同的角色，它们获取 voter 列表的方式走的是不同的机制。对于 voter 来说，它本身就维护者 voter 列表的变更，也就是 KIP-853 提供的特性，所以可以获取到最新的 voter 信息。</p>
+<p><img src="Pasted image 20251220221550.png" alt=""></p>
+<p><img src="Pasted image 20251220221557.png" alt=""></p>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>虽然 broker 可以通过 raft log 获取最新的 voter 列表，但是在它尝试发现 raft leader 的时候，依旧会使用配置文件中写死的 voter 列表。如果这个 voter 列表中的信息都失效了，那么在 leader 发生切换时，broker 将无法发现新的 leader，从而导致 broker 挂掉。之前验证 KIP-853 的结论存在问题。</p>
+<h2 id="模型修复方案"><a href="#模型修复方案" class="headerlink" title="模型修复方案"></a>模型修复方案</h2><h3 id="相关-prompt"><a href="#相关-prompt" class="headerlink" title="相关 prompt"></a>相关 prompt</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">结合源码进行分析，是否有简洁的方式可以支持 broker 动态更新 voter 集合的变化？</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">再次确认其中是否可能会存在并发访问的问题</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">根据你的设计方案，对相关代码进行更新</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">确认一下，在当前的实现中，在更新 bootstrap server 的信息时，是使用 raft log 中最新的 bootstrap server 列表的信息来更新的吗</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">额外确认这次变更中，raft/src/main/java/org/apache/kafka/raft/RequestManager.java 中的变量 bootstrapServers 是否会存在并发访问的问题</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">对代码进行额外修改，新增配置项用于判断是否开启这个特性，默认为开启的</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">为了保险起见，为 RequestManager 的 bootstrapServers 添加上并发访问的场景的下的同步机制</span><br></pre></td></tr></table></figure>
+<h3 id="背景-1"><a href="#背景-1" class="headerlink" title="背景"></a>背景</h3><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>在 KRaft 模式下，当通过 <code>AddVoter</code>/<code>RemoveVoter</code> API 动态变更 voter 集合时，普通 broker 虽然能通过 KRaft log 中的 <code>VotersRecord</code> 感知到 voter 集合的变化，但 <code>RequestManager</code> 中的 <code>bootstrapServers</code> 列表不会更新。这导致 broker 在需要重新发现 leader 时，仍然会尝试连接旧的 voter 地址。</p>
+<h4 id="现象"><a href="#现象" class="headerlink" title="现象"></a>现象</h4><p>broker 日志中出现类似以下警告：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[RaftManager id=157] Connection to node 0 (old-host:9093) could not be established. Node may not be available.</span><br></pre></td></tr></table></figure>
+<h4 id="根本原因"><a href="#根本原因" class="headerlink" title="根本原因"></a>根本原因</h4><p><code>RequestManager.bootstrapServers</code> 在 broker 启动时从配置文件 <code>controller.quorum.voters</code> 初始化后，不会再更新：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// 原实现</span><br><span class="line">private final ArrayList&lt;Node&gt; bootstrapServers;  // final，不可变</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><h4 id="设计思路"><a href="#设计思路" class="headerlink" title="设计思路"></a>设计思路</h4><ol>
+<li><p>新增配置项 <code>controller.quorum.dynamic.bootstrap.servers.enable</code> 控制是否启用此特性（默认启用）</p>
+</li>
+<li><p>将 <code>RequestManager.bootstrapServers</code> 改为可变</p>
+</li>
+<li><p>添加 <code>updateBootstrapServers()</code> 方法支持动态更新</p>
+</li>
+<li><p>在 <code>KafkaRaftClient</code> 中，当 <code>partitionState.updateState()</code> 处理完 KRaft log 后，检查并更新 bootstrap servers</p>
+</li>
+</ol>
+<h4 id="线程安全分析"><a href="#线程安全分析" class="headerlink" title="线程安全分析"></a>线程安全分析</h4><p>经过分析，<code>KafkaRaftClient</code> 采用<strong>单线程模型</strong>：</p>
+<ul>
+<li><p>所有操作都在 <code>KafkaRaftClientDriver</code> 的 IO 线程中通过 <code>poll()</code> 方法执行</p>
+</li>
+<li><p><code>updateBootstrapServers()</code> 和 <code>findReadyBootstrapServer()</code> 不会并发执行</p>
+</li>
+</ul>
+<p><strong>防御性线程安全措施：</strong> 为了保险起见，仍然添加了线程安全机制：</p>
+<ol>
+<li><p><code>bootstrapServers</code> 字段使用 <code>volatile</code> 关键字，确保可见性</p>
+</li>
+<li><p>读取方法使用本地变量引用模式，确保一致性读取</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 字段声明</span><br><span class="line">private volatile List&lt;Node&gt; bootstrapServers;</span><br><span class="line"></span><br><span class="line">// 读取时使用本地引用</span><br><span class="line">List&lt;Node&gt; servers = this.bootstrapServers;  // 本地引用</span><br><span class="line">for (Node node : servers) &#123; ... &#125;            // 使用本地引用</span><br></pre></td></tr></table></figure>
+<p>这种模式确保即使在未来可能的多线程场景下也能正确工作。</p>
+<hr>
+<h3 id="配置项"><a href="#配置项" class="headerlink" title="配置项"></a>配置项</h3><h3 id="controller-quorum-dynamic-bootstrap-servers-enable"><a href="#controller-quorum-dynamic-bootstrap-servers-enable" class="headerlink" title="controller.quorum.dynamic.bootstrap.servers.enable"></a>controller.quorum.dynamic.bootstrap.servers.enable</h3><p><strong>文件路径：</strong> <code>raft/src/main/java/org/apache/kafka/raft/QuorumConfig.java</code></p>
+<p>|属性|值|</p>
+<p>|-|-|</p>
+<p>|配置名|<code>controller.quorum.dynamic.bootstrap.servers.enable</code>|</p>
+<p>|类型|Boolean|</p>
+<p>|默认值|<code>true</code>|</p>
+<p>|重要性|LOW|</p>
+<p><strong>说明：</strong> 是否在 voter 集合变更时动态更新 bootstrap servers。启用后，broker 会根据 KRaft log 中最新的 VotersRecord 自动更新 bootstrap servers 列表，确保能够连接到新的 voter 地址。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static final String QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_CONFIG = QUORUM_PREFIX + &quot;dynamic.bootstrap.servers.enable&quot;;</span><br><span class="line">public static final String QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_DOC = &quot;Whether to dynamically update bootstrap servers &quot; +</span><br><span class="line">    &quot;when the voter set changes via AddVoter/RemoveVoter. When enabled, the broker will automatically update &quot; +</span><br><span class="line">    &quot;its bootstrap servers list based on the latest VotersRecord in the KRaft log, ensuring it can connect to &quot; +</span><br><span class="line">    &quot;new voters when discovering the leader.&quot;;</span><br><span class="line">public static final boolean DEFAULT_QUORUM_DYNAMIC_BOOTSTRAP_SERVERS = true;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="代码变更"><a href="#代码变更" class="headerlink" title="代码变更"></a>代码变更</h3><h3 id="1-QuorumConfig-java"><a href="#1-QuorumConfig-java" class="headerlink" title="1. QuorumConfig.java"></a>1. QuorumConfig.java</h3><p><strong>文件路径：</strong> <code>raft/src/main/java/org/apache/kafka/raft/QuorumConfig.java</code></p>
+<h4 id="变更-1：添加-BOOLEAN-import"><a href="#变更-1：添加-BOOLEAN-import" class="headerlink" title="变更 1：添加 BOOLEAN import"></a>变更 1：添加 BOOLEAN import</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> import static org.apache.kafka.common.config.ConfigDef.Importance.HIGH;</span><br><span class="line"> import static org.apache.kafka.common.config.ConfigDef.Importance.LOW;</span><br><span class="line"> import static org.apache.kafka.common.config.ConfigDef.Importance.MEDIUM;</span><br><span class="line">+import static org.apache.kafka.common.config.ConfigDef.Type.BOOLEAN;</span><br><span class="line"> import static org.apache.kafka.common.config.ConfigDef.Type.INT;</span><br><span class="line"> import static org.apache.kafka.common.config.ConfigDef.Type.LIST;</span><br></pre></td></tr></table></figure>
+<h4 id="变更-2：添加配置项定义"><a href="#变更-2：添加配置项定义" class="headerlink" title="变更 2：添加配置项定义"></a>变更 2：添加配置项定义</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static final String QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_CONFIG = QUORUM_PREFIX + &quot;dynamic.bootstrap.servers.enable&quot;;</span><br><span class="line">public static final String QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_DOC = &quot;Whether to dynamically update bootstrap servers &quot; +</span><br><span class="line">    &quot;when the voter set changes via AddVoter/RemoveVoter. When enabled, the broker will automatically update &quot; +</span><br><span class="line">    &quot;its bootstrap servers list based on the latest VotersRecord in the KRaft log, ensuring it can connect to &quot; +</span><br><span class="line">    &quot;new voters when discovering the leader.&quot;;</span><br><span class="line">public static final boolean DEFAULT_QUORUM_DYNAMIC_BOOTSTRAP_SERVERS = true;</span><br></pre></td></tr></table></figure>
+<h4 id="变更-3：添加到-CONFIG-DEF"><a href="#变更-3：添加到-CONFIG-DEF" class="headerlink" title="变更 3：添加到 CONFIG_DEF"></a>变更 3：添加到 CONFIG_DEF</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> public static final ConfigDef CONFIG_DEF =  new ConfigDef()</span><br><span class="line">         // ... 其他配置 ...</span><br><span class="line">-        .define(QUORUM_RETRY_BACKOFF_MS_CONFIG, INT, DEFAULT_QUORUM_RETRY_BACKOFF_MS, null, LOW, QUORUM_RETRY_BACKOFF_MS_DOC);</span><br><span class="line">+        .define(QUORUM_RETRY_BACKOFF_MS_CONFIG, INT, DEFAULT_QUORUM_RETRY_BACKOFF_MS, null, LOW, QUORUM_RETRY_BACKOFF_MS_DOC)</span><br><span class="line">+        .define(QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_CONFIG, BOOLEAN, DEFAULT_QUORUM_DYNAMIC_BOOTSTRAP_SERVERS, null, LOW, QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_DOC);</span><br></pre></td></tr></table></figure>
+<h4 id="变更-4：添加字段和-getter"><a href="#变更-4：添加字段和-getter" class="headerlink" title="变更 4：添加字段和 getter"></a>变更 4：添加字段和 getter</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">private final boolean dynamicBootstrapServersEnabled;</span><br><span class="line"></span><br><span class="line">public boolean dynamicBootstrapServersEnabled() &#123;</span><br><span class="line">    return dynamicBootstrapServersEnabled;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="2-RequestManager-java"><a href="#2-RequestManager-java" class="headerlink" title="2. RequestManager.java"></a>2. RequestManager.java</h3><p><strong>文件路径：</strong> <code>raft/src/main/java/org/apache/kafka/raft/RequestManager.java</code></p>
+<h4 id="变更-1：添加-List-import"><a href="#变更-1：添加-List-import" class="headerlink" title="变更 1：添加 List import"></a>变更 1：添加 List import</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> import java.util.ArrayList;</span><br><span class="line"> import java.util.Collection;</span><br><span class="line"> import java.util.HashMap;</span><br><span class="line"> import java.util.Iterator;</span><br><span class="line">+import java.util.List;</span><br><span class="line"> import java.util.Map;</span><br><span class="line"> import java.util.Optional;</span><br><span class="line"> import java.util.OptionalLong;</span><br><span class="line"> import java.util.Random;</span><br></pre></td></tr></table></figure>
+<h4 id="变更-2：将-bootstrapServers-改为可变并添加-volatile"><a href="#变更-2：将-bootstrapServers-改为可变并添加-volatile" class="headerlink" title="变更 2：将 bootstrapServers 改为可变并添加 volatile"></a>变更 2：将 bootstrapServers 改为可变并添加 volatile</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> public class RequestManager &#123;</span><br><span class="line">     private final Map&lt;String, ConnectionState&gt; connections = new HashMap&lt;&gt;();</span><br><span class="line">-    private final ArrayList&lt;Node&gt; bootstrapServers;</span><br><span class="line">+    private volatile List&lt;Node&gt; bootstrapServers;</span><br></pre></td></tr></table></figure>
+<h4 id="变更-3：添加-updateBootstrapServers-方法"><a href="#变更-3：添加-updateBootstrapServers-方法" class="headerlink" title="变更 3：添加 updateBootstrapServers 方法"></a>变更 3：添加 updateBootstrapServers 方法</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Updates the bootstrap servers list dynamically.</span><br><span class="line"> * This method should be called when the voter set changes to ensure</span><br><span class="line"> * the client can connect to the new voters.</span><br><span class="line"> *</span><br><span class="line"> * @param newBootstrapServers the new list of bootstrap servers</span><br><span class="line"> */</span><br><span class="line">public void updateBootstrapServers(Collection&lt;Node&gt; newBootstrapServers) &#123;</span><br><span class="line">    if (newBootstrapServers == null || newBootstrapServers.isEmpty()) &#123;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    this.bootstrapServers = new ArrayList&lt;&gt;(newBootstrapServers);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="3-KafkaRaftClient-java"><a href="#3-KafkaRaftClient-java" class="headerlink" title="3. KafkaRaftClient.java"></a>3. KafkaRaftClient.java</h3><p><strong>文件路径：</strong> <code>raft/src/main/java/org/apache/kafka/raft/KafkaRaftClient.java</code></p>
+<h4 id="变更-1：添加-maybeUpdateBootstrapServers-方法（带配置检查）"><a href="#变更-1：添加-maybeUpdateBootstrapServers-方法（带配置检查）" class="headerlink" title="变更 1：添加 maybeUpdateBootstrapServers 方法（带配置检查）"></a>变更 1：添加 maybeUpdateBootstrapServers 方法（带配置检查）</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * Updates the bootstrap servers in RequestManager based on the current voter set.</span><br><span class="line"> * This ensures that when voters change dynamically (via AddVoter/RemoveVoter),</span><br><span class="line"> * the broker can connect to the new voters when discovering the leader.</span><br><span class="line"> *</span><br><span class="line"> * This feature is controlled by the configuration:</span><br><span class="line"> * &#123;@link QuorumConfig#QUORUM_DYNAMIC_BOOTSTRAP_SERVERS_CONFIG&#125;</span><br><span class="line"> */</span><br><span class="line">private void maybeUpdateBootstrapServers() &#123;</span><br><span class="line">    if (!quorumConfig.dynamicBootstrapServersEnabled()) &#123;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (requestManager == null) &#123;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    VoterSet currentVoterSet = partitionState.lastVoterSet();</span><br><span class="line">    if (currentVoterSet == null || currentVoterSet.voterIds().isEmpty()) &#123;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    List&lt;Node&gt; newBootstrapNodes = currentVoterSet.voterNodes()</span><br><span class="line">        .stream()</span><br><span class="line">        .map(voterNode -&gt; &#123;</span><br><span class="line">            InetSocketAddress address = voterNode.listeners()</span><br><span class="line">                .address(channel.listenerName())</span><br><span class="line">                .orElse(null);</span><br><span class="line">            if (address == null) &#123;</span><br><span class="line">                return null;</span><br><span class="line">            &#125;</span><br><span class="line">            return new Node(</span><br><span class="line">                voterNode.voterKey().id(),</span><br><span class="line">                address.getHostString(),</span><br><span class="line">                address.getPort()</span><br><span class="line">            );</span><br><span class="line">        &#125;)</span><br><span class="line">        .filter(Objects::nonNull)</span><br><span class="line">        .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">    if (!newBootstrapNodes.isEmpty()) &#123;</span><br><span class="line">        requestManager.updateBootstrapServers(newBootstrapNodes);</span><br><span class="line">        logger.info(&quot;Updated bootstrap servers to: &#123;&#125;&quot;, newBootstrapNodes);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="变更-2-4：在三个位置调用-maybeUpdateBootstrapServers"><a href="#变更-2-4：在三个位置调用-maybeUpdateBootstrapServers" class="headerlink" title="变更 2-4：在三个位置调用 maybeUpdateBootstrapServers()"></a>变更 2-4：在三个位置调用 maybeUpdateBootstrapServers()</h4><ul>
+<li><p><code>appendAsFollower()</code> 方法中</p>
+</li>
+<li><p><code>appendAsLeader()</code> 方法中</p>
+</li>
+<li><p><code>handleFetchSnapshotResponse()</code> 方法中</p>
+</li>
+</ul>
+<hr>
+<h3 id="数据来源"><a href="#数据来源" class="headerlink" title="数据来源"></a>数据来源</h3><p><code>maybeUpdateBootstrapServers()</code> 使用 <strong>KRaft log 中最新的 VoterSet</strong> 来更新 bootstrap servers：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">partitionState.lastVoterSet()</span><br><span class="line">       ↓</span><br><span class="line">VoterSetHistory.lastValue()</span><br><span class="line">       ↓</span><br><span class="line">votersHistory.lastEntry().value()  // 优先返回 log 中的最新 VotersRecord</span><br><span class="line">       ↓</span><br><span class="line">如果 log 中没有，则返回 staticVoterSet（配置文件中的值）</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="交互流程"><a href="#交互流程" class="headerlink" title="交互流程"></a>交互流程</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">sequenceDiagram</span><br><span class="line">    participant Leader as Controller Leader</span><br><span class="line">    participant Log as KRaft Log</span><br><span class="line">    participant Broker as Broker (Observer)</span><br><span class="line">    participant StateMachine as KRaftControlRecordStateMachine</span><br><span class="line">    participant RaftClient as KafkaRaftClient</span><br><span class="line">    participant ReqMgr as RequestManager</span><br><span class="line"></span><br><span class="line">    Leader-&gt;&gt;Log: appendVotersRecord(newVoterSet)</span><br><span class="line">    Log-&gt;&gt;Broker: Fetch 复制</span><br><span class="line">    Broker-&gt;&gt;RaftClient: appendAsFollower(records)</span><br><span class="line">    RaftClient-&gt;&gt;StateMachine: updateState()</span><br><span class="line">    StateMachine-&gt;&gt;StateMachine: handleBatch() - 解析 KRAFT_VOTERS</span><br><span class="line">    StateMachine-&gt;&gt;StateMachine: voterSetHistory.addAt(offset, voters)</span><br><span class="line">    RaftClient-&gt;&gt;RaftClient: maybeUpdateBootstrapServers()</span><br><span class="line">    alt dynamicBootstrapServersEnabled = true</span><br><span class="line">        RaftClient-&gt;&gt;StateMachine: lastVoterSet()</span><br><span class="line">        StateMachine--&gt;&gt;RaftClient: 返回最新 VoterSet</span><br><span class="line">        RaftClient-&gt;&gt;ReqMgr: updateBootstrapServers(newNodes)</span><br><span class="line">        ReqMgr-&gt;&gt;ReqMgr: bootstrapServers = newList</span><br><span class="line">        Note over ReqMgr: 下次 findReadyBootstrapServer()&lt;br/&gt;将使用新的 voter 地址</span><br><span class="line">    else dynamicBootstrapServersEnabled = false</span><br><span class="line">        Note over RaftClient: 跳过更新</span><br><span class="line">    end</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="触发时机"><a href="#触发时机" class="headerlink" title="触发时机"></a>触发时机</h3><p>Bootstrap servers 会在以下时机更新（当配置启用时）：</p>
+<p>|场景|方法|说明|</p>
+<p>|-|-|-|</p>
+<p>|Follower 追加日志|<code>appendAsFollower()</code>|复制 leader 的日志时|</p>
+<p>|Leader 追加日志|<code>appendAsLeader()</code>|leader 写入新记录时|</p>
+<p>|Snapshot 下载完成|<code>handleFetchSnapshotResponse()</code>|从 leader 下载 snapshot 后|</p>
+<hr>
+<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><h4 id="启用（默认）"><a href="#启用（默认）" class="headerlink" title="启用（默认）"></a>启用（默认）</h4><p>无需配置，默认启用。</p>
+<h4 id="禁用"><a href="#禁用" class="headerlink" title="禁用"></a>禁用</h4><p>在 <code>server.properties</code> 中添加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">controller.quorum.dynamic.bootstrap.servers.enable=false</span><br></pre></td></tr></table></figure>
+<hr>
+<h3 id="测试验证"><a href="#测试验证" class="headerlink" title="测试验证"></a>测试验证</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 编译</span><br><span class="line">./gradlew :raft:compileJava --no-daemon -q</span><br><span class="line"></span><br><span class="line"># 运行相关测试</span><br><span class="line">./gradlew :raft:test --tests &quot;org.apache.kafka.raft.QuorumConfigTest&quot; \</span><br><span class="line">    --tests &quot;org.apache.kafka.raft.RequestManagerTest&quot; \</span><br><span class="line">    --tests &quot;org.apache.kafka.raft.KafkaRaftClientTest&quot; \</span><br><span class="line">    -x checkstyleMain -x checkstyleTest</span><br></pre></td></tr></table></figure>
+<p>所有测试通过。</p>
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><h4 id="改动范围"><a href="#改动范围" class="headerlink" title="改动范围"></a>改动范围</h4><ul>
+<li><p><code>QuorumConfig.java</code>：新增配置项定义、字段和 getter</p>
+</li>
+<li><p><code>RequestManager.java</code>：5 处改动</p>
+<ul>
+<li><p>1 个 import（<code>List</code>）</p>
+</li>
+<li><p>1 个字段修改（<code>volatile List&lt;Node&gt; bootstrapServers</code>）</p>
+</li>
+<li><p>1 个新方法（<code>updateBootstrapServers()</code>）</p>
+</li>
+<li><p>2 处本地变量引用（<code>findReadyBootstrapServer()</code> 和 <code>backoffBeforeAvailableBootstrapServer()</code>）</p>
+</li>
+</ul>
+</li>
+<li><p><code>KafkaRaftClient.java</code>：4 处改动（1 个新方法含配置检查，3 个调用点）</p>
+</li>
+</ul>
+<h4 id="效果"><a href="#效果" class="headerlink" title="效果"></a>效果</h4><p>当 voter 通过 <code>AddVoter</code>/<code>RemoveVoter</code> API 变更后，broker 会自动更新 bootstrap servers 列表，确保在需要重新发现 leader 时能够连接到新的 voter 地址。</p>
+<h4 id="兼容性"><a href="#兼容性" class="headerlink" title="兼容性"></a>兼容性</h4><ul>
+<li><p>向后兼容：不改变现有 API，默认启用</p>
+</li>
+<li><p>可配置：通过 <code>controller.quorum.dynamic.bootstrap.servers.enable</code> 控制</p>
+</li>
+<li><p>无性能影响：只在日志追加时检查更新</p>
+</li>
+<li><p>线程安全：单线程模型，无并发问题</p>
+</li>
+</ul>
+<h2 id="kafka-自带测试"><a href="#kafka-自带测试" class="headerlink" title="kafka 自带测试"></a>kafka 自带测试</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew test</span><br></pre></td></tr></table></figure>
+<p><img src="Pasted image 20251220221636.png" alt=""></p>
+<p>其中有一个测试存在问题，是和 streams 相关的，相关功能和这次的变更无关，且重跑就正常了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./gradlew :streams:test</span><br></pre></td></tr></table></figure>
+<p><img src="Pasted image 20251220221645.png" alt=""></p>
+<h2 id="本地测试"><a href="#本地测试" class="headerlink" title="本地测试"></a>本地测试</h2><h3 id="测试环境信息"><a href="#测试环境信息" class="headerlink" title="测试环境信息"></a>测试环境信息</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># work @ bjyz-201605-m32-wise044 in /home/disk0/nizhenhyang/kafka-kraft-voter-fix-test [10:59:43] </span><br><span class="line">$ kaf nodes -b $(hostname -i):8140                           </span><br><span class="line">ID    ADDRESS             CONTROLLER   </span><br><span class="line">0     10.144.79.15:8100   false        </span><br><span class="line">1     10.144.79.15:8110   false        </span><br><span class="line">2     10.144.79.15:8120   true         </span><br><span class="line">3     10.144.79.15:8140   false</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># work @ bjyz-201605-m32-wise044 in /home/disk0/nizhenhyang/kafka-kraft-voter-fix-test/exec_env/b3 [11:02:13] </span><br><span class="line">$  ./bin/kafka-metadata-quorum.sh --bootstrap-server $(hostname -i):8140 describe --status</span><br><span class="line">ClusterId:              SBYtyuhkTNGeZco8wQg5hw</span><br><span class="line">LeaderId:               0</span><br><span class="line">LeaderEpoch:            1461</span><br><span class="line">HighWatermark:          1382966</span><br><span class="line">MaxFollowerLag:         0</span><br><span class="line">MaxFollowerLagTimeMs:   0</span><br><span class="line">CurrentVoters:          [&#123;&quot;id&quot;: 0, &quot;directoryId&quot;: &quot;nBF16kyeLHulGTLHHObZIQ&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://10.144.79.15:8101&quot;]&#125;, &#123;&quot;id&quot;: 1, &quot;directoryId&quot;: &quot;V1zZfv_t96eXfS30k-09FQ&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://10.144.79.15:8111&quot;]&#125;, &#123;&quot;id&quot;: 2, &quot;directoryId&quot;: &quot;8YTCnijW9E49vJRze4z5HA&quot;, &quot;endpoints&quot;: [&quot;CONTROLLER://10.144.79.15:8121&quot;]&#125;]</span><br><span class="line">CurrentObservers:       [&#123;&quot;id&quot;: 3, &quot;directoryId&quot;: &quot;zgKDwvKNIdbbNR-fxF44tw&quot;&#125;]</span><br></pre></td></tr></table></figure>
+<h3 id="问题复现"><a href="#问题复现" class="headerlink" title="问题复现"></a>问题复现</h3><h4 id="turn1"><a href="#turn1" class="headerlink" title="turn1"></a>turn1</h4><p>我们需要修改 0 、 1 的端口，以模拟实现迁移的场景，最后将 2 stop ，观察 3 的日志</p>
+<ul>
+<li><p>0: 8100 -&gt; 8200</p>
+</li>
+<li><p>1: 8110 -&gt; 8210</p>
+</li>
+</ul>
+<p>第一轮居然没有复现，3 依旧正常，我已经确认我执行的是没有问题的。排查发现，流程大概是这样的</p>
+<ol>
+<li><p>初始化的时候，leader 为 1 ，3 中 0、1、2 的信息都是正确的，3 连接 1</p>
+</li>
+<li><p>在 0 切换 port 后，leader 依旧为 1 ，3 中只有 1、2 的信息是正确的，3 连接 1</p>
+</li>
+<li><p>在 1 切换 port 后，leader 切换为 0，3 中只有 2 的信息是正确的，此时 3 断开了和 1 的连接，但是由于依旧保留 2 正确的信息，所以可以发现新的 0 </p>
+</li>
+<li><p>在 2 stop 后，leader 依旧为 0 ，3 和 0 保持连接，所以 3 依旧是正常的。即使 2 切换 port ，3 依旧连这 0，所以现象是正常的</p>
+</li>
+</ol>
+<p><strong>综上，上一次调研的时候应该遇到的是这种场景，实际上只用再把 0 restart ，3 就挂了。</strong></p>
+<h4 id="turn2"><a href="#turn2" class="headerlink" title="turn2"></a>turn2</h4><p>接下来我们只用进行如下操作，就可以让 3 挂掉了</p>
+<ul>
+<li><p>2: 8120 –&gt; 8220</p>
+</li>
+<li><p>stop 0</p>
+</li>
+</ul>
+<p>可以看到，此时 3 挂了</p>
+<p><img src="Pasted image 20251220221712.png" alt=""></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[2025-12-19 11:51:15,218] WARN [RaftManager id=3] Connection to node 0 (/10.144.79.15:8101) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)</span><br><span class="line">[2025-12-19 11:51:15,218] WARN [RaftManager id=3] Connection to node 1 (/10.144.79.15:8111) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)</span><br><span class="line">[2025-12-19 11:51:15,238] WARN [RaftManager id=3] Connection to node 2 (/10.144.79.15:8121) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)</span><br></pre></td></tr></table></figure>
+<p>复现了预期的故障场景</p>
+<h3 id="新机制测试"><a href="#新机制测试" class="headerlink" title="新机制测试"></a>新机制测试</h3><p>当前的 leader 为 0，则将  3 中的 <code>controller.quorum.voters</code>配置里，1 和 2 都是错误的，仅 c0 是正确的。将 debug 日志开启，此时日志中有 voter 列表更新的日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[2025-12-19 16:48:02,383] DEBUG [RaftManager id=3] Updated bootstrap servers to: [10.144.79.15:8201 (id: 0 rack: null), 10.144.79.15:8221 (id: 2 rack: null), 10.144.79.15:8211 (id: 1 rack: null)] (org.apache.kafka.raft.KafkaRaftClient)</span><br></pre></td></tr></table></figure>
+<p>此时将 0 stop ，3 依旧正常，有请求新 leader 的 fetch 日志，说明其可以感知到其他的 voter</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[2025-12-19 16:50:51,531] DEBUG [RaftManager id=3] Received FETCH response from node 1 for request with header RequestHeader(apiKey=FETCH, apiVersion=17, clientId=raft-client-3, correlationId=359, headerVersion=2): FetchResponseData(throttleTimeMs=0, errorCode=0, sessionId=0, responses=[FetchableTopicResponse(topic=&apos;&apos;, topicId=AAAAAAAAAAAAAAAAAAAAAQ, partitions=[PartitionData(partitionIndex=0, errorCode=0, highWatermark=1425551, lastStableOffset=-1, logStartOffset=1292218, divergingEpoch=EpochEndOffset(epoch=-1, endOffset=-1), currentLeader=LeaderIdAndEpoch(leaderId=1, leaderEpoch=1515), snapshotId=SnapshotId(endOffset=-1, epoch=-1), abortedTransactions=[], preferredReadReplica=-1, records=MemoryRecords(size=72, buffer=java.nio.HeapByteBuffer[pos=0 lim=72 cap=112]))])], nodeEndpoints=[NodeEndpoint(nodeId=1, host=&apos;10.144.79.15&apos;, port=8211, rack=null)]) (org.apache.kafka.clients.NetworkClient)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># work @ bjyz-201605-m32-wise044 in /home/disk0/nizhenhyang/kafka-kraft-voter-fix-test/exec_env/b3 [16:49:58] </span><br><span class="line">$ kaf nodes -b $(hostname -i):8140</span><br><span class="line">ID    ADDRESS             CONTROLLER   </span><br><span class="line">1     10.144.79.15:8210   true         </span><br><span class="line">2     10.144.79.15:8220   false        </span><br><span class="line">3     10.144.79.15:8140   false</span><br></pre></td></tr></table></figure>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>验证新特性时，不能仅靠测试，因为测试可能会有遗漏，必须结合源码进行分析。也就源码分析优先，实验测试辅助。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/" data-id="cmjee32uj006qdxjdtnfe277u" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/12/13/kiro-聊天记录中模型的输出内容人工导出为-markdown-格式/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kiro 聊天记录中模型的输出内容人工导出为 markdown 格式</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>211</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>72</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
