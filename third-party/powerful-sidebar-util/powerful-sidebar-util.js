@@ -191,22 +191,17 @@ document.body.appendChild(powerfulPluginContainer);
 
     // 绑定事件
     articleMenuBtn.onclick = function () {
-      isHidden = !isHidden;
-      toggleArticleMenu();
-      toggleArticleMenuIcon();
-    }
-    aritcleMenuContainer.onclick = function () {
-      isHidden = true;
-      toggleArticleMenu();
-      toggleArticleMenuIcon();
-    }
-
-    articleMenuBtn.onclick = function () {
       articleMenuBtn.removeAttribute("style");
       isHidden = !isHidden;
       toggleArticleMenu();
       toggleArticleMenuIcon();
     }
+    // 注释原因：点击目录项后不自动收起菜单，方便用户连续查看多个章节
+    // aritcleMenuContainer.onclick = function () {
+    //   isHidden = true;
+    //   toggleArticleMenu();
+    //   toggleArticleMenuIcon();
+    // }
 
     function toggleArticleMenu() {
       if (isHidden) {

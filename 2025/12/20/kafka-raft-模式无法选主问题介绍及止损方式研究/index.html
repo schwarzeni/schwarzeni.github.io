@@ -19,7 +19,7 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/Pasted%20image%2020251220222903.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/Pasted%20image%2020251220224932.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/Pasted%20image%2020251220224918.png">
-<meta property="og:updated_time" content="2025-12-20T15:23:57.274Z">
+<meta property="og:updated_time" content="2025-12-20T15:29:24.994Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kafka raft 模式无法选主问题介绍及止损方式研究">
 <meta name="twitter:description" content="版本为 3.9.1 ，处理方式比较 trick，目前仅在无流量的集群中验证过。">
@@ -502,12 +502,13 @@
 <h1 id="线上服务修复效果"><a href="#线上服务修复效果" class="headerlink" title="线上服务修复效果"></a>线上服务修复效果</h1><p><img src="Pasted image 20251220224932.png" alt=""></p>
 <p>相关 topic 的信息未丢失:</p>
 <p><img src="Pasted image 20251220224918.png" alt=""></p>
+<h1 id="主要变跟"><a href="#主要变跟" class="headerlink" title="主要变跟"></a>主要变跟</h1><p><a href="https://github.com/schwarzeni/kafka-hack-voterset-3.9.1/commit/225b4058daa366a2b272be6de3fc3050ca98458a#diff-cbe6a8b71b05ed22cf09d97591225b588e9fca6caaf95d3b34a43262cfd23aa6" target="_blank" rel="noopener">https://github.com/schwarzeni/kafka-hack-voterset-3.9.1/commit/225b4058daa366a2b272be6de3fc3050ca98458a#diff-cbe6a8b71b05ed22cf09d97591225b588e9fca6caaf95d3b34a43262cfd23aa6</a></p>
 <h1 id="后续-TODO"><a href="#后续-TODO" class="headerlink" title="后续 TODO"></a>后续 TODO</h1><p>其实感觉这种修复方式还是存在风险，因为没有在高流量的集群验证过。后续必须添加上对于 raft voter 状态的监控，具体怎么添加这个还需再想想。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/" data-id="cmjeg7syg00rykgjddqibsz49" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/" data-id="cmjegey3y00sjkejd68yr8l83" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
