@@ -5,13 +5,13 @@
   
   <title>kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
+  <meta name="description" content="版本为 3.9.1。由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
 <meta name="keywords" content="kafka">
 <meta property="og:type" content="article">
 <meta property="og:title" content="kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复">
 <meta property="og:url" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
-<meta property="og:description" content="由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
+<meta property="og:description" content="版本为 3.9.1。由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221437.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221446.png">
@@ -26,10 +26,10 @@
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221636.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221645.png">
 <meta property="og:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221712.png">
-<meta property="og:updated_time" content="2025-12-20T14:22:24.155Z">
+<meta property="og:updated_time" content="2025-12-20T14:26:23.888Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kafka raft 模式下普通 broker 无法自动更新 voter 列表问题修复">
-<meta name="twitter:description" content="由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
+<meta name="twitter:description" content="版本为 3.9.1。由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …">
 <meta name="twitter:image" content="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/Pasted%20image%2020251220221437.png">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
@@ -75,7 +75,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>211</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>212</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>72</strong><br>标签</div></a>
     </div>
@@ -149,7 +149,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …</p>
+        <p>版本为 3.9.1。由于是魔改的 kafka 代码，虽然线下验证没问题，但是还拿不准是否需要更新线上服务使用的 jar 包 …</p>
 <a id="more"></a>
 <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在 <a href="https://blog.schwarzeni.com/2025/08/13/KIP-853-%E5%8A%9F%E8%83%BD%E9%AA%8C%E8%AF%81-kraft-%E6%A8%A1%E5%BC%8F%E4%B8%8B%E5%8A%A8%E6%80%81%E5%8F%98%E6%9B%B4-kafka-controller-voter-%E5%88%97%E8%A1%A8/">KIP-853 功能验证</a> 调研时，已经确认了普通的 broker 是可以同步 voter 列表的变更的，但是在排查其他问题时，发现普通的 broker 还是会尝试连接旧的 voter</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[2025-12-18 20:50:06,552] INFO [RaftManager id=157] Node 0 disconnected. (org.apache.kafka.clients.NetworkClient)</span><br><span class="line">[2025-12-18 20:50:06,552] WARN [RaftManager id=157] Connection to node 0 (bddwd-ps-beehive-agent187658.bddwd.baidu.com/10.41.70.215:9093) could not be established. Node may not be available. (org.apache.kafka.clients.NetworkClient)</span><br></pre></td></tr></table></figure>
@@ -337,7 +337,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/" data-id="cmjee32uj006qdxjdtnfe277u" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/" data-id="cmjeg1dlf006dncjddshzw1v6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
@@ -347,6 +347,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          kafka raft 模式无法选主问题介绍及止损方式研究
+        
+      </div>
+    </a>
   
   
     <a href="/2025/12/13/kiro-聊天记录中模型的输出内容人工导出为-markdown-格式/" id="article-nav-older" class="article-nav-link-wrap">
@@ -430,7 +439,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>211</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>212</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>72</strong><br>标签</div></a>
     </div>
