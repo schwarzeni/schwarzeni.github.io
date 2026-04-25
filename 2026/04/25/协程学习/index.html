@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>协程学习 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
+<meta name="keywords" content="协程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="协程学习">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/04/25/协程学习/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2026-04-25T15:06:20.592Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="协程学习">
+<meta name="twitter:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>214</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>73</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-协程学习" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/04/25/协程学习/" class="article-date">
+  <time class="post-time" datetime="2026-04-25T15:05:34.000Z" itemprop="datePublished">
+    <span class="post-month">4月</span><br/>
+    <span class="post-day">25</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      协程学习
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）</p>
+<a id="more"></a>
+<h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>线程是操作系统进行 CPU 时间分配（调度）的最小单位，由线程来执行函数。当函数中执行阻塞操作，例如 sleep、等锁、IO 时，线程会被操作系统挂起进入等待状态，占用线程资源却不做任何有效工作。由于系统能同时维护的线程数量有限，大量线程阻塞等待会造成严重的线程资源浪费。比较理想的情况是，在进行阻塞操作时，将当前函数”挂起”，让这个线程可以执行其它的函数，这样可以高效利用线程资源。</p>
+<h2 id="协程的设计思路"><a href="#协程的设计思路" class="headerlink" title="协程的设计思路"></a>协程的设计思路</h2><p>从操作系统的视角来看，多个线程会共享一个 CPU 资源，当一个线程执行的时间片用完后，操作系统会将这个线程挂起，然后调度其它线程到这个 CPU 上来执行。对于被挂起的线程，由操作系统来保存它的上下文信息至线程控制块（TCB）中，包含寄存器快照、栈指针等信息。</p>
+<p>根据这个思路，可以将需要挂起的函数使用的上下文信息，主要为一些寄存器的数据，保存在它使用的栈上，就可以达到生成一份 “快照” 的目的。在基于这个 “快照” 让函数恢复执行时，就可以从它的栈上将相关上下文信息读取出来进行恢复。这个就是协程实现的大致思路。</p>
+<p>一个简易协程的结构体定义如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 协程控制块（对应 bthread task_meta.h:49 的 TaskMeta）</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Coroutine</span> &#123;</span></span><br><span class="line">    <span class="keyword">fcontext_t</span>  ctx;           <span class="comment">// 寄存器快照（= 当前 rsp）</span></span><br><span class="line">    <span class="keyword">void</span>*       <span class="built_in">stack</span>;         <span class="comment">// malloc 分配的栈内存（低地址）</span></span><br><span class="line">    <span class="keyword">size_t</span>      stack_size;</span><br><span class="line">    CoState     state;</span><br><span class="line">    <span class="keyword">void</span>      (*fn)(<span class="keyword">void</span>*);    <span class="comment">// 用户协程函数</span></span><br><span class="line">    <span class="keyword">void</span>*       arg;</span><br><span class="line">    <span class="keyword">int64_t</span>     wake_time_us;  <span class="comment">// co_sleep 唤醒时间（epoch 微秒），0 表示未睡眠</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>可以看到这里维护了一个 <code>stack</code> ，我们可以将其称为协程栈。对于普通的函数来说，它使用的栈是线程栈，也即操作系统在线程创建后为它开辟的一片内存空间。而在协程模式下，由于多个函数（协程）会共用一个线程，不能公用一个栈，所以这里会为每一个协程都创建一个单独的栈。在生成协程执行的函数的快照时，会将上下文信息保存到这个协程栈上。需要额外注意的是，线程栈和协程栈没有本质的不同，都是一片地址空间，在 CPU 执行时完全等价，只不过负责创建和回收的角色不同，前者是操作系统，后者是协程调度器。</p>
+<h2 id="使用协程的方式"><a href="#使用协程的方式" class="headerlink" title="使用协程的方式"></a>使用协程的方式</h2><p>协程的主要目的是为了在函数执行阻塞操作时主动让出线程资源。对于 IO 场景，所有的协程就需要将 fd 交给专门的线程通过 epoll 等方式来监听，交出 fd 后主动挂起。在 fd 可读写后，再由专门的调度器来唤醒对应的协程来对 fd 进行读写操作。对于 sleep 的场景，则在调用 sleep 时直接将对应的协程挂起，等待协程调度器在对应的时间将协程唤起。</p>
+<p>这里需要特别注意的是，不能在协程中调用为线程准备的相关函数，例如不能直接在协程中调用 poll ，因为这样就让运行协程的线程阻塞住了，效果和用线程执行没有区别。所以一个成熟的协程库，需要为会导致线程阻塞的方法提供类似的协程方法。</p>
+<p>以下是一个使用协程库 API 的典型示例，两个协程并发执行，<code>co_sleep</code> 期间线程不阻塞，会自动去运行其他协程：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">co_A</span><span class="params">(<span class="keyword">void</span>*)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[  0ms] A-1\n"</span>);</span><br><span class="line">    co_sleep(<span class="number">200000</span>);        <span class="comment">// 让出线程 200ms，期间线程去运行 co_B</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[200ms] A-2\n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">co_B</span><span class="params">(<span class="keyword">void</span>*)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[  0ms] B-1\n"</span>);</span><br><span class="line">    co_sleep(<span class="number">100000</span>);        <span class="comment">// 让出线程 100ms</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[100ms] B-2\n"</span>);</span><br><span class="line">    co_sleep(<span class="number">100000</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[200ms] B-3\n"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    co_create(co_A, <span class="literal">nullptr</span>);  <span class="comment">// 创建协程，加入 ready_queue，不立即运行</span></span><br><span class="line">    co_create(co_B, <span class="literal">nullptr</span>);</span><br><span class="line">    co_run();                  <span class="comment">// 启动调度循环，阻塞直到所有协程完成</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际输出：</span></span><br><span class="line"><span class="comment">// [  0ms] A-1</span></span><br><span class="line"><span class="comment">// [  0ms] B-1</span></span><br><span class="line"><span class="comment">// [100ms] B-2   ← A 在 sleep，线程转去运行 B，并非真正等待 200ms</span></span><br><span class="line"><span class="comment">// [200ms] A-2</span></span><br><span class="line"><span class="comment">// [200ms] B-3</span></span><br></pre></td></tr></table></figure>
+<h2 id="寄存器与函数栈"><a href="#寄存器与函数栈" class="headerlink" title="寄存器与函数栈"></a>寄存器与函数栈</h2><p>理解协程上下文切换的实现细节，需要先了解 CPU 寄存器和函数栈的工作方式，这是实现的直接操作对象。</p>
+<h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3><p>寄存器是位于 CPU 芯片内部的高速存储单元，访问速度比内存快约 100 倍，但数量极少。x86_64 架构有 16 个通用寄存器，每个 8 字节：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rax  rbx  rcx  rdx  rsi  rdi  rbp  rsp  r8  r9  r10  r11  r12  r13  r14  r15</span><br></pre></td></tr></table></figure>
+<p>其中 <code>rsp</code>（Stack Pointer）最为特殊，它始终指向当前栈的顶部。CPU 执行 <code>push</code>、<code>pop</code>、<code>call</code>、<code>ret</code> 等指令时都会隐式修改 <code>rsp</code>。协程切换的核心操作，正是通过直接替换 <code>rsp</code> 的值来完成的——<code>rsp</code> 指向哪个协程的栈，CPU 就在哪个协程的世界里运行。</p>
+<p>Linux x86_64 的调用约定（System V ABI）规定了寄存器在函数调用时的职责分工：</p>
+<ul>
+<li><p><strong>参数传递</strong>：调用函数时，前 6 个参数依次放入 <code>rdi</code>、<code>rsi</code>、<code>rdx</code>、<code>rcx</code>、<code>r8</code>、<code>r9</code>，函数的返回值放入 <code>rax</code>。</p>
+</li>
+<li><p><strong>Caller-saved 寄存器</strong>（<code>rax</code>、<code>rcx</code>、<code>rdx</code>、<code>rsi</code>、<code>rdi</code>、<code>r8</code>～<code>r11</code>）：调用者负责保存。调用者若需要在函数调用后继续使用这些寄存器中的值，须在调用前自行压栈；被调函数可以随意覆盖这些寄存器。</p>
+</li>
+<li><p><strong>Callee-saved 寄存器</strong>（<code>rbx</code>、<code>rbp</code>、<code>r12</code>～<code>r15</code>）：被调函数负责保存。被调函数若需要使用这些寄存器，须在函数开头先压栈保存，在返回前恢复原值，确保调用者看不出变化。</p>
+</li>
+</ul>
+<p>这个分工对协程实现至关重要：<code>jump_fcontext</code> 作为被调函数，只需保存 callee-saved 的 6 个寄存器，caller-saved 寄存器的保存已由编译器在调用方的代码中自动处理。</p>
+<h3 id="函数栈与栈帧"><a href="#函数栈与栈帧" class="headerlink" title="函数栈与栈帧"></a>函数栈与栈帧</h3><p>栈是一片连续内存，地址<strong>从高向低增长</strong>。<code>push X</code> 等价于 <code>rsp -= 8; [rsp] = X</code>，<code>pop X</code> 等价于 <code>X = [rsp]; rsp += 8</code>。<code>call func</code> 在跳转前会自动将下一条指令的地址（返回地址）压栈，<code>ret</code> 则将其弹出并跳转过去。</p>
+<p>每个函数被调用时，编译器自动生成序言（prologue）和尾声（epilogue），在栈上划出属于自己的一块区域，称为<strong>栈帧</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">高地址</span><br><span class="line">┌─────────────────────────┐</span><br><span class="line">│   调用者的栈帧           │</span><br><span class="line">├─────────────────────────┤</span><br><span class="line">│   返回地址               │  ← call 指令压入</span><br><span class="line">├─────────────────────────┤  ← 函数序言开始</span><br><span class="line">│   保存的 rbp             │  ← pushq %rbp</span><br><span class="line">│   保存的 r12、r13 等     │  ← 若函数用到了这些 callee-saved 寄存器</span><br><span class="line">│   局部变量               │  ← 编译器分配空间</span><br><span class="line">├─────────────────────────┤</span><br><span class="line">│   （被调函数的栈帧）      │</span><br><span class="line">rsp ─────────────────────  ← 始终指向当前栈顶</span><br><span class="line">低地址</span><br></pre></td></tr></table></figure>
+<p>函数返回时，尾声代码弹出所有已保存的寄存器，恢复 <code>rsp</code>，执行 <code>ret</code> 跳回调用者，栈帧随之消失。</p>
+<p>函数调用链中，每一层都在栈上留下自己的帧。以协程内的调用链 <code>入口函数 → A → B → co_sleep</code> 为例，挂起时栈的状态是各层帧的叠加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">高地址（栈底）</span><br><span class="line">┌─────────────────────────┐</span><br><span class="line">│   入口函数的栈帧         │</span><br><span class="line">├─────────────────────────┤</span><br><span class="line">│   A 的栈帧（含 A 的局部变量、A 保存的寄存器）│</span><br><span class="line">├─────────────────────────┤</span><br><span class="line">│   B 的栈帧（含 B 的局部变量、B 保存的寄存器）│</span><br><span class="line">├─────────────────────────┤</span><br><span class="line">│   co_sleep 的栈帧        │</span><br><span class="line">├─────────────────────────┤</span><br><span class="line">│   jump_fcontext 压入的   │  ← 挂起时额外保存的 6 个寄存器快照</span><br><span class="line">│   6 个 callee-saved 寄存器│</span><br><span class="line">rsp ─────────────────────  ← co-&gt;ctx 记录此处</span><br><span class="line">低地址</span><br></pre></td></tr></table></figure>
+<p>A 和 B 的局部变量、它们在序言中保存的寄存器，已经作为各自栈帧的一部分存在于栈上。<code>jump_fcontext</code> 只需在此基础上再压入 6 个寄存器的当前快照，然后将 <code>rsp</code> 存入 <code>co-&gt;ctx</code>，协程的完整现场就被保存下来了。恢复时，只需将 <code>rsp</code> 恢复到 <code>co-&gt;ctx</code> 记录的位置，再依次弹出，整条调用链便会沿原路展开，从挂起点继续执行。</p>
+<h2 id="协程的实现细节"><a href="#协程的实现细节" class="headerlink" title="协程的实现细节"></a>协程的实现细节</h2><p>协程的实现核心是两个函数：<code>make_fcontext</code> 负责初始化一个新协程的栈，<code>jump_fcontext</code> 负责在两个协程之间完成实际的切换。两者都通过直接操作寄存器和栈内存来实现，在用户态完成，不涉及任何系统调用。</p>
+<h3 id="初始化协程栈：make-fcontext"><a href="#初始化协程栈：make-fcontext" class="headerlink" title="初始化协程栈：make_fcontext"></a>初始化协程栈：make_fcontext</h3><p>当通过 <code>co_create</code> 创建一个新协程时，需要为其准备好一个可以被 <code>jump_fcontext</code> 直接切入的初始状态。<code>make_fcontext</code> 做的事情可以理解为”伪造一份快照”——在新分配的协程栈上手动填入一套初始寄存器值，使其看起来和一个”已经暂停过的协程”完全一致，这样 <code>jump_fcontext</code> 在第一次切入时就能用统一的方式处理新协程和已暂停协程。</p>
+<p><code>make_fcontext</code> 接受协程栈的高地址端和入口函数地址，在栈顶写入如下结构：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">高地址（栈底）</span><br><span class="line">┌──────────────────┐</span><br><span class="line">│  ...（未使用）    │</span><br><span class="line">├──────────────────┤  ← make_fcontext 返回的 fcontext（初始 rsp）</span><br><span class="line">│  FPU 槽 = 0      │  + 0x00</span><br><span class="line">│  r12  = 0        │  + 0x08</span><br><span class="line">│  r13  = 0        │  + 0x10</span><br><span class="line">│  r14  = 0        │  + 0x18</span><br><span class="line">│  r15  = 0        │  + 0x20</span><br><span class="line">│  rbx  = 0        │  + 0x28</span><br><span class="line">│  rbp  = 0        │  + 0x30</span><br><span class="line">│  &amp;finish         │  + 0x38  ← 入口函数 return 后的去处</span><br><span class="line">│  &amp;入口函数        │  + 0x40  ← 第一次切入时跳转的目标</span><br><span class="line">└──────────────────┘</span><br><span class="line">低地址（栈顶方向）</span><br></pre></td></tr></table></figure>
+<p>其中 <code>finish</code> 是一个兜底标签，指向调用 <code>_exit(0)</code> 的代码。如果协程的入口函数执行完后直接 <code>return</code>，控制流会落到 <code>finish</code>，进程退出。在正常的协程实现中，入口函数执行完后应当主动调用 <code>jump_fcontext</code> 切回调度器，而不是依赖 <code>return</code>，<code>finish</code> 仅作为安全兜底。</p>
+<p>对应的汇编实现如下。核心逻辑是：在传入的高地址端向低地址分配 72 字节（0x48），然后按照上方的布局填入初始值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">make_fcontext:</span><br><span class="line">    movq  %rdi, %rax          ; rax = sp（传入的栈高地址端）</span><br><span class="line">    andq  $-16,  %rax         ; 对齐到 16 字节边界（末 4 位清零）</span><br><span class="line">    leaq  -0x48(%rax), %rax   ; rax -= 72，向低地址分配 72 字节空间</span><br><span class="line"></span><br><span class="line">    movq  $0,    0x00(%rax)   ; FPU 槽 = 0（预留位置，不使用）</span><br><span class="line">    movq  $0,    0x08(%rax)   ; r12 = 0  ┐</span><br><span class="line">    movq  $0,    0x10(%rax)   ; r13 = 0  │</span><br><span class="line">    movq  $0,    0x18(%rax)   ; r14 = 0  ├─ 初始 callee-saved 寄存器值全为 0</span><br><span class="line">    movq  $0,    0x20(%rax)   ; r15 = 0  │</span><br><span class="line">    movq  $0,    0x28(%rax)   ; rbx = 0  │</span><br><span class="line">    movq  $0,    0x30(%rax)   ; rbp = 0  ┘</span><br><span class="line"></span><br><span class="line">    movq  %rdx,  0x38(%rax)   ; [+0x38] = fn（首次切入时 jmp 到这里）</span><br><span class="line">    leaq  finish(%rip), %rcx</span><br><span class="line">    movq  %rcx,  0x40(%rax)   ; [+0x40] = &amp;finish（fn return 后的返回地址）</span><br><span class="line"></span><br><span class="line">    ret                        ; 返回 rax，即新协程的初始 fcontext</span><br><span class="line"></span><br><span class="line">finish:</span><br><span class="line">    xorq  %rdi, %rdi</span><br><span class="line">    call  _exit@PLT            ; fn 若直接 return，进程退出（安全兜底）</span><br></pre></td></tr></table></figure>
+<h3 id="执行上下文切换：jump-fcontext"><a href="#执行上下文切换：jump-fcontext" class="headerlink" title="执行上下文切换：jump_fcontext"></a>执行上下文切换：jump_fcontext</h3><p><code>jump_fcontext(ofc, nfc, vp)</code> 完成从当前协程到目标协程的切换，整个过程分为三步：</p>
+<p><strong>第一步：保存当前协程的状态。</strong> 将 6 个 callee-saved 寄存器（<code>rbp, rbx, r12~r15</code>）依次压入当前栈，再将此时的 <code>rsp</code> 值写入 <code>*ofc</code>。至此，当前协程的”快照”就完整地存在了它自己的栈上，<code>*ofc</code> 记录了快照从哪里开始。</p>
+<p>这里只保存 callee-saved 寄存器，而不保存全部寄存器，是由编译器和调用约定共同保证的：caller-saved 寄存器（如 <code>rax</code>、<code>rdx</code>）在进行任何函数调用前，编译器就已经将其中有用的值保存到栈帧里，<code>jump_fcontext</code> 无需重复处理。</p>
+<p><strong>第二步：切换栈。</strong> 将 <code>rsp</code> 直接替换为 <code>nfc</code>（目标协程上次保存的 <code>rsp</code> 值）。这一行是整个切换的核心——<code>rsp</code> 一旦改变，CPU 就”活在”了目标协程的栈空间里。</p>
+<p><strong>第三步：恢复目标协程的状态。</strong> 从目标协程的栈上依次 pop 出 6 个寄存器，最后 pop 出目标协程的 PC（程序计数器），通过 <code>jmp</code> 跳转过去。如果目标协程是首次被切入，PC 就是 <code>make_fcontext</code> 写入的入口函数地址；如果是从暂停处恢复，PC 就是目标协程上次调用 <code>jump_fcontext</code> 的返回地址，从断点处继续执行。</p>
+<p>对应的汇编实现如下，三个阶段与上述描述一一对应：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">jump_fcontext:</span><br><span class="line">    ; === 第一步：保存当前协程 ===</span><br><span class="line">    pushq  %rbp               ; 将 6 个 callee-saved 寄存器依次压入当前栈</span><br><span class="line">    pushq  %rbx</span><br><span class="line">    pushq  %r15</span><br><span class="line">    pushq  %r14</span><br><span class="line">    pushq  %r13</span><br><span class="line">    pushq  %r12</span><br><span class="line">    leaq   -0x8(%rsp), %rsp   ; rsp -= 8，为 FPU 槽预留空间（不保存内容）</span><br><span class="line">    movq   %rsp, (%rdi)       ; *ofc = rsp，将当前栈顶存入 ofc（快照的起点）</span><br><span class="line"></span><br><span class="line">    ; === 第二步：切换到目标协程 ===</span><br><span class="line">    movq   %rsi, %rsp         ; rsp = nfc，一行换栈，CPU 进入目标协程的世界</span><br><span class="line"></span><br><span class="line">    ; === 第三步：恢复目标协程 ===</span><br><span class="line">    leaq   0x8(%rsp), %rsp    ; 跳过 FPU 槽</span><br><span class="line">    popq   %r12               ; 从目标协程的栈上依次弹出 6 个 callee-saved 寄存器</span><br><span class="line">    popq   %r13</span><br><span class="line">    popq   %r14</span><br><span class="line">    popq   %r15</span><br><span class="line">    popq   %rbx</span><br><span class="line">    popq   %rbp</span><br><span class="line">    popq   %r8                ; 弹出目标协程的 PC（首次进入为 fn 地址，恢复则为断点地址）</span><br><span class="line">    movq   %rdx, %rax         ; rax = vp（设置函数返回值）</span><br><span class="line">    movq   %rdx, %rdi         ; rdi = vp（若首次进入，作为入口函数的第一个参数）</span><br><span class="line">    jmp    *%r8               ; 跳到目标协程的 PC，恢复执行</span><br></pre></td></tr></table></figure>
+<h3 id="调度器"><a href="#调度器" class="headerlink" title="调度器"></a>调度器</h3><p>调度器维护两个队列：<code>ready_queue</code> 存放可以立即运行的协程，<code>sleep_queue</code> 存放正在等待计时的协程。调度循环持续执行以下步骤：</p>
+<ol>
+<li><p>检查 <code>sleep_queue</code>，将唤醒时间已到的协程移入 <code>ready_queue</code>。</p>
+</li>
+<li><p>从 <code>ready_queue</code> 取出队头协程，调用 <code>jump_fcontext</code> 切入执行。协程让出或执行完毕后，控制流回到此处，继续下一轮循环。</p>
+</li>
+<li><p>若 <code>ready_queue</code> 为空但 <code>sleep_queue</code> 非空，说明所有协程都在等待计时，调度器通过 <code>nanosleep</code> 休眠到最近的唤醒时间，避免忙等。</p>
+</li>
+<li><p>两个队列均为空时，退出循环。</p>
+</li>
+</ol>
+<p>调度器本身运行在线程栈上，其上下文保存在 <code>main_ctx</code> 中。每次切入协程时，<code>jump_fcontext</code> 将线程栈的 <code>rsp</code> 存入 <code>main_ctx</code>；每次协程让出时，<code>jump_fcontext</code> 再用 <code>main_ctx</code> 将 <code>rsp</code> 切回线程栈，调度器从上次切出的位置继续运行。</p>
+<p>调度循环的核心实现如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">schedule</span><span class="params">(Scheduler* sched)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="comment">// 1. 将到期的睡眠协程移入 ready_queue</span></span><br><span class="line">        <span class="keyword">int64_t</span> now = now_us();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">auto</span> it = sched-&gt;sleep_queue.begin(); it != sched-&gt;sleep_queue.end(); ) &#123;</span><br><span class="line">            <span class="keyword">if</span> ((*it)-&gt;wake_time_us &lt;= now) &#123;</span><br><span class="line">                (*it)-&gt;state = CO_READY;</span><br><span class="line">                sched-&gt;ready_queue.push_back(*it);</span><br><span class="line">                it = sched-&gt;sleep_queue.erase(it);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                ++it;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 切入下一个可运行的协程</span></span><br><span class="line">        <span class="keyword">if</span> (!sched-&gt;ready_queue.empty()) &#123;</span><br><span class="line">            Coroutine* next = sched-&gt;ready_queue.front();</span><br><span class="line">            sched-&gt;ready_queue.pop_front();</span><br><span class="line">            next-&gt;state = CO_RUNNING;</span><br><span class="line">            jump_fcontext(&amp;sched-&gt;main_ctx, next-&gt;ctx, <span class="number">0</span>); <span class="comment">// ← 切出；协程让出后从此处继续</span></span><br><span class="line">            <span class="keyword">if</span> (next-&gt;state == CO_DEAD) &#123; <span class="built_in">free</span>(next-&gt;<span class="built_in">stack</span>); <span class="keyword">delete</span> next; &#125;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 无可运行协程：休眠到最近的唤醒时间，避免忙等</span></span><br><span class="line">        <span class="keyword">if</span> (!sched-&gt;sleep_queue.empty()) &#123;</span><br><span class="line">            <span class="keyword">int64_t</span> min_wake = sched-&gt;sleep_queue[<span class="number">0</span>]-&gt;wake_time_us;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">auto</span>* co : sched-&gt;sleep_queue)</span><br><span class="line">                <span class="keyword">if</span> (co-&gt;wake_time_us &lt; min_wake) min_wake = co-&gt;wake_time_us;</span><br><span class="line">            <span class="keyword">int64_t</span> sleep_us = min_wake - now_us();</span><br><span class="line">            <span class="keyword">if</span> (sleep_us &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="class"><span class="keyword">struct</span> <span class="title">timespec</span> <span class="title">ts</span> = &#123;</span> sleep_us / <span class="number">1000000</span>, (sleep_us % <span class="number">1000000</span>) * <span class="number">1000</span> &#125;;</span><br><span class="line">                nanosleep(&amp;ts, <span class="literal">nullptr</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">break</span>; <span class="comment">// 4. 两个队列均为空，所有协程已完成</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意第 2 步中 <code>jump_fcontext</code> 那一行：切入协程时在此处”跳出”，协程让出或死亡后控制流回到此处”落地”，整个调度循环就是对这一行的不断重复。</p>
+<h3 id="co-sleep-与-co-yield"><a href="#co-sleep-与-co-yield" class="headerlink" title="co_sleep 与 co_yield"></a>co_sleep 与 co_yield</h3><p><code>co_sleep(us)</code> 的实现：将当前协程的唤醒时间记录到 <code>wake_time_us</code>，状态置为 <code>CO_SLEEPING</code>，加入 <code>sleep_queue</code>，然后调用 <code>jump_fcontext</code> 切回调度器。协程在此处暂停，直到调度器在计时到期后将其重新放入 <code>ready_queue</code> 并切回来，<code>jump_fcontext</code> 返回，<code>co_sleep</code> 继续执行后续代码。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">co_sleep</span><span class="params">(<span class="keyword">uint64_t</span> us)</span> </span>&#123;</span><br><span class="line">    co-&gt;wake_time_us = now_us() + us;</span><br><span class="line">    co-&gt;state = CO_SLEEPING;</span><br><span class="line">    sched-&gt;sleep_queue.push_back(co);</span><br><span class="line">    jump_fcontext(&amp;co-&gt;ctx, sched-&gt;main_ctx, <span class="number">0</span>); <span class="comment">// 在这里暂停，也在这里恢复</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>co_yield()</code> 的逻辑更简单：将自身重新加入 <code>ready_queue</code> 尾部，然后立即切回调度器。调度器会先运行队列中其他协程，最终再切回来。<code>co_yield</code> 的作用是主动让出本轮执行机会，常用于避免某个协程长期占用线程。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">co_yield</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    co-&gt;state = CO_READY;</span><br><span class="line">    sched-&gt;ready_queue.push_back(co);            <span class="comment">// 重新入队，排到队尾</span></span><br><span class="line">    jump_fcontext(&amp;co-&gt;ctx, sched-&gt;main_ctx, <span class="number">0</span>); <span class="comment">// 在这里暂停，也在这里恢复</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这两个函数的共同点是：<strong>暂停和恢复都发生在 <code>jump_fcontext</code> 这同一行代码上</strong>——切出时在此处暂停，切回时从此处继续，对上层调用者来说看起来就像一次普通的函数调用，只是耗时可能比较长。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>协程通过为每个函数分配独立的栈，在需要阻塞时将寄存器状态保存到协程栈并切换 <code>rsp</code>，让线程转去执行其他协程，待条件满足后再恢复，从而以极低的切换开销实现单线程并发，避免阻塞造成的线程资源浪费。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmoeh2mj500c3j8jfpruul0t4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/协程/">协程</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/01/01/三十岁以前的往事（十五）：2025-年终总结/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">三十岁以前的往事（十五）：2025 年终总结</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>214</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>73</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
