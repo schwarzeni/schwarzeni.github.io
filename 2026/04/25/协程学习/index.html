@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2026-04-25T15:06:20.592Z">
+<meta property="og:updated_time" content="2026-04-28T14:06:31.144Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="协程学习">
 <meta name="twitter:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
@@ -137,7 +137,7 @@
       
         <p>Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）</p>
 <a id="more"></a>
-<h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>线程是操作系统进行 CPU 时间分配（调度）的最小单位，由线程来执行函数。当函数中执行阻塞操作，例如 sleep、等锁、IO 时，线程会被操作系统挂起进入等待状态，占用线程资源却不做任何有效工作。由于系统能同时维护的线程数量有限，大量线程阻塞等待会造成严重的线程资源浪费。比较理想的情况是，在进行阻塞操作时，将当前函数”挂起”，让这个线程可以执行其它的函数，这样可以高效利用线程资源。</p>
+<h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>线程是操作系统进行 CPU 时间分配（调度）的最小单位，当时间片耗尽后，线程会被操作系统挂起进入等待状态。由线程来执行函数。当函数中执行阻塞操作，例如 sleep、等锁、IO 时，占用线程资源却不做任何有效工作。由于系统能同时维护的线程数量有限，大量线程阻塞等待会造成严重的线程资源浪费。比较理想的情况是，在进行阻塞操作时，将当前函数”挂起”，让这个线程可以执行其它的函数，这样可以高效利用线程资源。</p>
 <h2 id="协程的设计思路"><a href="#协程的设计思路" class="headerlink" title="协程的设计思路"></a>协程的设计思路</h2><p>从操作系统的视角来看，多个线程会共享一个 CPU 资源，当一个线程执行的时间片用完后，操作系统会将这个线程挂起，然后调度其它线程到这个 CPU 上来执行。对于被挂起的线程，由操作系统来保存它的上下文信息至线程控制块（TCB）中，包含寄存器快照、栈指针等信息。</p>
 <p>根据这个思路，可以将需要挂起的函数使用的上下文信息，主要为一些寄存器的数据，保存在它使用的栈上，就可以达到生成一份 “快照” 的目的。在基于这个 “快照” 让函数恢复执行时，就可以从它的栈上将相关上下文信息读取出来进行恢复。这个就是协程实现的大致思路。</p>
 <p>一个简易协程的结构体定义如下所示：</p>
@@ -153,7 +153,7 @@
 <p>其中 <code>rsp</code>（Stack Pointer）最为特殊，它始终指向当前栈的顶部。CPU 执行 <code>push</code>、<code>pop</code>、<code>call</code>、<code>ret</code> 等指令时都会隐式修改 <code>rsp</code>。协程切换的核心操作，正是通过直接替换 <code>rsp</code> 的值来完成的——<code>rsp</code> 指向哪个协程的栈，CPU 就在哪个协程的世界里运行。</p>
 <p>Linux x86_64 的调用约定（System V ABI）规定了寄存器在函数调用时的职责分工：</p>
 <ul>
-<li><p><strong>参数传递</strong>：调用函数时，前 6 个参数依次放入 <code>rdi</code>、<code>rsi</code>、<code>rdx</code>、<code>rcx</code>、<code>r8</code>、<code>r9</code>，函数的返回值放入 <code>rax</code>。</p>
+<li><p><strong>参数传递</strong>：调用函数时，前 6 个参数依次放入 <code>rdi</code>、<code>rsi</code>、<code>rdx</code>、<code>rcx</code>、<code>r8</code>、<code>r9</code>，超出部分压栈，函数的返回值放入 <code>rax</code>。</p>
 </li>
 <li><p><strong>Caller-saved 寄存器</strong>（<code>rax</code>、<code>rcx</code>、<code>rdx</code>、<code>rsi</code>、<code>rdi</code>、<code>r8</code>～<code>r11</code>）：调用者负责保存。调用者若需要在函数调用后继续使用这些寄存器中的值，须在调用前自行压栈；被调函数可以随意覆盖这些寄存器。</p>
 </li>
@@ -207,7 +207,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmoeh2mj500c3j8jfpruul0t4" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmoip98km00b77fjf41rihp7v" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/协程/">协程</a></li></ul>
