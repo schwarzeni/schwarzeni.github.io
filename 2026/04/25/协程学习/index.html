@@ -5,18 +5,18 @@
   
   <title>协程学习 | Schwarzeni&#39;s blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
+  <meta name="description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺便基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
 <meta name="keywords" content="协程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="协程学习">
 <meta property="og:url" content="http://blog.schwarzeni.com/2026/04/25/协程学习/index.html">
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
-<meta property="og:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
+<meta property="og:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺便基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2026-04-28T14:06:31.144Z">
+<meta property="og:updated_time" content="2026-05-04T13:41:45.055Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="协程学习">
-<meta name="twitter:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
+<meta name="twitter:description" content="Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺便基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）">
   
     <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
   
@@ -61,7 +61,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>214</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>215</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>73</strong><br>标签</div></a>
     </div>
@@ -135,7 +135,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺利基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）</p>
+        <p>Q2 尝试对 c++ librdkafka 库进行了改造，将 pthread 切为了 bthread，以优化生产者场景下，连接大规模集群时线程数过多的问题。顺便基于 bthread 的代码在 ai 的辅助下对协程的实现原理进行了学习。（前三段非 ai 生成）</p>
 <a id="more"></a>
 <h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>线程是操作系统进行 CPU 时间分配（调度）的最小单位，当时间片耗尽后，线程会被操作系统挂起进入等待状态。由线程来执行函数。当函数中执行阻塞操作，例如 sleep、等锁、IO 时，占用线程资源却不做任何有效工作。由于系统能同时维护的线程数量有限，大量线程阻塞等待会造成严重的线程资源浪费。比较理想的情况是，在进行阻塞操作时，将当前函数”挂起”，让这个线程可以执行其它的函数，这样可以高效利用线程资源。</p>
 <h2 id="协程的设计思路"><a href="#协程的设计思路" class="headerlink" title="协程的设计思路"></a>协程的设计思路</h2><p>从操作系统的视角来看，多个线程会共享一个 CPU 资源，当一个线程执行的时间片用完后，操作系统会将这个线程挂起，然后调度其它线程到这个 CPU 上来执行。对于被挂起的线程，由操作系统来保存它的上下文信息至线程控制块（TCB）中，包含寄存器快照、栈指针等信息。</p>
@@ -207,7 +207,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmoip98km00b77fjf41rihp7v" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmor94cgm00by0zjfp9vujdb5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/协程/">协程</a></li></ul>
@@ -217,6 +217,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2026/05/04/从-extern-C-到跨语言调用/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          从 extern &#34;C&#34; 到跨语言调用
+        
+      </div>
+    </a>
   
   
     <a href="/2026/01/01/三十岁以前的往事（十五）：2025-年终总结/" id="article-nav-older" class="article-nav-link-wrap">
@@ -300,7 +309,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>214</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>215</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>73</strong><br>标签</div></a>
     </div>
