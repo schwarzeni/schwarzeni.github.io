@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>重读 DDIA : Chapter-2 Defining Nonfunctional Requirements | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="主要介绍了一些非功能性的系统指标">
+<meta name="keywords" content="读书笔记,分布式,DDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读 DDIA : Chapter-2 Defining Nonfunctional Requirements">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="主要介绍了一些非功能性的系统指标">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/Pasted%20image%2020260830221908.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/Pasted%20image%2020260830221945.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/Pasted%20image%2020260830222030.png">
+<meta property="og:updated_time" content="2026-08-30T14:24:49.678Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重读 DDIA : Chapter-2 Defining Nonfunctional Requirements">
+<meta name="twitter:description" content="主要介绍了一些非功能性的系统指标">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/Pasted%20image%2020260830221908.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>217</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/" class="article-date">
+  <time class="post-time" datetime="2026-08-30T14:23:53.000Z" itemprop="datePublished">
+    <span class="post-month">8月</span><br/>
+    <span class="post-day">30</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      重读 DDIA : Chapter-2 Defining Nonfunctional Requirements
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>主要介绍了一些非功能性的系统指标</p>
+<a id="more"></a>
+<h2 id="Functional-and-Nonfunctional"><a href="#Functional-and-Nonfunctional" class="headerlink" title="Functional and Nonfunctional"></a>Functional and Nonfunctional</h2><p>对于一个系统来说，最基本的要求就是预期的功能可以正常执行，也就是这个系统被设计与建设出来的功能目标可以实现，这个叫做 functional requirement 。比如说消息队列可以写入数据和消费数据、数据库可以按规则进行数据更新以及查询。仅实现功能对于一个非 demo 的生产环境的系统来说是不够的，我们常常提到的 performance（性能） 、reliable（可靠性）、scalable （扩展性）和 maintainable （可维护性）就是 nonfunctional requirement 。这些指标常常被用于衡量一个系统，并且一个系统在被设计的时候，也会将这些指标考虑在内。</p>
+<h2 id="Case-Study-Social-Network-Home-Timelines"><a href="#Case-Study-Social-Network-Home-Timelines" class="headerlink" title="Case Study - Social Network Home Timelines"></a>Case Study - Social Network Home Timelines</h2><p>接下来书中以一个场景业务场景，社交网络的时间线 ，作为样例介绍了为了实现 nonfunctional requirement 都做了哪些优化。</p>
+<p>首先针对这个业务场景的数据存储，设计了三张表，分别为 follow 表、post 表和 user 表，分别存储关注关系（follower_id -&gt; followee_id） ，帖子信息（其中包含用户的 id）和用户信息。在生成一个用户的时间线信息时，sql 语句样例如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> posts.*, users.* <span class="keyword">FROM</span> posts</span><br><span class="line"><span class="keyword">JOIN</span> <span class="keyword">follows</span> <span class="keyword">ON</span> posts.sender_id = follows.followee_id</span><br><span class="line"><span class="keyword">JOIN</span> <span class="keyword">users</span>   <span class="keyword">ON</span> posts.sender_id = users.id</span><br><span class="line"><span class="keyword">WHERE</span> follows.follower_id = <span class="keyword">current_user</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> posts.timestamp <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">1000</span></span><br></pre></td></tr></table></figure>
+<p>可以看到这个 SQL 的查询跨了三个表，查询的成本较高，存在性能问题。一种优化方式为预先为维护每一个用户的时间线，当  followee post 时，将 post 放到 follower 队列中。但这个有几个问题，如果 follower 关注数过多，队列频繁变更，此时可以丢一部分数据；如果 follwee 的 follower 过多，会导致 fan-out 过大，此时可以为其单独维护一个 post 列表，和 follower 的时间线做 merge 。</p>
+<p>其中涉及到的时间线预生成的策略有一个名称叫 <code>materialization</code>  ，这种策略是把逻辑上定义的计算结果提前计算并持久化，已额外的存储开销，降低读取时的时延和计算。</p>
+<p>25 年在建设标准化建库机制时，我做的建库业务成功率报表就是用的类似的思路，大搜的建库链路主要为同步 RPC 调用，在这条调用链路上的入口模块会将处理失败的数据记录增量 dump 至 HDFS 上，按照小时级别进行切分。我这边部署了一个定时任务，主要包含两个部分，第一部分为根据入口模块相关监控，按照业务粒度计算过去一小时的成功率，第二部分为将 HDFS 上的失败记录作为 MR 任务的输入，对这批数据进行分析，对错误的类型进行分类，最终产出按照业务 + 错误粒度的统计指标和抽样的错误数据的 url 和 traceid 。这两部分数据会存入 MongoDB 中。在用户访问报表时，会按照小时粒度查询 MongoDB 中的数据并展示，包括成功率趋势的折线图和错误占比的饼状图，同时使用抽样的错误数据的 url 和 traceid 查询 trace 平台 api 接口，将相关的处理日志也展示在报表上。后续在做其他报表的时候，也用的是类似的思路。</p>
+<h2 id="Describing-Performance"><a href="#Describing-Performance" class="headerlink" title="Describing Performance"></a>Describing Performance</h2><h3 id="Response-Time-and-Throughput"><a href="#Response-Time-and-Throughput" class="headerlink" title="Response Time and Throughput"></a>Response Time and Throughput</h3><p>提到一个系统的性能（Performance），我们首要关注的就是处理时延（Response time）和吞吐（Throughput）。当系统吞吐地的时候，整体的处理时延也较低，当吞吐，或者说负载（load），上去后，处理时延可能会升高。这个一般是因为系统引入了队列（queue），来不及处理的请求都堆积在 queue 中，虽然系统处理一条数据的时延可能并没有上升多高，但是从 client 角度看，相应的延时升高了，因为其中包含了在 queue 中等待的时间。</p>
+<p>当一个 server 引入了 queue 来将待处理的请求排队后，如果和 client 交互的机制没设计好，可能会引入 retry storm ，进而拖垮整个系统。一个问题场景为，client 给 server 发数据的速度太快了，server 收到数据后来不及处理，都放在 queue 中，但是从 client 侧看，请求长时间得不到响应，所以就进行重试，导致 queue 中的数据越来越多。有几种方式可以解决这种问题：</p>
+<ul>
+<li><p>exponential backoff : client 每重试一次，下次重试的开始时延，也即重试的间隔，就按照一定的策略增加</p>
+</li>
+<li><p>circuit breaker : client 认为请求 server 的超时/错误频率太高了，就间歇性地直接停止发送请求</p>
+</li>
+<li><p>load shedding : server 间歇性地具体 client 的请求</p>
+</li>
+<li><p>back pressure : server 告知 client 降低发送数据的频率</p>
+</li>
+</ul>
+<p>大搜的离线流式建库架构中，大部分模块都是通过 RPC 同步进行通信的，在接手这套系统时，我的 +1 就吐槽说，系统里那些由于 RPC 超时/错误导致的麻烦问题，都改成垂类离线建库这种通过消息队列来进行异步通信就没事了，至少可以保证下游的某个系统的问题不会把整个上游的链路都干挂。我后来想了一下，其实这也不好说，可能会引入新的问题，比如说，因为垂类离线建库中的各个主要模块的数量都比较少，最多不会超过 50 ，所以在以消费者组消费 Kafka 数据时不会有啥问题。Kafka 的 consumergroup 有个问题，就是只要这个 group 中有一个成员加入或者退出，这个 group 就会 rebalance 。大搜这边的建库由于量级比垂类的大得多，所以模块的实例数基本的都是 100 以上，不少都是以千作为单位的，大规模的成员在一个消费者组中消费数据，只要其中有成员对应的实例有迁移/所在机器异常/coredump，那么就会 rebalance ，会有稳定性问题。当然也可以做优化，比如拆 group 、拆分订阅和数据处理为两个模块之类的，但是这样是有额外的改造成本。另外 rebalance 的时候，lag 信息采集不到，监控也会报 no data 的问题。</p>
+<h3 id="Latency-and-Response-Time"><a href="#Latency-and-Response-Time" class="headerlink" title="Latency and Response Time"></a>Latency and Response Time</h3><p>对于处理时延，常常会提到两个名词 “Latency” 和 “response time” ，经常会被混用，书中给出了一次 client 和 server 交互流程中，各个阶段的耗时定义：</p>
+<ul>
+<li><p>response time : 是 client 视角整体的耗时，包含和 server 进行网络通信的耗时以及 server 内部的耗时</p>
+</li>
+<li><p>service time : server 处理数据的耗时</p>
+</li>
+<li><p>queueing delays : 数据在 server 中排队的耗时，包括在处理前的 queue 和处理后的 queue 的时间</p>
+</li>
+<li><p>latency : 数据没有被处理的时间，一般是指 network latency</p>
+</li>
+</ul>
+<p><img src="Pasted image 20260830221908.png" alt=""></p>
+<p>关于处理时延，我想起两个之前工作中有意思的事情，第一件事情就是为建库的入口模块 importer 添加了分处理阶段的延时指标。当 importer 的 rpc 接口收到数据后，它会 new 一个 object 作为这次处理的上下文，然后加到 queue 中等待处理。在处理的过程中，也经历了很多阶段，包括原始数据校验、补全、沉淀、下游 RPC 请求、写 trace 等。当时在设计分处理阶段延时指标统计机制时，想的方案就是在这个 object new 出来后，就在其内部初始化一个计时器，已 before_process 作为开头，后续每到一个新的处理阶段，就调 object 的方法 <code>set_next_stage</code> 进行插桩，函数内部会记录前一个阶段的耗时，最后当这个 object 被自动销毁时，也即本次处理请求完毕后，其析构函数中会将之前各个阶段的指标写到 metrics 中。这个指标一上线，就发现了保序阶段访问 redis 的性能问题，后续存在处理性能问题的场景，也会参考 before_process 这个阶段的时延指标。</p>
+<p>另一件事情是这样的，垂类建库使用 Kafka 服务作为各模块通信的中间件，为部分重要的 topic 配置了分片粒度的写入流量监控，如果某个分片写入流量跌 0 就会报警。这种问题常常是因为问题分片的 leader 副本所在的 broker 有问题导致的，所以只用重启那个 broker 进行切主操作就可以了。在 25 年学习 Kafka 源码的时候，了解到 Kafka 的网络线程在收到请求后，会将这个数据放到一个 queue 后，由处理线程从 queue 中消费数据来进行处理，等处理完毕后，会将处理结果放入收到数据的网络线程的 queue 后，网络线上消费数据并响应 client 。处理线上上游的 queue 是有监控项的，表示这个 queue 中的数据量情况，所以我就想是不是问题 broker 的这个 queue 的指标会有异常 ，于是就配了一下这个监控指标展示。后续发现果然是有的，broker 异常时，queue 数据量顶满了为 500 ，是一条直线。</p>
+<h3 id="Average-Median-and-Percentiles"><a href="#Average-Median-and-Percentiles" class="headerlink" title="Average, Median, and Percentiles"></a>Average, Median, and Percentiles</h3><p>衡量一个系统的延时情况，比较好的监控指标是使用分位值（Percentiles），简称 tp 。比如说延时 tp99 代表有 99% 的请求的延时都小于这个值。之所以关注这个指标，是因为长尾的请求（tail latenties）非常影响用户的体验。</p>
+<p><img src="Pasted image 20260830221945.png" alt=""></p>
+<p>书中对于分位值，有一个提醒非常有意思，比如说一个服务有 3 个实例，那么这个服务整体的 tp 值能否用 3 个实例 tp 值的均值来计算呢？答案是不行的。因为实例粒度的分位值，放到服务粒度就不一定是在原来的位置了。如果当前无法进行服务粒度的采样，那么有两种解决方案：1）取所有实例 tp 的最大值，这个算是一个保守的上界。2）拍一个可以接受的最高延时值，然后统计大于这个延时的数量。</p>
+<p>书中提到，分位值常常被 service level objectives（SLOs）和 service level agreements（SLAs）所使用，是作为一种定义服务预期的性能和可用性的指标。在 25 年初步完成大搜离线建库标准化建设后，当时的 T9 特别要求建设了 SLAs 报表，也就是我上提到的业务粒度的成功率报表，每次周会上都会过一下成功率低于 5 个 9 的业务，让相关的值周同学确认问题原因。这个惯例大概持续了一年不到，随着 T9 的离职以及组织架构的调整，后面就没有人看这个指标了。</p>
+<h2 id="Reliability-and-Fault-Tolerance"><a href="#Reliability-and-Fault-Tolerance" class="headerlink" title="Reliability and Fault Tolerance"></a>Reliability and Fault Tolerance</h2><p>一个系统有持续 “working correctly” 的能力，就可以说它是 reliability 的 ，也即 “continuing to work correctly，even when things go wrong” 。什么是 “go wrong” ？有两种情况：1）Fault，系统的一部分有故障，一般发生在系统内部。2）Failure，系统整个挂了。对于 Fault，只要这个挂的部分不是 a single point of failure（SPOF），那么预期这个系统就可以继续运行，外部感知不到故障。日常可以小心地进行 fault injection 的演练，来确认 Fault 发生时，系统整体是否会有问题。</p>
+<p>书中对于 single point of failure 的描述为：If a system cannot tolerate a certain part becoming faulty，we call that part a single point of failure ，because a fault in that part escalates to cause the failure of the whole system 。由于单个模块的故障导致整个提供挂掉的情况，我印象最深的是 23 年的一次垂类建库监控报警系统挂掉的事故。垂类建库的监控报警的整套系统，实现的方式大致为：Prometheus 进行监控数据采集，Grafana 上配置报警项，当报警触发时，通过配置的 http hooks ，让 Grafana 将报警信息发给一个部署在物理机上的 alert manager 的 http 服务，这服务在收到数据后，除了将报警信息推送至报警群外，还会将报警记录写到自运维的一个 MongoDB 集群中，在一台自运维的物理机上部署了一个定时任务，定期扫 MongoDB 的表，如果其中有 P0 级别的报警，那么就会写特定的字符到本地日志中。在公司集团云上配置了日志报警，通过读取定时任务日志中的特殊字符，触发电话报警。那天是早上七点多钟，我接到电话，业务说天气的时效性数据更新有滞后，影响线上展现。建库这边为天气专门配置了电话报警，但是电话报警未触发。经排查发现一个模块因为访问上面那个 MongoDB 集群失败而导致 coredump ，线上推送通路基本处于断流的状态，相关的断流电话报警也未触发。访问集群失败的原因是 MongoDB 集群有分片故障，导致集群整体不可用。需要注意的是，这个集群也是负责存报警信息的，集群挂了，定时任务访问失败进而扫不到报警数据，所以导致无法触发电话报警。尴尬的是，虽然这个 MongoDB 集群也配置了相关的监控报警项，但是报警触发机制本身还是依赖这个 MongoDB 集群的可用性。所以在这个场景下，MongoDB 算是一个 SPOF 。后续分析了一下，除电话报警外，其它涉及的服务均为自行在物理机上部署，只要其中从 Grafana 开始的任意一个环节挂了，整个报警系统就挂了。最后的解决方案是在集团云上新增了一个任务，定时检测 Grafana、MongoDB、alert-manager、定时任务、物理机的状态。这样系统的单点从自运维的这些模块上移到了公司提供的服务上，出了问题至少不用我们自己背锅了。</p>
+<p><img src="Pasted image 20260830222030.png" alt=""></p>
+<p>一般来说，Fault 分为 Hardware 和 Software 的。对于 Hardware ，也即硬件的故障，从小处说有磁盘故障、机器故障，往大处说，整个地域的机房可能会整体挂掉，或者机房间的光缆被挖断了。针对这种问题，一个通用的方案是 add redundancy ，也即添加冗余。通过这种方案，不但可以做到容灾，还方便进行灰度升级。而对于 Software ，也即软件的故障，一般会潜伏很久，等到一定的场景才会暴露出来。形象地来说，一直假设某个条件为 true ，但是最终因为某些原因，就不是 true 了。</p>
+<p>25 年在大规模部署 KRaft 模式的 Kafka 集群的时候，发现的普通 broker 无法感知  voter 列表自动更新的问题，应该就属于这个场景。这个在之前的文章中也提到过，这里再简单说一下。假如随着实例的迁移，维护元信息的 Raft 成员的 ip 都变了，普通的 broker 无法感知到这个变化，使用的还是 <code>controller.quorum.voters</code> 里配的写死的列表。这个在集群初始化后以及新增节点的时候均不会暴露，但是随着存量实例的迁移，如果所有的 voter 都迁移过一次，那么必定有普通的 broker 因为无法感知 voter 信息的变化而挂掉。当时做的改造就是 broker 在同步 raft log 的时候，只要读到和 voter 变跟相关的 log ，就更新自己内部维护的 voter 信息列表。现在想起这事还是后背冒泠汗，这个问题是我查另一个问题的时候无意间发现的，当时是晚上七点多，本来想八点多去运动的，结果发现这个问题后就一直做在工位上进行排查和想解决方案，一直到十一点多，当天的运动计划也泡汤了。</p>
+<h2 id="Humans-and-Reliability"><a href="#Humans-and-Reliability" class="headerlink" title="Humans and Reliability"></a>Humans and Reliability</h2><p>配置变更导致的服务中断问题是占大多数的，但是书中指出，这个并不是根因，人是会犯错的，很好的方式是建设相关的机制避免配置错误的发生。对于一个复杂的系统，其中不同模块之间非预期的交互也会导致系统挂掉。目前有不少方式可以避免这种问题的发生，或者在问题出现后将影响范围降到最小：1）测试。2）回滚机制。3）监控报警及分析机制。4）良好的接口设计。</p>
+<p>在建设标准化离线建库机制时，其中的一个特点就是将所有的建库配置都维护在一个代码库中，配置的格式为 json 的格式。T9 对业务和模块进行了抽象，用户填写业务级别的配置，然后通过脚本，将业务级别的配置组装为模块级别的配置。其中定义的严格的 JSON Schema 及校验机制。我觉得这个机制非常好，通过 JSON Schema ，用户可以从 description 中了解这个配置项的作用，通过 enum 列表了解可以填哪些配置，通过校验机制在编译阶段就知道有哪些配置填的有问题。之间纳海架构下，相关的配置都是存在 MySQL 数据库中的，通过一个 Web 平台来对配置进行修改，这不但用户修改配置的效率低下，架构同学想批量调整配置的 schema 成本也非常高。在新架构下，本质上就是在本地改 JSON 文本文件，然后做 Schema 校验，简单且高效。挂不得在之前的数据湖部分提到，“Raw Data Is Better” 。我自己搞了一个 VSCode 的插件，支持选中配置项右键跳转到其 JSON Schema 定义的地方。后面在 Coding Agent 盛行的时代，还可以直接让 Agent 结合 Schema 和相关 Doc 改配置。</p>
+<p>一个有意思的现象是，公司是以盈利为先的，在选择多 feature 或多 test 时，肯定会选择前者，那么当可以被预防的错误发生时，只用处罚犯错的人就行了，但这没有意义。不过目前在推行 blameless postmortems ，大概的意思是说，故障发生后需要进行 case study 复盘，并且只要不是有意为止，或者多次出现，然后不会影响相关人员的绩效。百度对于事故是分级的，对于级别较高的事故，即使不是有意的，也需要担责。不过规则是死的，人是活的，如果领导好说话一些，只要不是特别特别严重的线上事故，会帮争取定级尽量低一些。</p>
+<p>对于 case study ，文中提到应该站在一线操作者的视角，深挖故障出现的原因，而不是简单的处罚人、“更小心”或者重写相关系统。基于相关原因需要给出明确的解决方案。在公司内部进行 case study 的时候，都是有一个专门的模板，大致的格式如下：</p>
+<ul>
+<li><p>故障概要描述</p>
+</li>
+<li><p>故障关键时间点，包括发生时间、止损时间和恢复时间，以及其它的一些时间线</p>
+</li>
+<li><p>故障影响和损失</p>
+</li>
+<li><p>故障原因分析，需要对故障发生的原因进行深入剖析，从表层原因到根本原因，从故障为什么会发生到为什么感知有延时（一般需要写 case study 的事故，实现时间都不短）</p>
+</li>
+<li><p>针对上面的问题，给出改进方案，涉及各个阶段：1）项目发起阶段。2）程序涉及阶段。3）线下测试阶段。4）分级发布阶段。5）故障发现阶段。6）故障定位阶段。7）故障处理阶段。8）故障恢复阶段。</p>
+</li>
+<li><p>TOP1-3改造项</p>
+</li>
+<li><p>事故责任定级及认定</p>
+</li>
+</ul>
+<h2 id="Scalability"><a href="#Scalability" class="headerlink" title="Scalability"></a>Scalability</h2><p>一句话定义就是 ”a system’s ability to cope with increased load“ ，也即系统可以承接上涨负载的能力。不过对于初始的软件设计来说，还是以如何设计以便于新增 feature 为优先，keep the system as simple and flexible as possible ，过早地进行性能优化和扩展性设计是不合理的。我有点忘记之前是在哪儿看到的一个说法：”make it run，make it right，make it fast“。</p>
+<p>另外需要从多个维度来分析一个系统的 scalability：</p>
+<ul>
+<li><p>如果负载按照一个特定的方式增长，我们应该如何处理？</p>
+</li>
+<li><p>我们如何为服务添加系统资源以应对负载的增长？</p>
+</li>
+<li><p>基于当前的上涨趋势，什么时候会达到当前架构的瓶颈？</p>
+</li>
+</ul>
+<p>Scalability 的场景一般分为两种：1）vertical scaling （scaling up），也即使用配置规格更高的机器。2）horizontal scaling （scaling out），也即增加实例的个数。对于 scalability 的一个好的原则为，将服务设计为可拆分的形式（break a system into smaller components that can operate largely independently from one another），例如 micro service、shard 和 streaming processing ，分别为微服务、分片和流式处理。另一个原则为，非必要不要过度设计（not to make things more complicated than necessary）。</p>
+<h2 id="Maintainability"><a href="#Maintainability" class="headerlink" title="Maintainability"></a>Maintainability</h2><p>书中首先提到，the majority of the cost of software is not in its initial development but in its ongoing maintenance ，包括了修 bug、运维系统、排查问题、迁移新平台、新增 feature、重构以减轻技术债等。</p>
+<p>首先，这个系统需要是 Operability ，也即是可运维的。”good operations can often work around the limitation of bad（or incomplete）software，but good software cannot run reliably with bad operations“ 。另外维护一个大的集群依赖自动化操作，但是总有自动化操作没法处理的场景，这种场景一般都是比较复杂的，需要依赖有经验的运维团队。需要注意的是，一个自动化系统出故障后，比依赖人工运维的系统更难排查问题。但是适度的自动化是必须的，需要根据系统的实际情况来进行权衡。下面列出了一些点：</p>
+<ul>
+<li><p>需要有一些自动化运维操作来完成一些例行的枯燥的任务，让运维团队可以专注于高价值的事情</p>
+</li>
+<li><p>运维工具除了可以检测系统的重要指标外，最好还可以给出一些 insight </p>
+</li>
+<li><p>一个清晰的文档及操作指南也是必要的</p>
+</li>
+<li><p>系统的默认值都是最优的，但是也支持维护者进行修改</p>
+</li>
+<li><p>有适度的自愈（self-healing）的能力，但是也支持人工介入</p>
+</li>
+</ul>
+<p>对于运维工具和文档，我是比较有意见的，22 年校招入职之后，让我逐步接受全部自运维的 MongoDB 和 Kafka 集群，当时是啥文档都没有，也没有运维工具，不过万幸的是监控报警相关配置的还算全面。从 24 年开始，我将之前放在自己知识库中维护的相关运维文档放到了组内公共的知识库中，并持续进行更新，并且将自己撸的一些运维工具提到了代码库，以及最近提交了一些 skills 。我自己搞的工具大概包括：</p>
+<ul>
+<li><p>给定 Kafka 集群，打印集群所有 broker 所在的 ip、paas 平台实例 id、缺失的 broker id、无 broker id 的实例、ISR 异常的 topic 分片等。给出问题实例修复命令建议。</p>
+</li>
+<li><p>给定 Kafka 集群，分析各实例的延时（给所有的实例发 describe cluster 请求），后续加到了监控上。（就是上面提到的 response time ，也即 client 视角的延时，现学现用，hh）</p>
+</li>
+<li><p>给定 MongoDB 集群，打印各 Shard 中的实例 ip 、 paas 平台实例 id 和磁盘用量信息，输出 Shard 的延时信息，基于日志定位异常 Shard 。筛选出磁盘用量过高的实例。</p>
+</li>
+</ul>
+<p>另外对于系统的默认值都是最优的，让我想到了一次线上故障排查。应该是我一次值周的某个周五的下午，从大概四点开始，一个消费 Kafka 的模块的 lag 监控有 no data 的报警，并且 qps 波动明显，已经影响了整体的垂类建库流量。lag 监控数据是 exporter 直接是从 Kafka 拉的 consumer group 的信息，如果是 no data ，那么就代表监控数据缺失，原因大概率是这个 consumer group 在频繁地 rebalance ，因为在 rebalance 期间，从 Kafka 中获取到的 consumer group 里没有实例消费的信息。持续地没有监控数据意味着这个 group 在频繁地 rebalance ，也即有成员不断地加入和退出这个 group ，由于这个服务是通过 supervise 启动的，有可能是服务有 coredump ，进程 core 了之后又被 supervise 拉起了，但实际看了一下线上的实例是没有 core 的。</p>
+<p>目前建库消费 kafka 的服务有这样一个问题，虽然 librdkafka 支持在创建消费者时，人工设定消费者的 id ，但是之前写代码的人都没设置，就导致这个 id 默认是一个随机的 uuid 。如果在 id 的值里加上进程所在机器的信息，那么根据 Kafka Server 的日志，一下子就可以定位问题实例了，但目前 Server 的日志里打印的 id 就是一个 uuid 随机字符串。那么应该咋排查呢？没法从 Server 端的日志定位问题实例，而每次人工请求 Kafka 接口拉 group 的信息，都显示正在 rebalance。</p>
+<p>我突然想到之前研究过 Kafka Manager 上展示的 consumer group lag 数据的获取方式，跟 exporter 直接请求 Kafka 接口获取结构化的 group 信息不同，它是直接订阅 <code>__consumer_offsets</code> topic 的，然后对里面的数据进行解析，得到 group 的相关信息。由于这个 topic 的数据是增量写入的，所以必定存有某个时刻这个 group 刚完成 rebalance 的状态信息。我做了最坏的打算，如果 Kafka Manager 上也没显示的话，我就直接手写代码订阅和解析 <code>__consumer_offsets</code> 中的数据。万幸的是 Kafka Manager 有相关的信息，我看了一下 group 中各个实例所在的 ip ，一眼就看到了一个明显不是线上机器，而是开发机的 ip ，发群里问了一下，果然是一个同事的开发机 ip 。他对这个服务的代码进行了修改，然后本地启了服务进行验证，但是消费 Kafka 的地址信息忘记改了，就导致下线服务消费了线上数据。由于 Kafka 集群所在的机房（阳泉）和开发机所在的机房（苏州）跨地域，再加之开发机配置差，一开始消费数据就和 Kafka 断连，导致 Kafka 认为这个成员离开了 group ，触发了 rebalance。</p>
+<p>其实这个是可以避免的，一般一个服务，线上的配置和线下的配置是支持区分的，PasS 平台在部署的时候，支持根据不同环境对配置进行修改，而默认配置填线下环境的配置即可。但是开发代码的同学为了图省事，没有对配置做区分。</p>
+<p>扯远了，拉回来。除了 Operability 外，Simplicity 和 Evolvability 也需要关注，前者的目标是 managing complexity ，后者为 making change easy ，都要求在系统设置的时候需要有一个很好的抽象（abstraction）。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本章也算是一个概览，介绍了衡量系统的一些非功能性指标，包括 Performance、Reliability、Scalability、Maintainability 。后续应该介绍为了达成这些指标，会使用到哪些技术。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/" data-id="cmtfwirq400ka9bjeyan1cijm" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/08/29/重读-DDIA-Chapter-1-Trade-Offs-in-Data-Systems-Architecture/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重读 DDIA : Chapter-1 Trade-Offs in Data Systems Architecture</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>217</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
