@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>重读 DDIA : Chapter-3 Data Models and Query Languages | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="主要介绍了对于系统中使用到的数据是如何进行描述的，包括数据内部的结构以及数据之间的关系">
+<meta name="keywords" content="读书笔记,分布式,DDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读 DDIA : Chapter-3 Data Models and Query Languages">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="主要介绍了对于系统中使用到的数据是如何进行描述的，包括数据内部的结构以及数据之间的关系">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/Pasted%20image%2020260906172150.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/IMG_8231.gif">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/IMG_8232.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/Pasted%20image%2020260906182627.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/Pasted%20image%2020260906182948.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/Pasted%20image%2020260906182958.png">
+<meta property="og:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/Pasted%20image%2020260906183859.png">
+<meta property="og:updated_time" content="2026-09-06T12:38:04.675Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重读 DDIA : Chapter-3 Data Models and Query Languages">
+<meta name="twitter:description" content="主要介绍了对于系统中使用到的数据是如何进行描述的，包括数据内部的结构以及数据之间的关系">
+<meta name="twitter:image" content="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/Pasted%20image%2020260906172150.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>218</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-重读-DDIA-Chapter-3-Data-Models-and-Query-Languages" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/" class="article-date">
+  <time class="post-time" datetime="2026-09-06T12:36:54.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">06</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      重读 DDIA : Chapter-3 Data Models and Query Languages
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>主要介绍了对于系统中使用到的数据是如何进行描述的，包括数据内部的结构以及数据之间的关系</p>
+<a id="more"></a>
+<h2 id="引子"><a href="#引子" class="headerlink" title="引子"></a>引子</h2><p>书中提到，数据建模非常重要，因为不但它影响软件是如何实现的，也会影响我们对于问题的思考方式。数据建模是一层套一层的，对于每一层来说，最重要的如何将当前层面中的相关抽象概念映射到下一层。比如：</p>
+<ul>
+<li><p>【数据结构抽象】设计一个 app 时，app 的开发者一般会定义各种的数据结构以及使用这些数据结构的 API 。当需要存储这些数据结构时，app 的开发者并不需要关心这些数据结构是如何存储的，这是更低一层的数据存储系统需要关系的事情。</p>
+</li>
+<li><p>【数据建模抽象】在进行数据存储系统实现时，为了可以更高效地存储数据，会将数据以特点的结构来存储，比如说 JSON / XML ，或者存储在关系型数据库的 table 中，以及存储在一个图中的 vertices 和 edges 中。</p>
+</li>
+<li><p>【硬件存储抽象】相关的数据最终都是以 byte 的形式存储在硬件上的，数据库存储系统的开发者只用设计相关的 byte 是如何与相关硬件，例如内存或者磁盘进行交互，而不用关心 byte 在相关硬件上的存储形式。</p>
+</li>
+</ul>
+<p>通过对外提供抽象的接口，便于不同团队来进行高效协作。书中特别介绍了 Declarative Query Language ，这就是一个抽象的范例。与编程语言相比，declarative 类型的 query 语句仅定义了需要的数据条件以及对数据 transform 的方式。无需关心底层是如何实现这个功能的。</p>
+<p>数据建模的抽象是本章的重点，首先重点介绍了经典的关系型数据建模和文档型数据建模，然后也介绍了图形数据建模，接着介绍了 Event Sourcing ，这其实算是更高层的一种数据处理模式，最后简单介绍了科学计算涉及到的相关数据建模，例如 DataFrames 和 Matrics 。</p>
+<p>在 24 年 - 25 年离线建库系统升级时，对于建库的配置就进行了多层的抽象，首先的抽象了和业务相关的种种概念，比如上游数据源、建库字段、生效存储等，以及这些概念之间的关系。基于业务相关抽象的概念，设计了面向业务的配置。业务在进行配置填写的时候，不用关心相关配置是如何映射到各个建库模块的配置上的，这是更低一层的配置做的事情。</p>
+<p>在对业务配置进行编译后，会生成业务粒度的一批 json 配置文件，这个是 source or truth 。各个模块的负责人基于业务层面的配置，编写相关的脚本来进一步自动生成模块层面的配置。当时有一个模块的负责人，没有理解架构师设计的用意，在编写脚本的时候还用到了其它配置文件中的内容，导致后面引入了不必要的麻烦。模块间联动的时候有问题，上游模块和下游模块看到的配置内容不一致。</p>
+<h2 id="Relational-Model-vs-Document-Model"><a href="#Relational-Model-vs-Document-Model" class="headerlink" title="Relational Model vs Document Model"></a>Relational Model vs Document Model</h2><p>说到关系型（relational）和文档型（Document），典型的数据库实现分别为 MySQL 和 MongoDB 。看着这两，就让我的思绪一下子回到了八九年前。当时是在读本科，从大二到大三期间学习了 Web 开发的相关知识，其中有两个经典的技术栈，分别为 LAMP 和 MEAN ，前者是 Linux + Apache + MySQL + PHP ，后者是 MongoDB + Express.js + AngularJS + Node.js 。我一开始接触的是 LAMP ，当时是用的 phpMyAdmin，其中包含了 LAMP 中的各个组件，不过当时感觉用起来非常复杂，完全是一个黑盒。后面接触到了 MEAN ，感觉和 LAMP 比起来，最大的特点是简单易上手，使用 Node.js 这个 bin 就可以启动一个 Web Server ，然后 MongoDB 单实例部署也不难。在学校里数据库相关的课程中重点介绍的是关系型的数据库，在用的时候需要显示定义表结构，用起来比较麻烦。而通过 MEAN 接触到 MongoDB 后，惊讶地发现不用定义啥表结构，直接往里面写数据就可以了。</p>
+<p>书中提到，对于 Relational Model，数据是根据关系（relation）来进行组织的，在 SQL 里称为 table。对于每一个 table，都是一组无序的 tuples ，在 SQL 中称为 row。而对于 Document Model，最大的特点就是 schema flexibility ，也就是上面提到的，无需定义表结构。</p>
+<p>对于 Relational Model，在真正使用时需要用到 ORM ，也即 object-relational mapping 。目标为建立起编程语言中的类和数据库中 table/row 的关系。ORM 的作用是作为一个中间层，让少写代码，但是也存在一些问题。其中的一个问题为 N + 1 query ，也即在跨表查询的场景下，如果是自己写的 query ，那么就会使用 join 来完成，而如果使用 ORM 不合理的话，会导致引入额外的一次针对额外表的查询。</p>
+<p>需要跨表查询的一个场景为 one-to-many ，或者更严谨一点为 one-to-few ，在这种场景下，直接将 few 的原始值，而不是 id ，存储在 one 中会更自然一些，也能提高查询的效率，这种就是文档型建模。例如对于一个人的简历，将其中 job positions 和 education 的信息直接存在简历数据中，查询的时候可以读一张表就查到对应的数据。</p>
+<p><img src="Pasted image 20260906172150.png" alt=""></p>
+<p>按照关系进行分表和放在一个表的作法，分别称为 normalization 和 denormalization 。对于 normalization ，一个显而易见的好处就是修改方便，举例来说，假如一个人的简历中关联的学校名字变了，如果是 normalization ，那么只用对学校表中学校的名称进行修改即可。而对于 denormalization ，就需要修改主表中所有这个学校的名字。对于 denormalization ，它的优势则在于查询主表信息时，无需进行额外的 join 。综上可以看出，normalization 对数据修改/更新友好，并且由于少存了很多冗余数据，需要的存储量也相对较少。而 denormalization 对于大部分数据查询效率更高。所以没有谁比谁更优，可以结合起来使用，如果数据更新的频繁，对写入延时有要求，考虑 normailzed  。如果对读的性能有要求/更新不频繁，则 denormalized 。比如上一章提到的时间线的业务，使用 materialized timeline 来作为 cache ，预先计算 post 和 follow join 的结果。需要注意的是，这里仅预先计算了 post id 和 poster id ，在生成时间线数据的时候，还是需要查询的。原因是 post 中的内容/点赞数等信息时会变的，poster 的名称等基础信息也是会变的。另外还考虑了存储成本。</p>
+<p>对于 Document Model 的使用场景，假如数据有一个 document-like structure （比如一个树型的 one-to-many 结构），并且每次读取的时候需要全部的字段，那么就可以用 Document Model 。另外需要注意的是，Document Model 宣称是 schema less 的，但是我们在读取数据的时候，其实默认其是有一个结构的，只不过数据库在存储时对其没有要求（schema-on-read vs schema-on-write）对于 schema 变更的场景，schema-on-read 可以在访问时进行兼容；schema-on-write 在数据变更就需要对数据进行迁移。Document Model 适合异构的数据结构 。有一点需要注意的是，如果需要频繁更新其中的一小部分内容，也会有一定的成本，因为数据中中所有的内容可能都会需要被重写。</p>
+<p>对于 Relational Model ，书中还提到了在数据仓库中使用到的 stars 和 snowflake 两中 schema 模式。对于 stars，中心的 fact_scales table 记录一个 dimension 中各个子数据的 id 。对于 snowflake ，一个 dimension 被进一步拆分为多个子 dimension 。另外还有一种模式称为 one big table (OBT)，将所有的数据都放到一个大的 table 中。需要更多的存储，但是可以提升查询速度。</p>
+<p>回顾四年多的工作经历，大部分和数据库相关的经历都是和运维 MongoDB 相关，使用数据库做业务开发的经验主要也就是用 MongoDB 存储一些 json 格式的数据，而 MySQL 只有几次慢查询故障问题排查的经历，所以在学习这一部分的时候没法和实际的工作内容进行联想，有点尴尬。由于常年运维 MongoDB，所以对使用表时是否开了分片 &amp; 查询是否走了索引特别敏感，只要是我在开发中使用到了 MongoDB ，那么就建表时一定会开分片，在写查询语句时一定会确认相关查询字段是否加了索引，这已经成了条件反射了。</p>
+<p>对于 schema 的定义，目前不管是用 Python 这类脚本语言，还是 Golang 这类编译语言，我在进行代码实现的时候都会将系统中预期使用到的数据结构都显示定义为 class 或者 struct ，为其中所有字段的作用都加上注释，并且在存的时候加上相关的校验逻辑，类似于离线建库 json 配置都必须有 json schema 的定义，以及在编译的时候必须先通过 schema 校验。没有 schema 的约束，东加一个字段西加一个字段，后面根本没法迭代和维护。上面提到的 schema less 确实只是在使用的时候没有 schema 也可以用，但是在进行正式的工程开发时，还是必须有 schema 约束的。</p>
+<h2 id="Graph-Like-Data-Models"><a href="#Graph-Like-Data-Models" class="headerlink" title="Graph-Like Data Models"></a>Graph-Like Data Models</h2><p>主要用于处理 many-to-many 的数据关系。其中涉及两个概念，vertices （点）和 edges（边）。前者又称为 nodes 或 entities ，后者又称为 relationships 或 arcs 。有两种方式来描述 vertices 和 edges 的关系，第一种为 adjacency list ，每个 vertex 存储有临近 vertex 的列表 ，另一种为 adjacency matrix ，是一个二维数组，如果 vertex 有连接关系，则数据对应的值记为 1，否则为 0。印象中当时学校教数据结构时没有教 graph ，我后面是自己在 YouTube 上看着咖喱风味的英语教学视频自学的，当时比较喜欢用 adjacency list 来描述图结构，觉得这种存储方式相较于数组在新增和删除节点时更灵活。当时也正好在学 web 开发，就用 canvas 画了一个迷宫，然后让迷宫中随机升级的红点根据深度优先或广度优先的方式寻路找出口，并且直接通过鼠标点击新增或者删除构成迷宫的方格，感觉还是挺有意思的 hhh 。翻了半天的 qq 空间：</p>
+<p><img src="IMG_8231.gif" alt=""></p>
+<p><img src="IMG_8232.png" alt=""></p>
+<p>扯远了，拉回来。接下来介绍了 Property Graph ，又称 labeled property graph 。其中的 vertex 和 edge 除了存储基础的连接信息外，vertex 和 edge 中还存了 label 由于在检索时进行过滤，并且还存储了 kv 对。如果用关系型数据库来存储的话，其中包含了两个表和两个索引：</p>
+<p><img src="Pasted image 20260906182627.png" alt=""></p>
+<p>对在 Graph 进行查询时，可以使用 Cypher Query Language ，原先是作为 Neo4j 图数据库的查询语言，后面发展为了一个公开的标准 openCypher 。值得一提的是，这里的 Cypher 来源于电影《黑客帝国》中的一个角色。我严重怀疑这个 Neo4j 里的 Neo 就是来自于这个电影主角的名字。建表和查询语句样例如下：</p>
+<p><img src="Pasted image 20260906182948.png" alt=""></p>
+<p><img src="Pasted image 20260906182958.png" alt=""></p>
+<p>既然我们可以用关系型数据库的表来描述 graph 的关系，那么我们是否可以用 SQL 来实现类似于的查询效果呢？书中给出了一大段复杂的 SQL 来实现 Cypher Query Language 中一个简单的查询语句。所以结论为，但是可能会比较复杂。之前也提到过，为了便于业务开发，底层的设施对外的接口是需要做好抽象的。最后介绍了一下 GraphSQL ，它允许在客户端直接执行查询语句。另外它是一种查询规范，服务端的数据库可以是各种类型的，relational、document、graph 都可以。</p>
+<h2 id="Event-Sourcing-and-CQRS"><a href="#Event-Sourcing-and-CQRS" class="headerlink" title="Event Sourcing and CQRS"></a>Event Sourcing and CQRS</h2><p>书中本节介绍的 Event Sourcing  ，我感觉是比前面提到的 Model 更上层的一种数据处理方式。大致的描述为，通过 event log 追加写的方式达到极致的写性能，这个 event log 是 source of truth 。在读端，根据业务需求定制 materialized view ，订阅 log 来持续生成 derived 的数据。而 CQRS （command query responsibility segregation），就是维护从同一个写优化的数据源中衍生出来的读优化数据展示。其实对于这种数据处理模式，有一点数据库处理数据方式的影子，也都是先写 log ，然后基于 log 来修改存储中数据的状态。就我个人而言，这种架构模式看着心里莫名的爽。</p>
+<p><img src="Pasted image 20260906183859.png" alt=""></p>
+<p>这种处理模式主要有几个好处：</p>
+<ul>
+<li><p>可以降低写入端开发者的心理负担，相较于如何调整数据状态，直接忘存储里写实时的事件不论是理解还是开发起来，心智负担都低一些</p>
+</li>
+<li><p>衍生出来的 materialized view 是可重建的，也即如果代码有 bug ，那么只用在修复后回放 event 即可</p>
+</li>
+<li><p>可以基于不同的场景定制不同的 materialized view </p>
+</li>
+<li><p>由于 log 是不可变的，这个也便于进行审计</p>
+</li>
+<li><p>一般 log 是写到消息队列中的，可以做到削峰 + 高吞吐</p>
+</li>
+</ul>
+<p>不过也有几个问题需要注意：</p>
+<ul>
+<li><p>如果包含了额外的数据源，需要确保写入和展示时数据的一致性。写入和展示时使用的额外数据源的版本需要是一致的（例如汇率），那么将数据写到 event 中，要么外部数据源查询时支持指定时间戳</p>
+</li>
+<li><p>个人信息不方便从 log 中删除（部分地区有个人隐私相关的法案）</p>
+</li>
+<li><p>需要注意回放日志时相关 event 是否为可重入的，例如确认邮件</p>
+</li>
+<li><p>所有 view 消费数据顺序的一致性</p>
+</li>
+</ul>
+<p>我个人感觉还有一个问题是 log 不可能无限追加，可能需要引入过期或者 compact 机制，但是如果是这样的话，materialized view 就不一定是可重建的了。需要根据实际的业务场景来进行设计。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>重点介绍了 Data Model 中的 Relational Model 和 Document Model ，还涉及到了 Graph-Like Data Model 。除了这些 Data Model 外，也介绍了 event sourcing ，将数据作为 append-only log 来呈现。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/" data-id="cmtpss31l00rgcaje5vtn8kqw" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/08/30/重读-DDIA-Chapter-2-Defining-Nonfunctional-Requirements/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重读 DDIA : Chapter-2 Defining Nonfunctional Requirements</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>218</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
