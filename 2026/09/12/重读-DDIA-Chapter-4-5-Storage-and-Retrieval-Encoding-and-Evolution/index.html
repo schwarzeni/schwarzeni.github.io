@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>重读 DDIA : Chapter-4 &amp; 5 Storage and Retrieval &amp; Encoding and Evolution | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="两个章节的内容不多，相关笔记记到一起 ~">
+<meta name="keywords" content="读书笔记,分布式,DDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读 DDIA : Chapter-4 &amp; 5 Storage and Retrieval &amp; Encoding and Evolution">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/09/12/重读-DDIA-Chapter-4-5-Storage-and-Retrieval-Encoding-and-Evolution/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="两个章节的内容不多，相关笔记记到一起 ~">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2026-09-12T15:25:50.522Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重读 DDIA : Chapter-4 &amp; 5 Storage and Retrieval &amp; Encoding and Evolution">
+<meta name="twitter:description" content="两个章节的内容不多，相关笔记记到一起 ~">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>219</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-重读-DDIA-Chapter-4-5-Storage-and-Retrieval-Encoding-and-Evolution" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/09/12/重读-DDIA-Chapter-4-5-Storage-and-Retrieval-Encoding-and-Evolution/" class="article-date">
+  <time class="post-time" datetime="2026-09-12T15:24:53.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">12</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      重读 DDIA : Chapter-4 &amp; 5 Storage and Retrieval &amp; Encoding and Evolution
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>两个章节的内容不多，相关笔记记到一起 ~</p>
+<a id="more"></a>
+<h2 id="第四章-存储与查询"><a href="#第四章-存储与查询" class="headerlink" title="第四章 存储与查询"></a>第四章 存储与查询</h2><p>第四章核心介绍的是 OLTP 和 OLAP 两个数据系统是如何 <strong>存储数据</strong> 和 <strong>查询数据</strong> 的。对于一个数据系统来说，核心就是两点：如何存 &amp; 如何查。之所以需要了解数据系统对于上述两种操作实现的细节，并不是说需要实际实现一个系统，而是更方便于结合实际的业务场景来进行选型，也便于对线上问题的排查和充分利用其特性在使用的时候进行相关的优化。</p>
+<p>一个最简单的 database : </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="function"><span class="title">db_set</span></span>() &#123;</span><br><span class="line">	<span class="built_in">echo</span> <span class="string">"<span class="variable">$1</span>,<span class="variable">$2</span>"</span> &gt;&gt; db</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">db_get</span></span>() &#123;</span><br><span class="line">	grep <span class="string">"^<span class="variable">$1</span>,"</span> db | sed -e <span class="string">"s/^<span class="variable">$1</span>,//"</span> | tail -n 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于 OLTP 系统，通过 log 获取高性能写，通过 index 加速数据查询。但是 log 不利于数据查询，为数据建过多的 index 也会降低写入性能。</p>
+<p>一种磁盘存储 k-v 数据的方式为 Log-Structured 。首先先对 Log 进行定义，为 “a append-only sequence of records on disk” ，也就是对于数据的变更，不论是增/删/改，都采用追加写的方式写到磁盘上。这种方式，不论是 HDD 还是 SSD ，都可以极大提升写吞吐。</p>
+<p>高性能写解决了，那么如何查询数据呢？一种朴素的实现思路就是遍历全量数据进行查找，但这种 O(n) 的方式在数据量大的时候性能很差。为了提升数据的定位速度，可以将数据的 key 存在一个内存 map 中，对应的 value 是其在磁盘上的 offset ，这样直接根据 key 就可以以 O(1) 的速度查到对应的数据了。不过这也有两个问题：1）内存是有限的，随着数据量的增长，没法装下所有的 key。2）服务每次重启后，都需要重建这个内存 map 。</p>
+<p>LSM-Trees（Log-Structured Merge-tree） 就是为了解决上述问题而设计的。其中一个数据结构 SSTable 的全称为 Sort-String-Table 。</p>
+<p><strong>SSTable 数据写入</strong>的流程如下，数据依旧是追加写到磁盘上，并且数据 key 到 offset 的映射也是维护在内存中，使用一个有序的数据结构（memtable）进行维护，比如红黑树、跳表等。当内存中 key 的数量足够多时，会将这批 key dump 到磁盘上，生成的就是 SSTable 。由于依旧是顺序写，仅需额外维护一个 memtable，所以写入的性能并没有下降很多。另外还会将操作都记一个 log ，用于在服务重启后重建 memtable 。</p>
+<p>在<strong>查询 SSTable 数据</strong>时，会优先查 memtable ，然后再依次查询磁盘上的 SSTable 。由于 key 是有序的，所以如果查询的 key 小于 min 或大于 max，则可以认为不在 SSTable 中。对于在 min 和 max 之间的情况，为了减少磁盘的读取，每一个 SSTable 都有为 key 集合生成一个 Bloom Filters，用于快速判断。在实际进行 key 查询时，得益于有序的特性，也可以用快速定位 key 的位置。</p>
+<p>随着数据的持续写入，SSTable 会逐渐增多，这会导致每次查询需要遍历的 SSTable 数量变多。对于老的 SSTable ，会进行 <strong>compact</strong> 操作，将多个 SSTable merge 为一个新的 SSTable 。对于删除的数据，在老的 SSTable 中存储的是 tombstone ，也即是标记删除。数据会在 compact 的时候被彻底删除。在 compact 时，是采用 merge sort 的方式来进行多路归并的，这就意味着会占用额外的磁盘空间。 对于 Size-tiered 的方式，会生成一个 SSTable ，而对于 Leveled 的方式，会生成多个 SSTable ，后者比较适合写少的场景，也即可以进行增量 merge。</p>
+<p>另一种数据结构为 B-Trees ，它在存储 k-v 时，key 也是有序的。对于每一个树节点，都对应磁盘上的一个 Page ，而控制一个节点最多可以有多少个孩子节点的参数叫 branching factor ，这个主要看存储 Page 地址所需的空间。当数据持续写入时，一个 Page 写满了就会进行分裂。当数据需要更新时，和 LSM-Tree 不同，B-Trees 会原地更新 Page 的内容。这里需要注意的是，这里是按照 Page 的粒度更新，所以有一定的写放大的问题。为了保证 B-Trees 的数据可靠性，也引入了日志来记录相关的操作，也即 WAL 。书中提到，B-Trees 有一些变种，比如对于数据更新的场景，有些实现采用了 Copy-On-Write 的模式，这样便于并发控制，另外各个节点还会包含额外的指针，例如指向同层左右节点，对于一些操作，例如遍历，可以提升性能。在 《Database Internals》中，对于 B-Trees 有着更为详细的介绍。</p>
+<p>同样是为了 key-value 磁盘存储所设计，书中给出了几个角度来对 LSM-Trees 和 B-Trees 进行比较：</p>
+<ul>
+<li><p>单 key 查询：LSM-Trees 有 Bloom Filters 加速多 SSTable 过滤，B-Trees 的层数一般都比较低，所以性能都不错</p>
+</li>
+<li><p>范围查询：LSM-Trees 需要归并多个 SSTable ，性能稍差，B-Trees 叶子节点有序，直接遍历即可</p>
+</li>
+<li><p>写吞吐：LSM-Trees 的顺序写性能高，但是当 SSTable 的 merge 以及 memtable 的 dump 速度更不上时，会反压到写入，影响性能</p>
+</li>
+<li><p>随机写/顺序写：在 HDD 的场景下，LSM-Trees 由于是写 append 的 log ，所以整体性能比 B-Trees 要好。SSD 场景下，随机写和顺序写的差异极大降低，但是依旧需要考虑</p>
+</li>
+<li><p>写放大：上层写入 1KB 的数据，下层会有超过 1KB 的 IO ，例如 B-Trees 的整个 Page 更新，或者是 LSM-Trees 的多次 compact</p>
+</li>
+<li><p>存储用量：对于 LSM-Trees ，在 compact 的时候会占用额外的空间，另外一个 key 也会在多个 SSTable 中有多个版本。而对于 B-Tress ，一个 Page 上数据如果有被删除，那么就会有碎片。</p>
+</li>
+</ul>
+<p>需要注意的是，在测试一个数据系统的时候，需要跑尽量长的时间，来评估各个指标，比如说对于 LSM-Trees，一开始写入的吞吐会非常高，读取速度也正常，但是如果 memtable 开始 dump 数据至磁盘，以及 SSTable compact 的时候，会占用一定的磁盘写带宽，正常写入的吞吐必然下降。随着写入数据量的增多， SSTable 会变多，读取数据的性能也可能会变差。</p>
+<p>书中额外补充了 ssd 的知识：顺序写的性能比随机写高的原因。ssd 按照 page 粒度（一般 4KB）写入，block 粒度（一般 512KB）擦除。顺序写的的时候，一般一个 block 上的数据都属于一个文件，这样数据的生命周期是一致的，擦除的时候整个 block 都可以被干掉，不需要做额外的处理。而随机写时，一个 block 上可能即包含有效数据，也包含已经被删除的数据，此时在 GC 的时候，需要将有效的数据迁移到其他的 block 上，然后再擦除 block 的数据。迁移数据会影响整体的读写性能。</p>
+<p>LSM-Trees 和 B-Trees 都可以作为 k-v 存储的索引结构，其中实际的 value 不一定会和 key 存在一起。实际 value 和 key 存在一起的称为 clustered index ，比如 InnoDB 的 primary index 。当 value 被额外存储时，存储它的地方叫做 heap file。除了上述两个结构，也可以将数据整个都放到内存中，这样就不用使用专为磁盘存储特化的数据结构了。</p>
+<p>接下来介绍了和 OLAP 系统以及语义向量检索相关的数据存储与查询的相关的内容，由于之前的工作中基本没涉及到这块的内容，所以就跟着书大致过了一遍。首先对于 OLAP ，基本都是存算分离的形式，存储使用对象存储，并且一般采用列式存储的方式。由于一列中的数据类型大概率是相同的，且关联较为密切，所以便于进行数据压缩以及查询加速。在进行数据写入的时候，最好是通过批量写入的方式，因为数据写入时一般是按照行粒度写的，需要更新全量的列。在进行查询时，一般使用 query compilation 或者 vectorized processing 的方式。前者看介绍像是将 query 编译为代码。另外还可以基于原始数据生成一些只读的视图（materialized views or data cubes）来加速某些特定场景下的数据查询。对于 Multidimensional 的查询，一般是查询涉及多个维度，例如地理位置包含两个坐标，传统的索引无法解决处理，引入了新的数据结构 R-Trees 。对于 Full-Text 查询，一般是通过建立倒排索引的方式，其中对于一些语言，还涉及到切词的操作。最后是 Semantic ，也即语义查询，这个需要将数据转为语义向量，通过某些算法来比较向量的相似度，来进行检索。向量索引有几个实现，之前听搜索在线同学分享的时候好像听过：Flat indexes、Inverted file（IVF）indexes、Hierarchical Navigable Small World（HNSW）indexes。</p>
+<h2 id="第五章-数据编码与处理"><a href="#第五章-数据编码与处理" class="headerlink" title="第五章 数据编码与处理"></a>第五章 数据编码与处理</h2><p>第五章的核心内容为数据是如何被序列化（encoding）以及处理（evolution）。</p>
+<p>对于序列化，核心需要关注的是：1）schema 定义。2）性能。3）compatibility 。对于第三点 compatibility 尤为重要，因为数据系统是持续迭代的，其中必然涉及到 schema 的变更，比如新增或者删除字段。系统在升级时，一般采用滚动升级的方式，那么在中间态中会出现新系统处理老数据和老系统处理新数据的场景，分别需要 backward compatibility 和 forward compatibility 。</p>
+<p>数据一般有两种表示形式，其一是在内存中，表示为各种数据结构，比如 object、structs 等，可以通过 share memory 来共享数据。另一种为在 IO 时，也即需要过网络或者文件时，需要将内存中的数据按照某种规则序列化为二进制 bytes 。各种程序语言都提供了原生的序列化方法，但是存在一些问题，比如不支持向前/后兼容、限制单语言、性能差等。</p>
+<p>一类经常使用的序列化格式为 JSON / XML 及其二进制变体。JSON / XML 是可读的，但是有一些问题，比如 XML 无法区分字符串和数字、JSON 的数字会丢精度、无法存储二进制数据。另外 JSON schema 的规则较为复杂。它们的二进制变体是为了解决原生格式中无用字符过多的问题，以压缩体积。对于向前/后兼容，需要在代码中人工进行适配兼容。</p>
+<p>另一类为纯二进制格式，代表有 Protocol Buffers 和 Avro 。</p>
+<p>对于 Protocol Buffers ，它支持基于协议生成各种编程语言的 encode 和 decode 代码。在使用它时，核心是需要维护好 tag 值，因为在 encode 的二进制数据中，是没有 key 的，而是使用 tag 来关联对应的数据。对于数组类型的数据，在 pb 中使用 repeated 来定义，而在二进制中，相关值的 tag 相同。如果一个 key 的 tag 值改了，在解析的时候就会有问题。对于它的二进制编码，值得一提的是，对于一个比特，它会用一位来表示后续是否还有值，剩余的七位用于存值。也就是说对于数字来说，一比特可以表示 -64 到 63 。说到生成代码我想起来了，23 年还是 24 年公司的 c++ baidu-rpc 使用的 protobuf 库有一个不兼容升级，我们这边的代码库自身或者其他依赖使用了其他版本的 protobuf ，且最终联编时没有使用 baidu-rpc 对应的 protobuf 版本，那么只要一执行就 coredump ，而且 coredump 的栈还是花的。印象中当时排查的原因是 protobuf 不兼容的升级里修改了某个数据格式在内存布局，不兼容老的布局导致内存读越界 …</p>
+<p>对于 Avro ，它序列化后的二进制数据中只有各个值的二进制表示。在读取时会基于 reader schema 和 writer schema 来对二进制进行解析。如果两个 schema 有差异，那么就会自动分析这些差异来进行兼容。那么这就引出了一个核心问题，reader 如何获取到 writer schema 呢？书中分场景给出了方案：1）文件的场景，会在文件的开头保存 schema 的格式，用于解析其中所有的 record 。2）数据库场景，record 会保存 writer schema 的版本号，其对应的 writer schema 也存在数据库中。3）rpc 场景，在建立连接后首先交换各自的 writer schema ，整个 session 中使用这个 schema 来解析数据。Avro 比较适合需要动态生成 schema 的场景，因为不用维护 tag 的信息。</p>
+<p>数据序列化使用 schema 有诸多的好处，书中列了一些，其中我特别赞同是 <strong>“the schema is a valuable form of documentation”</strong> 和 <strong>“enables type checking at compile time”</strong> 。在 24 年之前，离线建库的配置复杂且没有文档，全靠口口相传和抄其它配置，配置填错了很难发现。24 年建设标准化离线建库系统时，建库各项配置主要都是通过 JSON Schema 来描述定义，并且在编译配置时有严格的 JSON Schema 校验。我记得当时 T9 说，如果模块的负责人需要新增一个业务配置，就把 JSON Schema 和相关文档写好提 cr 给他，JSON Schema 里必须有字段的定义及说明，文档里必须有如何使用的 demo 。正是 24 年  - 25 年这段时间建设的相对完善的配置 Schema ，才可以让后续 AI Coding 时代来临时，让 Coding Agent 读现成 Schema 、文档以及参考其它存量配置，来填写与核验新的业务配置。</p>
+<p>数据的序列化方式有了，接下来介绍了几种数据处理的模式。首先是和数据库进行交互，书中说，这类似于是 “sending a message to your future self” 。数据库服务本身不关心数据的具体内容，只要符合它的 schema 规范就行。而且这种模式一般是 “data outlives code” ，也即和数据库交互的服务升级了，但是老服务写入数据库中的数据依然存在，所以相关服务重点需要做好向前兼容。</p>
+<p>接下来是 Web 服务使用到的 REST 和 RPC 。对于 REST ，它使用 URL 定义了 resources ，使用 HTTP 协议的特性来实现 cache 控制、鉴权和协议协商（我理解这些都是配在 HTTP header 中的）。client 和 server 交互的协议通过 IDL 来编写，使用 JSON 的 OpenAPI 和二进制的 Protocol Buffers 。RPC 的全称为 Remote Procedure Call ，这个历史比较悠久，一开始的目的是想让远程服务函数调用和本地函数调用一样，但由于跨了网络，不管是数据序列化的细节还是稳定性等都有一系列的问题，另外传统的企业级 RPC 框架，例如 EJB ，都比较复杂（我还学过用 NetBeans IDE 做 JavaEE 开发 …）。而 REST 明确将本地函数调用和这种远程 API 调用区分开，就让整个流程简单多了。对于 Web 请求，其中涉及到负载均衡、服务发现和 Service Meshes ，实际上都是解决一个问题，client 如何找打 server ，主要介绍了几种方式：1）虚拟 IP （硬件层面）。2）软件负载均衡，例如 NGINX 和 HAProxy（我之前用 docker-compose 搭过 HAProxy 的双机热备）。3）DNS。4）服务发现系统，例如 ZK。5）Service Meshes ，通过 sidecar 的形式部署在 client 端。数据的处理方式还有基于 Workflow 和事件驱动的异步消息队列，以及 Actor 模式，这里就不再赘述。不过其中对于 Workflow 有一个有意思的点，就是一次数据处理流程在进行重试时，如果涉及到 RPC 调用，框架支持直接跳过，并直接使用上一次执行的结果，使得一些操作是可重入的。</p>
+<p>我本科时候自学的 Web 开发，就对 REST 有了很多的了解，当时就是基于 REST 搞了各种 Single Page Application 的 Web 应用，前端试了各种框架，比较火的 Angular、React、Vue  都搞过，也用过 JQuery 根据 REST API 返回的 JSON 来拼页面，后端 Web 服务用 Python/PHP/Java/Golang/Node 也都搞过。后面也特别喜欢抓一些网络的 API 写脚本干一些有意思的事情，比如抓各大视频网站获取视频数据的 API ，将其都拉下来用 ffmepg 拼一起。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这两章主要对单条数据的 “存储” 、“查询” 、“序列化”、“处理” 进行了介绍。接下来就要来到 “复制” 、“分片” 、“事务” 等重头戏了，已经迫不及待了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/09/12/重读-DDIA-Chapter-4-5-Storage-and-Retrieval-Encoding-and-Evolution/" data-id="cmtyjf3k100q2kijepkqj2agk" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/09/06/重读-DDIA-Chapter-3-Data-Models-and-Query-Languages/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重读 DDIA : Chapter-3 Data Models and Query Languages</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>219</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
