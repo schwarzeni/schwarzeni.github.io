@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>重读 DDIA : Chapter-6 Replica | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="像是副本、分片之类的概念，我是在 22 年开始正式工作，接手 MongoDB 和 Kafka 后才逐步开始了解的，之前自己本地部署的服务都是单机的，并且在实习期间也没有关注相关系统这方面的特性。随着工作经历的积累，渐渐地对相关的概念有了一定的理解。">
+<meta name="keywords" content="读书笔记,分布式,DDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读 DDIA : Chapter-6 Replica">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/09/15/重读-DDIA-Chapter-6-Replica/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="像是副本、分片之类的概念，我是在 22 年开始正式工作，接手 MongoDB 和 Kafka 后才逐步开始了解的，之前自己本地部署的服务都是单机的，并且在实习期间也没有关注相关系统这方面的特性。随着工作经历的积累，渐渐地对相关的概念有了一定的理解。">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2026-09-14T16:46:00.516Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重读 DDIA : Chapter-6 Replica">
+<meta name="twitter:description" content="像是副本、分片之类的概念，我是在 22 年开始正式工作，接手 MongoDB 和 Kafka 后才逐步开始了解的，之前自己本地部署的服务都是单机的，并且在实习期间也没有关注相关系统这方面的特性。随着工作经历的积累，渐渐地对相关的概念有了一定的理解。">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>220</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-重读-DDIA-Chapter-6-Replica" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/09/15/重读-DDIA-Chapter-6-Replica/" class="article-date">
+  <time class="post-time" datetime="2026-09-14T16:45:17.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">15</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      重读 DDIA : Chapter-6 Replica
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>像是副本、分片之类的概念，我是在 22 年开始正式工作，接手 MongoDB 和 Kafka 后才逐步开始了解的，之前自己本地部署的服务都是单机的，并且在实习期间也没有关注相关系统这方面的特性。随着工作经历的积累，渐渐地对相关的概念有了一定的理解。</p>
+<a id="more"></a>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>本章涉及的概念 Replication ，也即副本，存在的主要目的是为了一个集群中单实例的下线不影响整体的数据处理，比如说有一个存储有数据的实例所在的机器挂了，或者需要升级，那么由于它是多副本的，所以其它的副本实例可以顶上。对于 Kafka 和 MongoDB ，一般配置为三副本，最多可以容忍有两个实例下线。书中提到对于多副本的场景，一般是 leader 承接读写流量，follower 承接读流量，不过目前组内自运维的 Kafka 和 MongoDB 都是只有 leader 承接读写流量，follower 仅作同步数据。其中对于 MongoDB ，如果业务有大批量导出数据的需求，为了不对 leader 造成额外的压力影响正常读写，会要求业务从 follower 导。</p>
+<p>书中在开头额外介绍了 Backups 和 Replication 的区别，备份是数据的一个快照，产生后不变；副本是数据的一个复制，会随数据的变化而变化。</p>
+<h2 id="数据写入"><a href="#数据写入" class="headerlink" title="数据写入"></a>数据写入</h2><p>对于副本的数据同步方式，有 sync（同步）和 async（异步）两种，目前 Kafka 和 MongoDB 均为 async 。印象中 Kafka 有一个参数可以控制至少需要有几个副本同步完成才可以被认为写入成功，印象我看都配置的是 1 ，也即 leader 写入就可以了，一开始觉得这有一定的风险，不过后面发现由于部分 Kafka 集群部署在混布的环境中，机器压力比较大，经常 ISR 中只有一个同步副本（也即只有 leader）的情况，如果不配未 1 ，那么就会影响写入吞吐。如果要求数据不可丢，且对写入性能影响最小，书中建议可以设置至少一个 follower 是 sync 的，其它是 async 。</p>
+<h2 id="副本数据同步"><a href="#副本数据同步" class="headerlink" title="副本数据同步"></a>副本数据同步</h2><p>如果 leader 挂了，那么需要从 follower 中选出一个新的 leader 出来，然后从新的 leader 处同步数据。首先需要定义 “leader 挂了” ，一般是使用超时时间，接下来是进行选举，要么是 follower 投票产生，要么是由一个更高层的 controller 来指定。对于前者来说，就是经典的分布式共识算法里的 leader 选举，而对于后者，一个例子是 Kafka 分片的 leader ，它就是由 controller 指定的。</p>
+<p>在完成 leader 切换后，异步复制的场景下，新的 leader 可能没有相关的数据。后续处理这部分数据直接丢弃，这会导致被认为是写入的数据实际丢了。如果丢弃的数据会和外部系统联动，那么就会有不一致的问题。另外判断 leader 挂了的超时时间也需要根据系统的实际状态来设定。</p>
+<p>组里自运维的老版本的 Kafka 集群有时会出现新的 leader 无法分配的问题，现象是原 leader 所在的 broker 挂了后，leader 无法切换导致分片写入失败，数据断流。这个是因为 controller 有啥未知的故障导致的，此时只用将 zk 上的 /controller 删了，同时切新的 controller 就可以了。有时因为集群中的 isr 变更的太频繁了，再加上旧的 controller 卡死，会在 zk 的一个路径下积压大量的 isr change notification 数据，新的 controller 在加载这部分数据时，ls 路径下的子目录时可能会爆 buffer ，导致其无法启动，此时只能人工将其中较老的数据人工清理了，印象中当时这个问题查了挺长时间的，业务反馈说他在 Kafka Manger 上创建了 topic ，但是发现其分片一直没给分配 broker，我很快就意识到是 controller 有问题，然后还发现新的 controller 日志里一直打印 zk 的 response 把 buffer 打爆的，当时额外写了一个 Golang 程序遍历了 zk 上所有的数据，发现都不大，最后怎么发现是 ls 的时候因为子目录过多而导致的问题我有点记不太清了，只记得当时从下午查到了快晚上九点，晚饭都没吃。后面为了防止这种问题再出现，额外部署了一个定时任务来清理历史过久的 notification 数据。</p>
+<p>对于 follower 选举，一个线上比较常见的故障， MongoDB 单分片丢主故障的问题，大概是这样的：一个分片常态下是三副本，位于三个实例上，当有实例需要迁移时，PAAS 平台会先扩一个新的实例，等新的实例副本数据同步完毕后，再删老的实例。在同步数据期间，是四副本，也即有四个实例。假如需要迁移的老实例因为某种原因直接挂了，然后另一个实例异常也挂了（常常是主节点），那么此时四副本中只有两个实例了，由于 leader 挂了所以触发了选举，但是此时无法选主（2/4），整个分片就挂了。解决方案就是连到一个正常的 secondary 实例上，将其中的一个异常实例从 rs 的配置里移除，此时是三副本，一个离线实例，两个 secondary 实例，然后强制更新 rs 就可以了。</p>
+<p>针对 MongoDB 扩容场景下同步数据导致 leader 挂掉的问题，我专门研究和分析过，发现都是 leader 实例由于压力过大，将内存数据 dump 到了本地的一个 wt 文件中，导致磁盘打满进程退出。我怀疑是在同步数据的时候，由于是全量数据同步，给 leader 带来了额外的负担，又了解到 MongoDB 支持从 Secondary 节点同步数据，所以就搞了一个定时任务，每一分钟扫一下所有集群中的所有副本集，如果发现有 Startup2 状态（第一次同步数据）的实例从 Primary 节点同步数据，然后就将其切为从 Secondary 节点来同步。这个定时任务上线后，基本就没再发生过这类问题了。</p>
+<p>对于同步的数据格式，书中列了三种格式：1）原始的请求语句，2）WAL，3）Logical log。对于原始语句，一般需要进行额外的处理，比如将其中实时生成的数据固定下来，例如 now()。对于 WAL ，需要做好存储引擎版本的兼容，因为不同版本的 WAL 格式可能有差异。对于 Logical log ，比如 MySQL 的 binlog ，是用于描述 row 粒度的数据是如何变更的，独立于存储引擎，所以可以做到存储引擎版本的兼容，并且可以给外部的系统来使用，例如数据分析系统。</p>
+<p>除了由数据系统本身提供的数据同步外，还有一些场景，例如在做 MongoDB 表数据热迁移时，会用到额外的工具来做。应该是 23 年的时候，当时需要将几个表从一个 MongoDB 集群迁移至另一个集群，但不能停写。当时用的是一个叫做 MongoShake 的工具，大概的功能是先做 base 数据同步，然后订阅各个分片的 log 做增量同步。源集群需要配置表所在 shard 的地址信息，而目标集群只用配置 mongos 地址即可。根据工具介绍，为了防止数据同步死循环的出现，这个工具的提供方，好像是阿里云，的 MongoDB 的 log 中加了额外的信息，MongoShake 可以识别这个信息，对于包含这个信息的源数据不做同步。</p>
+<h2 id="副本读写一致性"><a href="#副本读写一致性" class="headerlink" title="副本读写一致性"></a>副本读写一致性</h2><p>对于写少读多的场景，一般会让 follower 也承接读流量来提供系统的读吞吐，但是由于副本数据同步有 lag ，所以从 follower 处读到的会是老数据。书中列了几个 async 的场景：</p>
+<ul>
+<li><p>reading your own writes : writer 写入数据后立刻读这个数据，如果是从 follower 读且 follower 同步数据不及时，就会导致 writer 读不到写入的数据。一种方案是通过某种方式识别这种场景，然后让 leader 承接这部分读流量。</p>
+</li>
+<li><p>monotonic reads : reader 多次读某条数据，由于同步有 lag ，会导致读到某个副本上老版本的数据，出现类似于时间回退的效果。一种方案是让相同的读请求落在同一个副本上（当然如果这个副本挂了就无效了）。</p>
+</li>
+<li><p>consistent prefix read : 读一批数据，多次读是乱序的，这种在分片的场景比较常见。比如 t1 和 t2 时刻写入的数据落在了分片 1 和 2 中，2 副本同步的比 1 快，就会导致 reader 先读到 t2 再读到 t1 。</p>
+</li>
+</ul>
+<p>由于我这边维护的系统一般情况下仅由 leader 承接读流量，所以基本没遇到这种问题。不过在使用别人的系统时倒是遇到过，比如读一个 kv 的数据，发现每次请求读到的数据版本不一样，这个大概率就是因为有问题 follower 副本导致的。</p>
+<h2 id="Multi-leader-和-Leaderless-replication"><a href="#Multi-leader-和-Leaderless-replication" class="headerlink" title="Multi-leader 和 Leaderless replication"></a>Multi-leader 和 Leaderless replication</h2><p>对于规模比较小的业务，使用 Single-leader 就足够了，但是如果涉及到跨地域的场景，例如数据服务部署在多个地域（region），如何在一个地域的数据变更时，让其它地域也感知到呢？如果采用 Single-leader 的话，leader 只能在其中一个机房，而跨机房访问 leader 成本较高。如果业务数据是天然可以按照地域进行切分的，对跨地域的数据读写取延时不敏感，可以在每一个地域的机房都设置一个 leader ，每个地域数据的读写都由这个 leader 来进行，然后各个 leader 之间异步进行数据同步。不过此时就会有数据冲突的问题，一般最简单的方法就是给数据的变更打上时间戳，然后采用 LWW （Lastest Write Win）的策略，仅保留时间戳最新的变更，老的都丢弃。其实既然已经选型了这种模式，那么对应的业务场景下就需要可以容忍因为有冲突而导致的数据丢失，否则最好还是老老实实地用 Single-leader 。对于 Multi-leader ，书中介绍一个非常有意思的场景，就是多端同步的应用，比如日历 app 、Git 以及在线协作文档。每一个客户端应用都可以看做是一个 region。</p>
+<p>对于搜索的架构来说，从离线架构的视角看，六地域（现在砍成了五地域）机房的正排/摘要/索引数据都是只读的，是由离线 yq （阳泉，robin 的老家）机房生产后，通过主动推送或被动拉取的形式同步到六地域机房的。之前值周的时候处理过几次小说业务评论数据的问题，这个业务的数据流基本也是这样的，六机房的在线服务处理用户的评论数据时，会将数据推到 yq 机房的 Kafka 里，然后走离线建库再生效到六机房。类似于是一个 Star 的拓扑，阳泉机房位于中心，然后连接其它的机房。</p>
+<p>对于 Leaderless replication ，我看的更是云里雾里了 … 这直接让每个副本都可以承接读写流量，然后通过某些策略对数据进行 merge 。在数据读取和写入时，需要并行地访问多个副本，以保证可以写入成功以及读取到最新的数据。书中给了一个公式，假如是 n 个副本 ，成功写入的节点数为 w ，查询的节点数为 r ，那么要求 <code>w + r &gt; n</code> 。一般来说，会设置 <code>w = r = (n + 1) / 2</code> 。对于公式 <code>w + r &gt; n</code> 的理解，其实可以从反着去理解，也即假如 <code>w + r = n</code> 会发生什么？在计算情况下，假如 <code>w = r = n/2</code> ，那么如果我写入的 1/2 个副本和读取的 1/2 个副本刚好不重合，那么就读不到最新写入的数据了，如果 <code>w + r &lt; n</code> 就更读不到了。那么假如是普通 3 副本的场景，就要求同时读写 2 个节点，可以保证写入的数据不丢且读到最新的数据。在 Multi-leader 的场景下就会有冲突的问题，那么在 Leaderless replication 的场景下冲突就会跟频繁了，书中介绍了不少冲突发现和解决的内容，但是我感觉目前应该用不太到，等后面遇到的时候再仔细研究吧。</p>
+<h2 id="碎碎念"><a href="#碎碎念" class="headerlink" title="碎碎念"></a>碎碎念</h2><p>另外吐槽一点，虽然在系统正常时，如果是仅由 leader 承接读写流量，那么多副本看起来确实没啥用处，但是在 leader 故障后，却是可以保证系统整体是可以继续运行的。系统如此，工作也是如此，比较理想的情况是确保一项工作/系统有多个人了解，这样在负责人离职后，有人可以快速接手，但是现在的现状常常是仅有负责人了解，其他人完全不了解（也没人力去了解），这样一旦负责人离职，仅靠离职交接是完全交接不清楚的。不过这个也可以从侧面印证，这种单副本的工作/系统往往对整个公司来说是不重要的，至少在领导的眼里不重要 …</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/09/15/重读-DDIA-Chapter-6-Replica/" data-id="cmu1h5q8l00kex1je3webul9p" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/09/12/重读-DDIA-Chapter-4-5-Storage-and-Retrieval-Encoding-and-Evolution/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重读 DDIA : Chapter-4 &amp; 5 Storage and Retrieval &amp; Encoding and Evolution</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>220</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>75</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
