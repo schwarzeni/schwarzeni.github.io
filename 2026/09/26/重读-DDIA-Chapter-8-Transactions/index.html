@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="经典八股文必考题 …">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2026-09-26T15:32:22.778Z">
+<meta property="og:updated_time" content="2026-09-26T15:38:59.517Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="重读 DDIA : Chapter-8 Transactions">
 <meta name="twitter:description" content="经典八股文必考题 …">
@@ -138,7 +138,7 @@
         <p>经典八股文必考题 …</p>
 <a id="more"></a>
 <h2 id="为什么需要事务"><a href="#为什么需要事务" class="headerlink" title="为什么需要事务"></a>为什么需要事务</h2><p>首先，需要明确为什么需要 Transaction ？我们在对数据进行处理的时候，可能会涉及到多步操作，如果在进行这一系列的操作中出现了故障，例如网络挂了或者程序崩了，就需要对之前进行的操作进行回滚。那么此时我们就可以将对于数据的这一系列操作称之为一次 Transaction 。对于一次 Transaction ，如果执行成功了，那么就 commit ，如果失败了，就 rollback ，至于如何 commit 或者 rollback ，这是使用者不需要关心的，只用知道在 commit 之后，对于数据的操作都生效了，而在 rollback 之后，对于数据的操作都被撤销掉了。</p>
-<h2 id="多个事务如何共存"><a href="#多个事务如何共存" class="headerlink" title="多个事务如何共存"></a>多个事务如何共存</h2><p>对于一个高并发数据处理系统来说，必定会同时处理多个事务 ，那么如果这些事务都就会操作一批数据，那么如何保证一致性呢？其实在进行多线程编码的时候，也会遇到类型的场景，也即一个变量会多个线程访问，那次此时要么直接给临界区加锁，那么走 CAS ，甚至可以将操作变量的逻辑放到一个独立的线程中执行。对于 Transcation 来说，需要考虑的对象是一批数据。最简单的策略就是让事务执行串行化，但是这会影响整体的性能，所以可以针对实际的使用场景，用一些 weak 一点的隔离策略，也就是八股文里经常会问题到的一些概念。</p>
+<h2 id="多个事务如何共存"><a href="#多个事务如何共存" class="headerlink" title="多个事务如何共存"></a>多个事务如何共存</h2><p>对于一个高并发数据处理系统来说，必定会同时处理多个事务 ，如果这些事务都就会操作一批数据，那么如何保证一致性呢？其实在进行多线程编码的时候，也会遇到类型的场景，也即一个变量会被多个线程访问，此时要么直接给临界区加锁，要么走 CAS ，甚至可以将操作变量的逻辑放到一个独立的线程中执行。对于 Transcation 来说，需要考虑的对象是一批数据。最简单的策略就是让事务执行串行化，但是这会影响整体的性能，所以可以针对实际的使用场景，用一些 weak 一点的隔离策略，也就是八股文里经常会问题到的一些概念。</p>
 <p>一个简单的例子，假如 A、B、C 同时对 v = 0 进行了修改，分别改为 1、2、3 后分别提交，提交时刻为 A &lt; B &lt; C ，那么在 A 提交后，B 和 C 都可以读到 A 对于 v 的修改结果 1 ，接着在 B 提交后，C 再读 v 的值得到的是 B 修改的结果 2 。这种模式成为 <strong>Read Committed</strong> ，起名挺符合其特性的。在这种模式下，假如 A 或者 B 执行失败进行了回滚，那么 C 不会读到 A 和 B 修改且未提交的值。如果允许读到未提交的数据，那么就被称为 <strong>Read UnCommitted</strong> 。</p>
 <p>从上面读取的流程中可以看到，当 C 多次读取 v 时，由于 A 和 B 都对其值进行了变更，所以 C 读到的结果可能会变。如果希望在 C 中读到的 v 值是不变的，也即是 C 启动时的 v 值，那么就可以使用 <strong>Snapshot Isolation</strong> 模式。这种模式是主要通过 Multiversion Concurrency Control ，也即 MVCC 来实现的。MVCC 会为每一次对数据的操作都赋予一个 txid ，在 C 启动时，根据 txid 对数据的版本进行过滤。在实现多版本时，依赖 gc 对历史数据进行回收。针对 txid 移除的问题，可以使用环的方式来解决 <code>#define TransactionIdPrecedes(id1, id2) ((int32) ((uint32) (id1) - (uint32) (id2)) &lt; 0)</code> 。</p>
 <p>假如开始执行的时刻为 C &lt; B &lt; A，那么预期 A 设置的值应该是最新的，但实际上由于 C 执行的太慢了，导致最后 v 对应的值为 C 设置的，从结果上来看，A 对于数据的更新失败了。对于这种场景，可以在更新 v 的时候，给 v 加一个互斥锁，也即将 row 给锁住，或者在更新的时候，加上原始的 value 作为过滤条件。</p>
@@ -154,7 +154,7 @@
 <p>对于隔离性进行进一步的提升，<strong>Snapshot Isolation</strong>，在一个事务启动时，生成一个整体的数据快照，事务进行中所有的数据读写都基于这个快照进行，那么此时 Read 的相关问题都解决了，因为读到的都是历史快照，但是如果需要对数据进行写操作时，就会有新的问题了。如果多个事务并发进行，同时对一个 value 进行 + 操作，由于都基于的是快照值，那么必然只有一个事务的 + 执行成功，也即这个 value 只被 + 了一次，这种问题被称为 <strong>Lost Updates</strong> 。另一种情况是，多个事务基于相同的快照值作为判断条件，更新了不同的 value ，而更新的 value 会影响判断（例如书中提交的请假的人数），这种问题被称为 <strong>Write Skew</strong> 。</p>
 <p>最安全但性能最差的隔离为 <strong>Serializable</strong> ，也即让事务依次执行。对于执行成本（耗时 &amp; 访问数据）的事务，可以直接考虑通过单线程依次执行。还可以通过 procedure 的模式，将业务逻辑打包给数据库侧来执行。另外还可以通过 Two-Phase Locking 的方式，通过加锁来实现串行执行。另外一种乐观的执行模式为 Serializable Snapshot Isolation ，也即先默认各个事务执行互不影响，然后再各个事务提交前分析是否被其它事务所影响，如果有的话则 abort 本次事务。</p>
 <h2 id="一些小点"><a href="#一些小点" class="headerlink" title="一些小点"></a>一些小点</h2><p>对于事务 abort 的场景，也需要注意，对于短暂的/不常见的失败，abort 后进行重试一般来说是没问题的，但是如果是由于隔离等级设置的不合理，而导致并发事务之间竞争频繁 abort，那么之后重试会导致问题加剧，并且拖垮整个系统。</p>
-<p>ACID ，分别为 Atomicity 、Consistency 、Isolation 、Durability 。Atomicity 对应的就是事务这一抽象概念，对于数组的一组操作，那么都成功，那么都失败，不会存在中间态。Consistency 对应上面提交的一系列一致性问题，需要针对不同的业务场景，选择合适的 Isolation 策略，来保证数据在并发处理场景下的一致性。最后的 Durability ，就是保证数据在 commit 之后不丢，通常是采用 WAL + Replication 来保证的。</p>
+<p>ACID ，分别为 Atomicity 、Consistency 、Isolation 、Durability 。Atomicity 对应的就是事务这一抽象概念，对于数据的一组操作，那么都成功，那么都失败，不会存在中间态。Consistency 对应上面提交的一系列一致性问题，需要针对不同的业务场景，选择合适的 Isolation 策略，来保证数据在并发处理场景下的一致性。最后的 Durability ，就是保证数据在 commit 之后不丢，通常是采用 WAL + Replication 来保证的。</p>
 <h2 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h2><p>当一个事务，也即一组操作，涉及的数据分布在多个实例（系统）上时，就需要引入额外的机制来保证系统之间数据状态的一致性。书中介绍的比较常用的机制为 Two-Phase Commit 。需要新增一个 coordinator 来负责协调各个实例进行事务的处理。第一阶段 coordinator 会发送 prepare 请求给各个实例，让这些实例准备进行事务提交。待第一阶段请求响应收集完毕后，第二阶段会正式请求各个实例进行事务的处理，如果第一阶段的响应中包含 no，则第二阶段发送的是 abort 请求，否则就是 commit 的请求。为了保证  coordinator 的状态的持久性，相关协调记录都会持久化到磁盘上。在第二阶段，coordinator 必须保证消息送达到各个实例上，否则无限重试。对于各个实例来说，只要第一阶段的请求回复了 yes ，那么第二阶段就必须提交 commit 。</p>
 <p>分布式事务的场景主要包含两种，一种是同构系统内部的分布式事务，另一种是异构系统的分布式事务。对于后者，业界有一个通用的协议 X/Open XA ，一个 C 语言的 API 接口，提供了与 coordinator 交互的协议。</p>
 <p>书中提到了一个分布式事务的场景，也即消费消息队列的更新数据库的服务，需要保证 exactly-once 。消费消息队列的操作和数据库更新操作是作为一个整体，也即一个事务。不过在这个场景下，可以用非分布式事务的方式来解决，就是在数据库中额外维护一张表，当处理数据时，先检查表中是否有消息 unique id ，如果没有的话，就写入，并在这个事务中对数据进行处理，这样失败的时候，事务回滚，表中的消息 id 就自动被删除了。</p>
@@ -164,7 +164,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2026/09/26/重读-DDIA-Chapter-8-Transactions/" data-id="cmuijta2p00kemqjdb2ra5lx8" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2026/09/26/重读-DDIA-Chapter-8-Transactions/" data-id="cmuik1rch00ks88jdmvxwd14x" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
