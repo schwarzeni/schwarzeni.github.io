@@ -56,7 +56,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>223</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>224</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>75</strong><br>标签</div></a>
     </div>
@@ -95,6 +95,66 @@
 </div>
 
         <section id="main">
+
+<article id="post-从-extern-C-到跨语言调用" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/05/04/从-extern-C-到跨语言调用/" class="article-date">
+  <time class="post-time" datetime="2026-05-04T13:39:14.000Z" itemprop="datePublished">
+    <span class="post-month">5月</span><br/>
+    <span class="post-day">04</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2026/05/04/从-extern-C-到跨语言调用/">从 extern &#34;C&#34; 到跨语言调用</a>
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在对 librdkafka 的 pthread 切 bthread 改造时，由于 librdkafka 是 C 代码实现，而 bthread 是 C++ 代码实现，所以直接联编两者会报错，需要新增一层 wrapper ，使用 <code>extern &quot;C&quot;</code> 包裹。cr 的时候同事就问我，这个 <code>extern &quot;C&quot;</code> 有什么用，当时我回答这样就可以让 C 调用 C++ 代码了，但是进一步深究其原理时，我就答不上了。抽空专门让克劳德老师辅导我了一下。</p>
+        
+          <p class="article-more-link">
+            <a href="/2026/05/04/从-extern-C-到跨语言调用/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/05/04/从-extern-C-到跨语言调用/" data-id="cmulauiyp00b3isjfb4p46gdd" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
+
+    </footer>
+  </div>
+  
+  
+    
+</article>
+
+
+
 
 <article id="post-协程学习" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -141,7 +201,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmujuhrfp00cm1ojflxfmne1q" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2026/04/25/协程学习/" data-id="cmulauiyv00cgisjf353tbk0u" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/协程/">协程</a></li></ul>
@@ -201,7 +261,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2026/01/01/三十岁以前的往事（十五）：2025-年终总结/" data-id="cmujuhrfk00bf1ojfvd06x173" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2026/01/01/三十岁以前的往事（十五）：2025-年终总结/" data-id="cmulauiys00bsisjfv68bbhxy" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -261,7 +321,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/" data-id="cmujuhrv900um1ojfn91yqvun" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式无法选主问题介绍及止损方式研究/" data-id="cmulaujd800u3isjfmo8b6w3l" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
@@ -321,7 +381,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/" data-id="cmujuhreu006c1ojfqmkkhi9b" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/12/20/kafka-raft-模式下普通-broker-无法自动更新-voter-列表问题修复/" data-id="cmulauixz006fisjfxkzh4jvo" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
@@ -381,7 +441,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/12/13/kiro-聊天记录中模型的输出内容人工导出为-markdown-格式/" data-id="cmujuhrev006j1ojfok6acq37" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/12/13/kiro-聊天记录中模型的输出内容人工导出为-markdown-格式/" data-id="cmulauiy1006misjf1ghsis98" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/aicoding/">aicoding</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kiro/">kiro</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术/">技术</a></li></ul>
@@ -441,7 +501,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/" data-id="cmujuhrfh00au1ojfejiuot2b" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/11/06/三十岁以前的往事（十四）：工作后离p0事故最近的一次/" data-id="cmulauiyn00atisjfsf17ph0m" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/回忆录/">回忆录</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
@@ -501,7 +561,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/" data-id="cmujuhreu00681ojfv6lo7l4j" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/10/14/kafka-metadata-quorum-sh-describe-中的-CurrentObservers-更新不及时/" data-id="cmulauixz0068isjfkndv6cl3" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
@@ -561,7 +621,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/10/13/kafka-kraft-模式下元数据更新浅析/" data-id="cmujuhret00651ojfn1dvo6pn" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/10/13/kafka-kraft-模式下元数据更新浅析/" data-id="cmulauixy0065isjfplp4fegp" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
@@ -621,70 +681,10 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/" data-id="cmujuhrev006f1ojfwuirgnux" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2025/09/05/kafka-server-端数据压缩特性/" data-id="cmulauixz006cisjfi8p068mm" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kafka/">kafka</a></li></ul>
-
-    </footer>
-  </div>
-  
-  
-    
-</article>
-
-
-
-
-<article id="post-gdb-c-coredump-调试：查看指针和动态类型的值" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/" class="article-date">
-  <time class="post-time" datetime="2025-08-30T04:36:51.000Z" itemprop="datePublished">
-    <span class="post-month">8月</span><br/>
-    <span class="post-day">30</span>
-  </time>
-</a>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/">gdb c++ coredump 调试：查看指针和动态类型的值</a>
-    </h1>
-  
-
-        <div>
-          
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/技术/">技术</a>
-  </div>
-
-          
-              
-
-          
-        </div>
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>一般情况下，在调试 coredump 文件时，对于基础类型或者 struct ，可以直接 <code>print 变量</code> 来查看对应的值，但是如果为指针，或者更复杂的情况，是个动态类型，该如何查看呢？</p>
-        
-          <p class="article-more-link">
-            <a href="/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2025/08/30/gdb-c-coredump-调试：查看指针和动态类型的值/" data-id="cmujuhred004v1ojfzlpaefx9" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/c/">c++</a></li></ul>
 
     </footer>
   </div>
@@ -753,7 +753,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>223</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>224</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>75</strong><br>标签</div></a>
     </div>
