@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Elasticsearch 按字段聚合计数的问题 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="ai 生成的代码不能完全不看, 不了解的用法还得需要人工确认一下 …">
+<meta name="keywords" content="技术,Elasticsearch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch 按字段聚合计数的问题">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/09/29/Elasticsearch-按字段聚合计数的问题/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="ai 生成的代码不能完全不看, 不了解的用法还得需要人工确认一下 …">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2026-09-29T14:27:58.539Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Elasticsearch 按字段聚合计数的问题">
+<meta name="twitter:description" content="ai 生成的代码不能完全不看, 不了解的用法还得需要人工确认一下 …">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>225</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>76</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-Elasticsearch-按字段聚合计数的问题" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/09/29/Elasticsearch-按字段聚合计数的问题/" class="article-date">
+  <time class="post-time" datetime="2026-09-29T14:26:11.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">29</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Elasticsearch 按字段聚合计数的问题
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>ai 生成的代码不能完全不看, 不了解的用法还得需要人工确认一下 … </p>
+<a id="more"></a>
+<h2 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h2><p>建库 trace 使用 Elasticsearch 进行存储，包含如下字段</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"loc"</span>: <span class="string">"建库 key，一般为站点 url"</span>,</span><br><span class="line">	<span class="attr">"kafka"</span>: &#123;</span><br><span class="line">		<span class="attr">"topic"</span>: <span class="string">"数据所在的 kafka topic 名称"</span>,</span><br><span class="line">		<span class="attr">"timestamp"</span>: <span class="string">"数据写入 kafka topic 的时间"</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在希望统计过去 <code>1h</code> 内 <code>kafka_topic</code>  为 <code>vs_aiapi_baise_import</code> 的所有 loc 的出现次数，第一版是让 AI 来写的，查询表达式的样例为：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"> 	<span class="attr">"query"</span>: &#123;</span><br><span class="line">        <span class="attr">"bool"</span>: &#123;</span><br><span class="line">            <span class="attr">"filter"</span>: [</span><br><span class="line">                &#123;<span class="attr">"term"</span>: &#123;<span class="attr">"kafka.topic"</span>: NORMAL_TOPIC&#125;&#125;,</span><br><span class="line">                &#123;<span class="attr">"range"</span>: &#123;<span class="attr">"kafka.timestamp"</span>: &#123;<span class="attr">"gte"</span>: start_ms, <span class="attr">"lte"</span>: end_ms&#125;&#125;&#125;,</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">"aggs"</span>: &#123;</span><br><span class="line">    	<span class="attr">"by_loc"</span>: &#123;</span><br><span class="line">    		<span class="attr">"composite"</span>: &#123;</span><br><span class="line">    			<span class="attr">"size"</span>: COMPOSITE_SIZE,</span><br><span class="line">    			<span class="attr">"sources"</span>: [&#123;<span class="attr">"loc"</span>: &#123;<span class="attr">"terms"</span>: &#123;<span class="attr">"field"</span>: <span class="string">"loc"</span>&#125;&#125;&#125;]</span><br><span class="line">    		&#125;</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>含义还是比较好理解的，query 为查询条件，包含 topic 的名称和时间范围；aggs 为聚合的方式，是按照 loc 来进行聚合。服务上线后运行了一段时间都是没问题的，但是从今天上午开始就出现了执行超时的问题（60s）。</p>
+<p>先让 AI 分析了一下，给的初步结论为，es 在进行聚合前，会基于全量的 loc 生成额外的数据结构，而今天 loc 的整体量级相较于前面一段时间有较大的上涨，今天还没过半，整体的 loc 量级就比昨天一天的量级要多了（估计是有业务赶在国庆节前刷数据）。由于预期需要聚合的 topic 在过去 1h 内的 loc 数据不会很多（不超过 1w），所以就先改成了通过 scroll 的方式拉取过去 1h 的全量数据，然后由客户端对 loc 来进行聚合计数。做完这个调整后，基本 1s 之内就运行完毕了。</p>
+<p>不过 es 为什么会为 aggr 预先基于全量的数据生成额外的数据结构呢？正好节前事情不多，就研究了一下。</p>
+<h2 id="数据是如何存储的"><a href="#数据是如何存储的" class="headerlink" title="数据是如何存储的"></a>数据是如何存储的</h2><p>在回答这个问题之前，需要先明确 es 是如何对数据进行存储的。对于处理大批量数据的分布式系统，一般都会采用 shard 的方式来存储数据，每个 shard 存储一部分数据，在查询的时候会 merge 各个 shard 的结果。es 也是这样的，所以接下来分析的是一个 shard 中的数据。</p>
+<p>数据库对于数据的存储一般有两种方式，一种是面向高效读的结构，例如 B+ 树，在数据插入时成本较高，因为可能涉及叶子的分裂合并，另一种为面向高效写的结构，例如 LSM-Tree，数据以 append 的方式追加写，性能较好，但是在读的时候，由于一份数据可能包含了多个版本，需要进行 merge 操作，成本稍高。es 采用的是类似于后者的形式，当数据写入时，es 会先将数据缓存在内存中，定期 refresh 为一个新的 segment（当前设置为 70s），其中包含了写入数据的原始内容及相关的倒排索引。只有在生成 segment 后，数据才是可查询的。</p>
+<h2 id="需要解决的问题"><a href="#需要解决的问题" class="headerlink" title="需要解决的问题"></a>需要解决的问题</h2><p>假设当前有 seg0 - seg2 三个 segment，存储的结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">seg0 字典[v1, v2] , local ord: [0, 1, 0, 0] , 共四篇文档：v1, v2, v1, v1</span><br><span class="line">seg1 字典[v0, v1, v2, v3] , local ord: [3, 3, 0, 2, 2, 1, 3] , 共六篇文档：v3, v3, v0, v2, v2, v1, v3</span><br><span class="line">seg2 字典[v2] , local ord: [0] , 共一篇文档：v2</span><br></pre></td></tr></table></figure>
+<p>字典中存储的是相关索引的值去重后的有序集合，而 <code>local ord</code> 中记录的是原始文档对应的字典的 idx 信息。每个 segment 中还会包含其他的数据结构，但是这些和本次的分析无关，就不详细赘述了。</p>
+<p>需求为需要统计 v1 和 v2 的出现次数，应该怎么做？先假定，每个 segment 可访问的值都是数据的最新版本，因为前面提到过，通过追加写的方式会导致同一份数据有多个版本的问题，这里忽略这个问题。</p>
+<h3 id="简单的方式"><a href="#简单的方式" class="headerlink" title="简单的方式"></a>简单的方式</h3><p>一个简单的方式，就是先建一个 map 记录 value –&gt; count 的映射，然后遍历所有的 segment 经过 query 过滤后的 local ord ，依次统计各个 value 的出现次数：</p>
+<ul>
+<li><p>遍历 seg0 后，map 的结果为：<code>{&quot;v1&quot;: 3, &quot;v2&quot;: 1}</code></p>
+</li>
+<li><p>遍历 seg1 后，map 的结果为：<code>{&quot;v1&quot;: 4, &quot;v2&quot;: 3}</code></p>
+</li>
+<li><p>遍历 seg2 后，map 的结果为：<code>{&quot;v1&quot;: 4, &quot;v2&quot;: 4}</code></p>
+</li>
+</ul>
+<p>最后返回 <code>{&quot;v1&quot;: 4, &quot;v2&quot;: 4}</code> 作为聚合的结果。我后面修改的方案就是采用的这种方式，es 的 <code>execution_hint: &quot;map&quot;</code> 也是这种模式，只不过把 value –&gt; count 的生成逻辑放在了 server 端来进行</p>
+<p>这种方式存在的问题时，在遍历 segment 时，每次 count + 1 时都需要计算一次 value 的 hash ，这会耗费额外的 CPU 资源，如果需要统计的 value 量级过大，这个问题会变的明显。并且如果频繁进行查询时，之前的 hash 计算结果无法进行复用。另外如果 value 的量级较大，需要在内存中额外维护一份全量的 value 的 hash 值，成本也很高。</p>
+<h3 id="global-ordinals"><a href="#global-ordinals" class="headerlink" title="global_ordinals"></a>global_ordinals</h3><p>es 默认走的是另一种方式，就是一开始执行超时的模式 <code>global_ordinals</code> 。它的思路是先生成一个逻辑上的 shard 粒度的全量 value 列表，列表的 idx 就是这个 value 的 id，由于 es 的 segment 设置为 70s 生成一次，期间数据预期是不变的，所以在 70s 内的所有聚合操作都可以复用这个 shard 粒度的 value 列表。 </p>
+<p>首先 es 会对所有的 segment 的字典进行多路归并，生成如下映射：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">全局字典 [v0, v1, v2, v3] , global ord: [0, 1, 2, 3] </span><br><span class="line"></span><br><span class="line">seg -&gt; 全局</span><br><span class="line">	seg0: [1, 2]</span><br><span class="line">	seg1: [0, 1, 2, 3]</span><br><span class="line">	seg2: [2]</span><br><span class="line">	</span><br><span class="line">全局 -&gt; seg</span><br><span class="line">	0 -&gt; (seg1, 0)</span><br><span class="line">	1 -&gt; (seg0, 0)</span><br><span class="line">	2 -&gt; (seg0, 1)</span><br><span class="line">	3 -&gt; (seg1, 3)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>seg -&gt; 全局 ：在遍历 segment 的时候，根据这个映射来定位 segment 中的 value 在全局的 idx</p>
+</li>
+<li><p>全局 -&gt; seg ：使用全局的 idx 可以定位到对应的 value 。这里仅记录第一个包含这个 value 的 segment 及其内容的 idx 值</p>
+</li>
+<li><p>全局字典：逻辑概念，实际不生成，也即不会全局存储全量的 value 列表。是通过 全局 -&gt; seg 来表达的</p>
+</li>
+</ul>
+<p>在完成这个全局映射的生成后，接下来就开始正式的 query 及 aggr 了。如果后续查询时 shard 中的数据未变化，则可以直接复用之前生成的映射关系。本次仅对 v1 和 v2 进行聚合操作，所以在遍历时不涉及 v0 和 v3。</p>
+<p>首先初始化计数器 <code>[0, 0, 0, 0]</code> ，这里使用的是全局的 idx 。其中的 v1 和 v2 对应全局的 idx 为 1 和 2。计数器的长度和全局 value 的数量一致，所以对于不需要查询的 v0 和 v3 也会分别对应的位置。</p>
+<ul>
+<li><p>对于 seg0 ，遍历后计数器为<code>[0, 3, 1, 0]</code></p>
+</li>
+<li><p>对于 seg1 ，遍历后计数器为 <code>[0, 4, 3, 0]</code></p>
+</li>
+<li><p>对于 seg2 ，遍历后计数器为 <code>[0, 4, 4, 0]</code></p>
+</li>
+</ul>
+<p>最后基于 全局 -&gt; seg 的映射，查询计数器对应的 value ，返回结果 <code>{&quot;v1&quot;: 4, &quot;v2&quot;: 4}</code> 。期间对计数器的操作不涉及 hash 计算，节省了 CPU 资源。但是有一个问题是，如果整体的数据量过大，会导致生成全局映射这一阶段的执行耗时恶化，这也是一开始执行超时的原因。</p>
+<h2 id="有什么问题"><a href="#有什么问题" class="headerlink" title="有什么问题"></a>有什么问题</h2><p>上述方式为什么不适合我这种场景呢？主要原因有二，第一是，由于我的聚合任务是每隔 1h 跑一次，且统计的是最新 1h 的数据，所以上一小时预生成的全局数据及映射无法复用，因为 segment 的数据发生了变更（查询周期大于 segment 生成周期 70s ，以及持续有最新的数据写入）。第二是，根据 AI 统计，当前一个分片上的数据有 3e 左右，而我需要查询的数据划到单个分片，量级远比这个小，预期只有万级别。所以为了这小批量的数据，每次查询都要生成一个亿级别的数组，性价比太低。原先预生成数据的时间估计就比较长，但是执行时间没有超过预设的超时时间 60s ，所以没有被发现。这次是因为日级建库数据量上涨而暴露了。</p>
+<p>对于 <code>global_ordinals</code> 来说，适用的场景为对一份静态数据，针对同一批字段，进行 query 命中率高的高频的聚合查询。这样可以复用第一步生成的全局映射，且可以显著节省 CPU 的资源使用（内存用量会多，这个是 trade off）。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/09/29/Elasticsearch-按字段聚合计数的问题/" data-id="cmumrwzzv0011vojfi9m7abxr" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Elasticsearch/">Elasticsearch</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术/">技术</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/09/28/重读-DDIA-Chapter-10-Consistency-and-Consensus/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重读 DDIA : Chapter-10 Consistency and Consensus</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>225</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>76</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
