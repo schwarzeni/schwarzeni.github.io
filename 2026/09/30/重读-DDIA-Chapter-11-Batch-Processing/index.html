@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>重读 DDIA : Chapter-11 Batch Processing | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="领域逐渐熟悉，谈不上精通，但至少不会像前几章看的有点懵逼了，hh">
+<meta name="keywords" content="读书笔记,分布式,DDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读 DDIA : Chapter-11 Batch Processing">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/09/30/重读-DDIA-Chapter-11-Batch-Processing/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="领域逐渐熟悉，谈不上精通，但至少不会像前几章看的有点懵逼了，hh">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2026-09-30T13:09:23.440Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重读 DDIA : Chapter-11 Batch Processing">
+<meta name="twitter:description" content="领域逐渐熟悉，谈不上精通，但至少不会像前几章看的有点懵逼了，hh">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>226</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>76</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-重读-DDIA-Chapter-11-Batch-Processing" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/09/30/重读-DDIA-Chapter-11-Batch-Processing/" class="article-date">
+  <time class="post-time" datetime="2026-09-30T13:08:34.000Z" itemprop="datePublished">
+    <span class="post-month">9月</span><br/>
+    <span class="post-day">30</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      重读 DDIA : Chapter-11 Batch Processing
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>领域逐渐熟悉，谈不上精通，但至少不会像前几章看的有点懵逼了，hh</p>
+<a id="more"></a>
+<h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>批量处理，顾名思义就是一次性处理一批数据的技术，对应的系统称之为离线系统（offline systems），目前我所在的搜索建库离线架构组，负责的一部分工作就是维护数据批量处理的通路。批量处理的执行流程，其实在日常中经常使用到，流程为 <code>输入数据 -&gt; 逻辑1 -&gt; 逻辑2 .. -&gt; 产出数据</code>，其中产出数据不会覆盖输入数据，且各个逻辑一般均为幂等的。比如说需要分析一下一批日志中的请求 ip 的信息，列出请求数量最高的 ip ，一般就会用 Unix 管道将一批 CLI 命令串起来，样例为 <code>cat *.log.* | awk &#39;...&#39; | sort | uniq -c | sort -n | head -10</code> 。但是如果输入数据的量级较大，本地执行的耗时就长了，并且所需的计算资源单机也不能满足，此时就需要上分布式数据批量处理系统了，比如用 Hadoop 跑 MapReduce 任务。</p>
+<h2 id="分布式数据存储"><a href="#分布式数据存储" class="headerlink" title="分布式数据存储"></a>分布式数据存储</h2><p>之前的章节提到过，对于分布式系统来说，本质上就是协调分布在不同机器上的实例共同来共同执行任务。在本地通过 Unix 管道来处理数据时，上游进程写到管道中的数据是被缓存在系统内存中的，下游进程直接从内存中消费上游产出的数据。那么在切换至分布式系统时，上游任务产出的数据存哪儿呢？一种方式是存储在分布式文件系统中（Distributed Filesystem，DFS），例如使用 Hadoop 跑 MR 任务时使用的是 HDFS 。一些 DFS 实现了操作系统层面的 virtual filesystem（VFS），这样用户就可以通过 ls / cat 等命令，或者底层的 <code>fopen</code> / <code>fseek</code> ，来读取其中的文件。对于存储在磁盘上的文件，是按照 block 进行拆分存储在实际的存储设备上的，对于存储在 DFS 上的文件，也是被拆分为多个块，存储在不同的机器上，并且是多副本的，每一个块对应所在机器的信息，有统一的 metadata 系统来存储和管理，例如在 Hadoop 中叫 NameNode 。在我日常使用 HDFS 时，比较常用的还是通过 hadoop fs 命令，例如 <code>-ls</code> / <code>-get</code> / <code>-mkdir</code> , 等来管理 HDFS 上的文件。对于一些常用的目录，也会将其 mount 到物理机上，和普通的目录和文件一样通过 Linux 命令来查看和管理。</p>
+<p>另一种实现多机器共享文件数据的存储为对象存储（Object Stores），这种模式有点类型于 kv 存储，只不过支持存储 value 的量级较大，比如可以存视频 / 二进制 bin 等。对象存储数据的 key 一般可以通过添加 <code>/</code> 来实现类似于目录层级的风格。虽然在底层数据存储的方式上和 DFS 类似，都是将数据切切块进行分布式存储，但是在使用时，对象存储的数据一般是通过覆盖全部的值来进行修改的，而不能像 DFS 文件一样只改一部分，另外就是没法完全模拟目录，比如 ls 时是类似于普通的递归 ls ，以及没法表示单独的目录。</p>
+<p>就个人使用体感来说，在数据访问的场景，如果用 DFS ，需要用它指定的 client 来访问，比如 HDFS 需要使用 hadoop ，比较麻烦，但是如果是对象存储的话，数据可以直接通过 http 来访问，就是说直接通过 wget / curl 命令来下载即可。</p>
+<h2 id="任务执行与调度"><a href="#任务执行与调度" class="headerlink" title="任务执行与调度"></a>任务执行与调度</h2><p>除了产出数据的存储外，还需要一个系统来对计算进行调度，这个系统一般有这样几个组件：</p>
+<ul>
+<li><p>Task Executor ，部署在任务执行的机器上，用于管理实际任务的启停以及收集当前机器的资源信息，例如 k8s 的 kubelet</p>
+</li>
+<li><p>Resource Manager ，用于存储和管理机器的资源信息、任务执行状态、节点状态等信息，例如 k8s 是使用 etcd 来存储的</p>
+</li>
+<li><p>Scheduler ，用于基于当前的系统资源信息来调度任务的执行，并且执行为 app 定制调度的逻辑，例如 k8s 的 operator</p>
+</li>
+</ul>
+<p>对于任务的调度，一般是 NP-hard 的，所以常常会使用一些启发式（heuristic）的策略。“启发式” 的含义为，虽然不是数据最优解，但是可以在尽量短的时间内给出一个足够好的解。对于任务调度场景来说，调度时用于分析的参数，例如资源信息、任务状态，都是实时变化的，如果调度算法执行的慢，那么就会有类似于 “刻舟求剑” 的问题，尤其是如果需要调度的任务和执行任务的机器的量级非常大的情况下。一种比较有意思的解法是 Bin-packing（装箱算法），目标是将任务经量紧地装到机器中，其中 Best-fit 为将任务调度到剩余资源最接近的机器上，这样可以减少资源碎片；First-fit 为将任务调度到第一台满足其执行资源需求的机器上，这样调度速度快。另外还可以基于 Priority Queue 来做优先级调度，打分的方式有多种，例如等待时间越长优先级越高。</p>
+<p>在任务执行时，一般都是按照一个特定的 workflow 来执行，workflow 中各个节点产出的数据需要被下游节点接收，对于 MapReduce 来说，会将中间节点的处理结果写 DFS ，而对于 Spark 来说，会将其存在内存/文件中。我虽然对 Spark 没啥了解，但是看这里的描述，感觉像是假如一个 workflow 中的上下游任务是在一台机器上的话，那么就通过内存/本地文件来传递处理的数据，假如是在不同机器上的话，还是需要使用 DFS 的。</p>
+<p>目前搜索离线建库这边，在跑批量建库数据产出任务时，会使用一个叫做 compass 的系统，来执行由多个 MR 任务及脚本任务组成的 DAG 。这样做是因为数据处理的逻辑比较复杂，分了很多阶段，单独一个 MR 任务搞不定。不过正是由于拆了很多个阶段，就导致这些阶段产出的中间数据都需要存 HDFS ，需要使用大量的存储资源。25 年开始已经陆续将一部分库种的倒排索引构建部分的任务迁到了一个新的系统中，对于每一个分片的数据，数据处理 DAG 里的所有任务都会在一台机器上来执行，这样 DAG 中各个阶段产出的中间数据，如果没有特殊需求，都可以直接存在本地，这样可以极大节省 DFS 的资源。由于我没有具体负责这块系统，只是在对接建库业务时使用过，所以不太清楚具体的实现细节，只了解一个大概。</p>
+<h2 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h2><p>MapReduce 是一个比较经典的批量数据处理模式，一次 MapReduce 主要的流程如下：</p>
+<ul>
+<li><p>首先读取输入数据，然后特定的分割规则（一般是 \n）将数据进行拆分，形成一批分片</p>
+</li>
+<li><p>然后调用 mapper 函数，对各个分片进行处理，生成一批 key - value 键值对</p>
+</li>
+<li><p>接着根据特定的策略对 key 进行排序，并再次进行拆分，形成一批分片，一般相同的 key 在同一分片上（shuffle）</p>
+</li>
+<li><p>最后调用 reducer 函数，遍历分片上的 key-value 进行处理，产出最终的结果</p>
+</li>
+</ul>
+<p>一个比较有意思的使用场景为使用 MapReduce 比较两份量级较大的 url list 的 diff 。首先我们假定 url.list.A 在 HDFS 上的路径为 <code>/usr/build/iteration-A/*</code> ，url.list.B 在 HDFS 上的路径为 <code>/usr/build/iteration-B/*</code> ，两者都是一行一个 url 。</p>
+<p>接下来在 mapper 阶段，产出 key -value 的策略为，如果输入分片来自于路径 <code>/usr/build/iteration-A/*</code> ，则产出的数据为 <code>url \t A</code> ，否则为 <code>url \t B</code> 。这个路径的信息可以从环境变量 <code>map_input_file</code> 中获取。在对产出的数据进行排序时，我们要求排序的规则为，首先根据第一列进行排序，如果第一列的值相同，则根据第二列排：</p>
+<ul>
+<li><p><code>-D stream.num.map.output.key.fields=2</code> 指定产出数据的前几列作为 key ，这里是前两列</p>
+</li>
+<li><p><code>-D num.key.fields.for.partition=1</code> 指定基于前几列 key 来进行分片，这里为了让同一个 url 落在一个分片上，所以指定仅基于第一列 url 。</p>
+</li>
+<li><p><code>-D mapred.text.key.comparator.options=&quot;-k1,2&quot;</code> 指定基于哪几列 key 来排序，这里由于需要确保 url 相同时，A 在 B 的前面，所以需要将这两列都作为排序的参考。</p>
+</li>
+<li><p>设置使用的排序算法为 <code>-D mapred.output.key.comparator.class=org.apache.hadoop.mapred.lib.KeyFieldBasedComparator</code> ，指定分片策略为 <code>-partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner</code></p>
+</li>
+</ul>
+<p>此时假如原始 url 的样例数据为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">url.list.A</span><br><span class="line">url3</span><br><span class="line">url1</span><br><span class="line">url8</span><br><span class="line"></span><br><span class="line">url.list.B</span><br><span class="line">url1</span><br><span class="line">url2</span><br></pre></td></tr></table></figure>
+<p>则预期 reducer 输入的数据样例为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">url1	A</span><br><span class="line">url1	B</span><br><span class="line">url2	B</span><br><span class="line">url3	A</span><br><span class="line">url8    B</span><br></pre></td></tr></table></figure>
+<p>此时 reducer 的逻辑实现的就比较简单了，按行处理数据，如果当前的 url 和前一个 url 不一样（注意处理边界情况），则根据前一个 url 是否的第二列是否出现过 A 或 B 来判断是只在 A 或 B 中存在，还是都存在，为不同的情况打上不同的标签，比如说都存在用标签 C ，否则为 A 或 B，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">url1	#C</span><br><span class="line">url2	#B</span><br><span class="line">url3	#A</span><br><span class="line">url8	#A</span><br></pre></td></tr></table></figure>
+<p>最后为了便于查看，可以设置 <code>-outputformat org.apache.hadoop.mapred.lib.SuffixMultipleTextOutputFormat</code> ，这样会根据 <code>#</code> 后的值，将第一列放到不同的文件中，这样就可以按需下载了，文件名称样例为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">part-xxx-A</span><br><span class="line">part-xxx-B</span><br><span class="line">part-xxx-C</span><br></pre></td></tr></table></figure>
+<p>其实在日常使用中，用的特别多的场景主要是用 MR 来跑并行计算任务，在这种场景下，一般只有 Mapper ，没有 Reducer 。MR 任务支持将 shell 脚本，而非 jar 包，作为 mapper 来执行，通过 <code>hadoop streaming</code> 提交任务即可。其中一个常见的业务场景为，将建库任务产出到 HDFS 上的 url.list 作为 MR 的输入，在 mapper 中执行 rpc client 请求流式建库服务来重刷 url 数据。使用 MR 跑并发任务的一个好处是，不用自己去管理任务的执行状态，并且可以方便地通过 <code>-set-map-capacity</code> 参数来调整任务执行的并行度。我 22 年入职后第一次接触 MR 的任务，就是这种只有 mapper 的任务，用来做批量数据迁移。另外假如并行执行的任务需要处理的数据量较大且为 CPU 密集型的话，本地单机跑的速度肯定没有分布式跑的快。</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>书中还提到了 Dataflow Engines ，相较于 MapReduce ，业务在实现节点的业务逻辑时，不需要严格实现 mapper 和 reducer ，更灵活。并且和 MR 任务不同的是，数据处理的中间结果需要落 DFS ，而是一般可以通过内存/本地文件进行传递。对于本地数据的批量科学计算，可以使用 DataFrame 结构，它是一系列 row 的集合，对于这个集合的每一列，值的类型是相同的。</p>
+<p>数据批量处理的应用场景有很多，比如数据仓库中的 ETL（Extract-Transform-Load）、数据分析和机器学习。之前看《Database Internals》 的时候，了解到其实新索引的构建也算是 Batch Processing ，因为它是基于一个固定的全量数据来生成新的数据（索引），由于一开始就知道全集，所以在构建 B+树的时候，先对数据进行排序（一般是外部排序），然后就可以直接通过 Bottom-Up ，自底向上构建树结构，避免频繁地页分裂。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/09/30/重读-DDIA-Chapter-11-Batch-Processing/" data-id="cmuo4gryy00k5j9jfbfkape6v" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/09/29/Elasticsearch-按字段聚合计数的问题/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Elasticsearch 按字段聚合计数的问题</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>226</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>76</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
