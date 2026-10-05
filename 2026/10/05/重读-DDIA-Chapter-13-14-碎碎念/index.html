@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>重读 DDIA : Chapter-13 &amp; 14 &amp; 碎碎念 | Schwarzeni&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="完结撒花 ~">
+<meta name="keywords" content="读书笔记,分布式,DDIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读 DDIA : Chapter-13 &amp; 14 &amp; 碎碎念">
+<meta property="og:url" content="http://blog.schwarzeni.com/2026/10/05/重读-DDIA-Chapter-13-14-碎碎念/index.html">
+<meta property="og:site_name" content="Schwarzeni&#39;s blog">
+<meta property="og:description" content="完结撒花 ~">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2026-10-05T04:53:57.726Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="重读 DDIA : Chapter-13 &amp; 14 &amp; 碎碎念">
+<meta name="twitter:description" content="完结撒花 ~">
+  
+    <link rel="alternate" href="/atom.xml" title="Schwarzeni&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/images/favicon.ico">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- <link rel="stylesheet" href="/plugin/bganimation/bg.css"> -->
+  
+
+  <link rel="stylesheet" href="/third-party/powerful-sidebar-util/powerful-sidebar-util.css">
+
+  <!-- add plugin for gittalk -->
+  <link rel="stylesheet" href="/third-party/gittalk/gittalk.css" type="text/css">
+</head>
+
+<body>
+	<style>
+		.main-folder {
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			background-image: url("/blog/images/folder-pic.jpg") ;
+			background-size: 100%;
+			z-index: 100;
+	
+		}
+	</style>
+			<!--<div id="container" style="display: none"> -->
+		<!--	<div class="main-folder" id="main_folder"> -->
+		<!--	</div> -->
+	<div id="container">
+    <div id="wrap" style="min-height:100%">
+			<div class="outer">
+        <div class="widget-wrap mobile-header">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>228</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>76</strong><br>标签</div></a>
+    </div>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+        <section id="main"><article id="post-重读-DDIA-Chapter-13-14-碎碎念" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/10/05/重读-DDIA-Chapter-13-14-碎碎念/" class="article-date">
+  <time class="post-time" datetime="2026-10-05T04:53:10.000Z" itemprop="datePublished">
+    <span class="post-month">10月</span><br/>
+    <span class="post-day">05</span>
+  </time>
+</a>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      重读 DDIA : Chapter-13 &amp; 14 &amp; 碎碎念
+    </h1>
+  
+
+        <div>
+          
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+  </div>
+
+          
+              
+
+          
+        </div>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>完结撒花 ~</p>
+<a id="more"></a>
+<h2 id="Chapter-13-A-Philosophy-of-Streaming-Systems"><a href="#Chapter-13-A-Philosophy-of-Streaming-Systems" class="headerlink" title="Chapter 13 - A Philosophy of Streaming Systems"></a>Chapter 13 - A Philosophy of Streaming Systems</h2><p>这一章读的比较吃力 …</p>
+<p>当一个业务足够复杂时，光看单一系统无法满足需求，依赖多个异构系统进行联动来完成。这种情况常常出现，因为对于一项技术来说，它一般是用于解决一个或几个特定场景下的问题的，就算是声称为 “泛用” 的系统，也会有其不适用的场景。</p>
+<p>对于这类复杂的异构系统，首先需要明确其中的 dataflow，重点为各个子系统数据的输入和输出，以及假如有状态的数据分散在各个存储系统中时，需要明确谁是根源，谁是从根源衍生出来的。如果系统中是通过流式处理来连接各个系统的话，那么就会涉及到异步处理，而对于异步处理来说，是存在延时的，也就是说系统中各个部分的数据会出现短暂的不一致。另外可能还会出现处理的时序性问题，也即一组对于数据的操作在逻辑上是有先后顺序的，但是在异步处理时这个顺序乱掉了。</p>
+<p>明确系统中一个子系统的数据是由另一个子系统衍生出来的，有一个好处是方便进行系统升级。也即在升级系统时，由于下游系统的数据由上游系统衍生，所以无需修改上游系统，只用额外再衍生出一路数据给新系统使用，然后在迁移期间保留两路衍生数据及其系统，便于在新系统有问题的时候切回老系统。</p>
+<p>在系统中，各个子模块一般都是无状态的，由数据库来对数据状态来进行管理。在使用 dataflow 串联整个数据处理流程时，需要重点注意保序和容错（是否有重试 &amp; 是否可重试），否则会导致数据处理的整体状态异常。</p>
+<p>对于一条数据整体的处理链路，包含写路径和读路径，而 derived 数据就是两者的交汇点，写入的数据状态最终反应在 derived 数据上，而读的数据最终的数据源也是来自于为读场景特化的 derived 数据。为了降低其中一条路径的执行成本，另一个路径的成本会上升，比如说使用 B+ 树存储的数据，在写入时需要调整数据结构，成本相对较高，但是查询的时候速度快。</p>
+<p>对于 Web 应用，当前有一些新的技术，比如说 SSE（server-send event）和 WebSocket ，可以在读路径上，让 client 实时感知到数据的变化，而无需进行刷页面的操作。通过 SPA （single-page application），页面渲染的操作也可以由纯前端来完成，甚至可以支持在断网的情况下继续运行。</p>
+<p>数据在系统中有两个特性需要重点关注，分别为 正确性（integrity）和时效性（timeliness）。对于流式异步处理的系统，一般情况下都会有一定的时效性问题，也即从外部触发了系统内部数据状态的变更，但是在读取时，需要过一段时间才能完全生效。不过相较于时效性，如果数据的正确性有问题，那是不可接受的。需要注意的是，在有一些业务场景下，也会有短暂的正确性问题，但是后续也会进行校准，例如超卖。</p>
+<p>在生成流式系统的请求时，可以为这个请求生成一个唯一的 id ，这样在整个数据链路上为了处理数据而使用的所有事务都可以和这个 id 进行关联，以避免在为了保证 exactly-once 或 at-least-once 进行重试时，重复执行相同的事务导致数据状态异常。另外对于可能存在写冲突的一系列操作，可以通过某种方式 hash 到同一个流式队列分片上，以实现串行执行规避写冲突的问题。特别需要注意，系统可能会有未知的 bug ，所以需要做好数据正确性校验，比如存储介质上的数据要做完整性校验，例如使用 Merkle Tree 。</p>
+<h2 id="Chapter-14-Doing-the-Right-Thing"><a href="#Chapter-14-Doing-the-Right-Thing" class="headerlink" title="Chapter 14 - Doing the Right Thing"></a>Chapter 14 - Doing the Right Thing</h2><p>本章讨论的核心点为数据的伦理（ethics）。</p>
+<p>全书讨论的 “数据密集型应用” ，核心就是处理大批量的数据，而这部分数据主要产生于用户，而处理目的为基于这些数据，自动化地完成对于用户，也即人，的判断。基于用户过去的种种行为对其进行预测，有点类似于《心理测量师》中的剧情。但问题是预测算法得出的结果常常是无法解释的，并且大部分都是基于概率来生成的结果。基于概率生成的结果，从整体的分布上看就算是正确的，但是落到个例上看结果可能是相反的。另外一个问题是，这种方式会放大过去所造成的影响，例如会基于 feedback loop 会产生信息茧房（echo chamber）。</p>
+<p>这些数据的来源是用户，此时就涉及到隐私的问题。用户可以免费使用系统并且被成迷。系统记录用户的数据主要用于广告赞助，而非用户本身。用户不是被服务，而是被监视（surveillance）。但之所以大部分用户对这种监视行为不反感，一个原因是其带来的负面效果相对温和，感知不到危害性。一些服务虽然有隐私使用说明，并且用户可以拒绝，但是代价为无法使用这些服务，如果这些服务，例如搜索引擎和社交网络，是被周围人所常用的，那么和放弃自己隐私数据所带来的后果相比，不使用这些服务带来的影响更大（比如不能不用微信支付宝）。</p>
+<p>当前个人数据隐私问题，就跟工业革命时的环境污染/劳工权益相似，是需要解决的问题，虽然会影响企业的收益，但是对人类社会整体来说是正向的。</p>
+<h2 id="碎碎念"><a href="#碎碎念" class="headerlink" title="碎碎念"></a>碎碎念</h2><p>回想起来，今年应该算是我正式入门后端代码开发的第十年。</p>
+<p>2016 年下半年，也就是大二上学期，因为当前 Web 前端非常火，想跟风学一下，就报了极客学院的一个在线训练营，这个训练营虽然课程内容不咋地，但是整体的学习路径安排还是挺不错的，除了涉及前端 HTML &amp; CSS &amp; JS ，在后半段还涉及到了 PHP &amp; Node.JS 后端服务开发，在跟着学完了整个课程后，对 Web 前端 -&gt; Web 后端 -&gt; 数据库 整个数据联动的流程有了一个初步的了解。</p>
+<p>在后端开发领域，后续还学习了 Python、Java 和 Golang 及它们的 Web 开发框架，例如 Flask、Spring 和 Gin ，并且用它们作为工具开发了一些有意思的项目，例如下载各大视频网站视频的工具。借着安卓开发选修课的契机，翻完了一本安卓开发教程把相关的基础开发知识学了一遍。对于 Web 前端开发，后续还学习了当时特别流行的三大开发框架 Angular、React 和 Vue ，并且还尝试用 React Native 和 Tario 这种基于 Web 技术的跨端开发框架做了几个 demo 的安卓 APP 。</p>
+<p>当时在学这些知识的时候并没有特别功利，比如说学这些知识是为了找好工作，只是单纯地觉得这些技术非常非常有意思，我特别享受在 IDE 里编码的时候，输入 <code>.</code> 后从 IDE 弹出的菜单中选择补全内容按回车时候的感觉，以及最后程序正确运行时，不论是在浏览器界面中展现出的图案，还是终端命令行中打印出的日志，看着内心就特别的爽。我也特别喜欢在了解一项新技术时，以一个具体的样例实现为目标，翻资料搜文档，学习相关的知识，查 Google 抄 StackOverflow 上的答案解决编码编译运行时遇到的问题。</p>
+<p>到了 2018 - 2019 年，接着学习 Golang 的契机，了解到了 Docker 容器技术。当时感觉这种部署方式真的是太优雅了，在部署程序的时候无需关心相关环境的配置，在删除程序时也无需关心各种残留。当时学校里学习数据库课程时，要求安装 Oracle 数据库，其它同学用 Windows 电脑进行本地安装的时候一大堆的问题，我在网上找了一个 Oracle 的 Docker 镜像，很快就安装运行起来的，没遇到啥问题，其中花费最长的时间就是镜像文件的下载。后续在学习后端开发技术中使用到的各种服务依赖，例如 MySQL、MongoDB、Redis 等，我都是通过 Docker 来部署的，需要的时候启动容器，不需要的时候直接 stop ，特别方便。在做本科毕设的时候，做的系统里的所有组件我都打包成了 Docker 镜像，然后通过 docker-compose 来启动，特别方便。</p>
+<p>2019 年研究生入学前的那个暑假，导师建议我了解一下 k8s ，这个是相较于 docker-compose 更进一步的容器编排技术，加了很多更上层的抽象，例如 Deployment、ReplicaSet 等，算是我接触到了第一个真正意义上的分布式系统，本科接触的 MySQL、MongoDB 之类的我用的都是的单机版本，但是 k8s 我是真的搞了多个虚拟机来部署 kubelet 实例以组成一个集群。我找了一本介绍 K8S 的书 《Kubernetes in Action》来学习，现在还记得这本书是七牛云团队的人翻译的。在这段时间里我还学习了《自己动手写 Docker》，了解到其实容器也是普通的进程，只不是使用到了一些 Linux 系统的特性，实现了资源的隔离。导师让我了解 k8s 的原因，一来是他有一个校企合作的项目使用到了 k8s ，需要他的学生参与，另一个原因是他的研究方向之一是边缘计算的场景，想看看能否应用容器技术来解决一些问题。对于前者，后面我确实参与协助解决了一些在部署和使用 k8s 中遇到的问题，对于后者，由于我后面发现自身对科研没啥兴趣，所以最后也没搞出啥成果。</p>
+<p>到了 2021 年，研二，身边的同学们都开始找实习了。一开始我想的是找和容器技术相关的岗位，当时想着云技术这块国内是阿里云最 nb ，所以就投了阿里云的容器方向的岗位，但不幸的是一面就挂了 … 我到现在都没想太明白为啥会被挂，因为后续在面试字节跳动和腾讯的时候，我觉得我回答的可能都没面阿里的时候要好，但是后两者都通过了。实习去的是字节跳动，不过从事的工作和容器没啥关系。后续在秋招的时候还是想尝试往容器方向转，但是因为那段时间有点成迷游戏，没有认真准备，导致面阿里云的时候在二面挂了。后续就不限定职位需要是容器方向了，后端开发的岗位我都 ok 。第二个是面的百度并通过了，我从本科阶段就听说百度的技术非常 nb ，是技术界的“黄埔军校”，所以就想着先进去历练几年，婉拒了当时字节跳动的 mentor 让我留下或者内推到别的岗位的建议，接了百度的 offer 。</p>
+<p>从 2022 年正式入职百度，所属的小组负责的是搜索离线架构，从此算是真正开始接触分布式系统和大规模数据处理技术。比较幸运的是，我需要接手的 MongoDB 和 Kafka 都是分布式系统的典型实现，在运维和改造系统本身以及为其做一些周边基础设施建设的过程中，对副本、分片、存储等概念有了一个具体的理解。原先只负责阿拉丁离线业务，承接这类业务的架构主要为流式处理架构，也即通过 Kafka 作为消息中间件串联各个架构模块完成数据处理。另一件比较幸运的事情是，随着 23 年和北京搜索部门的合并，开始接触到批量处理架构以及批流融合处理模式，了解了一些批流融合处理的技巧，也熟悉了 Hadoop MapReduce 和 HDFS 技术的使用。</p>
+<p>让我感到惊喜的是，之前学习的 Web 开发技术和容器技术，也不时地在工作中用到。在为组里维护的系统做一些周边技术设施建设时，尝尝需要搞一个 Web 服务来展示一些数据以及支持做一些操作。在 AI Coding 时代来临前，还是需要手挫代码的，由于我对 Web 开发特别熟悉，所以做这些小系统是手到擒来的。为了准备实习校招背的 Golang 协程实现原理，为我后面处理 C++ librdkafka 库线程数创建过多提供了非常重要的解决思路。公司的 PaaS 平台，虽然没有直接使用 K8S ，但是用到了和容器技术会使用到的底层技术，例如 cgroups ，所以在使用这个平台部署服务时，我也非常快地理解了平台的相关概念，快速上手。另外组内也支持外部业务在我们维护的平台部署定时任务和 Service 任务，这都是基于公司的 k8s 平台封装的，我刚接触的时候几乎无需进行额外的学习，就可以帮助业务排查服务部署的问题。</p>
+<p>现在在百度工作也有四年多了。当前随着 AI 的兴起，对搜索业务的冲击非常大，置身事内，明显感知到的一点是存量业务报问题的次数持续减少，之前打过交道的业务同学要么离职要么转岗，比如说我从 23 年开始接手的汉语垂类业务，原先对接的产研 RD 和策略 RD 目前都离职了。当业务持续萎缩，那么支撑它的架构的重要性可能也就没有那么高了（或许我也应该考虑跑路了？）。后续想花一段时间补一下和 AI 相关的数据处理技术知识，如果真要跑路的话，看下能否换个和 AI 靠的近一些的后端架构方向。</p>
+<p>我依然愿意相信，大规模数据处理技术在 AI 时代依旧重要，并且其中涉及的底层技术的研发和维护是 LLM 不可替代的，或者至少需要人进行参与协同，这也是我选择重新学习一遍《DDIA》的目的，想再强化一下这个领域相关知识的了解。23 年的时候我已经读过一次，但是当时感触不大。本次再读，看到其中涉及到的一些知识点，脑海中立刻复现出了之前工作学习中的种种细节，这是一种挺奇妙的体验，后续有机会的话还会重新再读，经典的书籍常读常新。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.schwarzeni.com/2026/10/05/重读-DDIA-Chapter-13-14-碎碎念/" data-id="cmuuryy0l00rik29kmrm9p675" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DDIA/">DDIA</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/读书笔记/">读书笔记</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/10/02/重读-DDIA-Chapter-12-Stream-Processing/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">重读 DDIA : Chapter-12 Stream Processing</div>
+    </a>
+  
+</nav>
+
+  
+  
+    
+    <script src="/third-party/gittalk/gittalk.min.js"></script>
+    <script src="/third-party/gittalk/md5.min.js"></script>
+    <div id="gitalk-container"></div>
+    <script>
+    var gitalk = new Gitalk({
+      clientID: '18bc624fc12c1f06fdd3',
+      clientSecret: '3f7d7806ef813726f3f930b554f3ed5a12af9a25',
+      repo: 'schwarzeni.comment.github.io',
+      owner: 'schwarzeni',
+      admin: ['schwarzeni'],
+      id: md5(location.pathname),      // Ensure uniqueness and length less than 50
+      distractionFreeMode: false  // Facebook-like distraction free mode
+    })
+
+    gitalk.render('gitalk-container')
+    </script>
+    
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <h1 class="blog-title">Schwarzeni&#39;s blog</h1>
+    <h2 class="blog-subtitle">Welcome to my secret garden</h2>
+    <ul class="blog-link">
+     
+          <a href="/" title="Home">
+            <li>主页</li>
+          </a>
+        
+          <a href="/archives" title="Archives">
+            <li>归档</li>
+          </a>
+        
+          <a href="/categories" title="Categories">
+            <li>分类</li>
+          </a>
+        
+          <a href="/tags" title="Tags">
+            <li>标签</li>
+          </a>
+        
+          <a href="/plans" title="足迹">
+            <li>足迹</li>
+          </a>
+        
+          <a href="/about" title="About">
+            <li>关于</li>
+          </a>
+        
+          <a href="/works/leetcode-binarytree-edit/" title="LC 二叉树">
+            <li>LC 二叉树</li>
+          </a>
+        
+    </ul>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title"></h3>
+  <div class="widget">
+    <img class="avatar" src="/images/avatar.png">
+    <h2 class="author">Schwarzeni</h2>
+    <h3 class="description"></h3>
+    <div class="count-box">
+      <a href="/archives"><div><strong>228</strong><br>文章</div></a>
+      <a href="/categories"><div><strong>7</strong><br>分类</div></a>
+      <a href="/tags"><div><strong>76</strong><br>标签</div></a>
+    </div>
+
+
+
+    <div class="social-link">
+      
+        <a class="hvr-bounce-in" href="http://github.com/schwarzeni" target="_blank" title="Github">
+          Github
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://space.bilibili.com/21884414" target="_blank" title="Bilibili">
+          Bilibili
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://music.163.com/#/user/home?id=259848766" target="_blank" title="网易云音乐">
+          网易云音乐
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://bangumi.tv/user/547268" target="_blank" title="Bangumi">
+          Bangumi
+        </a>
+      
+    </div>
+
+    <div class="friend-link">
+      <h2>友情链接</h2>
+      
+        <a class="hvr-bounce-in" href="https://blog.csdn.net/nzyalj" target="_blank" title="旧博客">
+          旧博客
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://qwqaq.com/" target="_blank" title="QWQAQ">
+          QWQAQ
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://geektutu.com/" target="_blank" title="极客兔兔">
+          极客兔兔
+        </a>
+      
+        <a class="hvr-bounce-in" href="https://hj24.life/" target="_blank" title="hj24">
+          hj24
+        </a>
+      
+    </div>
+  </div>
+</div>
+
+  
+</aside>
+
+        
+      </div>
+      
+    </div>
+    
+
+<script src="/third-party/wow/jquery.min.js"></script>
+<script src="/third-party/wow/wow.min.js"></script>
+<script>
+new WOW().init();
+</script>
+<!-- 修改浮动小按钮 -->
+<script src="/third-party/powerful-sidebar-util/lib/axios.min.js"></script>
+<script src="/third-party/powerful-sidebar-util/powerful-sidebar-util.js"></script>
+
+
+  <link rel="stylesheet" href="/plugin/fancybox/jquery.fancybox.css">
+  <script src="/plugin/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+  <link rel="stylesheet" href="/plugin/galmenu/GalMenu.css">
+  <script src="/plugin/galmenu/GalMenu.js"></script>
+  <div class="GalMenu GalDropDown">
+      <div class="circle" id="gal">
+        <div class="ring">
+          
+            <a href="/" title="" class="menuItem">首页</a>
+          
+            <a href="/tags" title="" class="menuItem">标签</a>
+          
+            <a href="/categories" title="" class="menuItem">分类</a>
+          
+            <a href="/archives" title="" class="menuItem">归档</a>
+          
+            <a href="/about" title="" class="menuItem">关于</a>
+          
+        </div>
+        
+          <audio id="audio" src="#"></audio>
+        
+      </div> 
+</div>
+<div id="overlay" style="opacity: 1; cursor: pointer;"></div>
+  <script type="text/javascript">var items = document.querySelectorAll('.menuItem');
+    for (var i = 0,
+    l = items.length; i < l; i++) {
+      items[i].style.left = (50 - 35 * Math.cos( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%";
+      items[i].style.top = (50 + 35 * Math.sin( - 0.5 * Math.PI - 2 * (1 / l) * i * Math.PI)).toFixed(4) + "%"
+    }</script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('body').GalMenu({
+      'menu': 'GalDropDown'
+    })
+  });
+</script>
+
+  <!-- <section class="hidden-xs"> 
+  <ul class="cb-slideshow"> 
+    <li><span>我</span></li> 
+    <li><span>永</span></li> 
+    <li><span>远</span></li> 
+    <li><span>喜</span></li> 
+    <li><span>欢</span></li> 
+    <li><span>02</span></li> 
+  </ul>
+</section> -->
+
+<script src="/js/script.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-155992609-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-155992609-1');
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+
+  </div>
+	<script>
+	/*
+		var host = "localhost:4000"
+		var mainPageUrl = "http://" + host +"/blog";
+		var $folder = document.getElementById('main_folder');
+		var $main = document.getElementById('wrap');
+		var $container = document.getElementById('container');
+		if ( document.referrer.includes(host) || !(window.location.href === mainPageUrl || window.location.href === mainPageUrl + "/")) {
+			$folder.style.display = "none";	
+		} else {
+			$main.style.display = "none";
+		}
+		$container.style = "";
+		document.getElementById('go_to_main_page').onclick = function() {
+			$folder.style.display = "none";	
+			$main.style = "";
+		}
+*/
+	</script>
+</body>
+</html>
