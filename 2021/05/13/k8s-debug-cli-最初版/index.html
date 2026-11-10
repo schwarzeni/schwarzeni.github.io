@@ -15,7 +15,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/showcase.gif">
 <meta property="og:image" content="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/arch.png">
-<meta property="og:updated_time" content="2021-05-13T04:59:59.283Z">
+<meta property="og:updated_time" content="2021-05-13T04:59:59.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="k8s debug cli 最初版">
 <meta name="twitter:description" content="一次偶然的机会看到了这篇文章 《简化 Pod 故障诊断: kubectl-debug 介绍》，感觉这个实现挺有意思的，准备自己实现一个。这里借鉴了文章中工具的大体设计思路以及获取容器 ID 的方式，其他的大体都是自己思考和实现的，同时，实现的功能比较粗糙，比如诊断容器写死为 busybox、只能进入 exec -it 风格的交互模式等、数据传输过程未加密、执行加入 Pod 中第一个容器的命名空间、">
@@ -64,7 +64,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>228</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>229</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>76</strong><br>标签</div></a>
     </div>
@@ -105,7 +105,7 @@
         <section id="main"><article id="post-k8s-debug-cli-最初版" class="wow slideInRight article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/05/13/k8s-debug-cli-最初版/" class="article-date">
-  <time class="post-time" datetime="2021-05-13T04:58:14.000Z" itemprop="datePublished">
+  <time class="post-time" datetime="2021-05-13T12:58:14.000Z" itemprop="datePublished">
     <span class="post-month">5月</span><br/>
     <span class="post-day">13</span>
   </time>
@@ -242,7 +242,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/" data-id="cmuuryxt70061k29k3li1cnog" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2021/05/13/k8s-debug-cli-最初版/" data-id="cmwaw3pk10061vlsvbaza6et1" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
@@ -344,7 +344,7 @@
     <h2 class="author">Schwarzeni</h2>
     <h3 class="description"></h3>
     <div class="count-box">
-      <a href="/archives"><div><strong>228</strong><br>文章</div></a>
+      <a href="/archives"><div><strong>229</strong><br>文章</div></a>
       <a href="/categories"><div><strong>7</strong><br>分类</div></a>
       <a href="/tags"><div><strong>76</strong><br>标签</div></a>
     </div>
