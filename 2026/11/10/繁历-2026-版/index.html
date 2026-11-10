@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="Schwarzeni&#39;s blog">
 <meta property="og:description" content="纯手写，非 ai 生成，可以放心食用 ~">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2026-11-10T15:19:34.000Z">
+<meta property="og:updated_time" content="2026-11-10T17:03:20.516Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="繁历 - 2026 版">
 <meta name="twitter:description" content="纯手写，非 ai 生成，可以放心食用 ~">
@@ -137,219 +137,161 @@
       
         <p>纯手写，非 ai 生成，可以放心食用 ~</p>
 <a id="more"></a>
-<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>简历详见 <a href="https://blog.schwarzeni.com/works/resume/resume_2026.pdf">resume_2026</a></p>
+<h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>简历详见 <a href="https://blog.schwarzeni.com/works/resume/resume_2026.pdf">resume_2026</a></p>
 <p>简历的内容力求简洁且突出重点，但是其中涉及到的和项目相关的信息，缺失了不少细节，在本文中进行补充。每一节的「概览」部分是一个相对简要的介绍，简历中的项目经历就是基于这个做了更进一步的精简生成的，每一节的后续部分会介绍一些细节内容。</p>
 <p>另外，这里仅列举一些我觉得可以拿的上台面的工作，还有很多杂活脏活累活没法列在简历上。如果对我过往工作经历感兴趣的话，可以翻一翻博客中这个 <a href="https://blog.schwarzeni.com/categories/%E5%9B%9E%E5%BF%86%E5%BD%95/">tag 回忆录</a> 和这个 <a href="https://blog.schwarzeni.com/categories/%E6%8A%80%E6%9C%AF/">tag 技术</a> 下的相关文章。</p>
-<h1 id="C-Kafka-客户端-librdkafka-线程数优化"><a href="#C-Kafka-客户端-librdkafka-线程数优化" class="headerlink" title="C++ Kafka 客户端 librdkafka 线程数优化"></a>C++ Kafka 客户端 librdkafka 线程数优化</h1><p>2025 Q4 - 2026 Q1 , 独立负责</p>
-<h2 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h2><ul>
-<li><p>【背景】：搜索离线建库新架构模式下，流式实时更新的数据会写到 Kafka 中，倒排索引服务会订阅 Kafka 来完成数据生效。AIAPI 业务使用的 Kafka 规模较大，最大集群的 broker 数为 433 。</p>
-</li>
-<li><p>【问题】：Kafka 上下游服务均使用 C++ 实现，使用 librdkafka 库和 Kafka 集群进行交互，在接入 AIAPI 业务时，出现了线程数异常上涨的问题。假设 Kafka broker 数为 n 。对于写服务，每新增一个 Topic ，线程数稳定上涨 n 左右。对于读服务，线程数稳定上涨 4n 左右。服务均为云原生部署，超过了容器线程的上限，导致服务异常，影响 AIAPI 业务接入。</p>
-</li>
-<li><p>【分析】：librdkafka 的内部实现中，对于每一个客户端，会为每一个 broker 都创建一个线程。对于写服务，每新增一个 Topic 都会新建一个 librdkafka 客户端，所以每次线程数都会上涨 n 个左右。对于读服务，内部采用双 buffer ，每个 buffer 会新建两个 librdkafka 客户端，所以每次会上涨 4n 左右。</p>
-</li>
-<li><p>【方案】</p>
-<ul>
-<li><p>【线程懒加载 - 特定场景】读服务的问题是最先暴露的。读服务的特点为，每个服务实例只会读 Kafka 两个 Topic 的特定单个分片，也即整体只会读 2 个分片的数据，对应 2 个 broker。针对此特性，对 librdkafka 代码进行改造，仅在需要请求指定 broker 时，对应 broker 线程才会创建。</p>
-</li>
-<li><p>【线程切协程 - 彻底解决】写服务的问题随着 Topic 接入的增加，晚了一个 Q 暴露。写服务的特点为，会向 Topic 的所有分片写数据，所以线程懒加载不适用。针对此特性，考虑到此为 IO 密集型场景，将 librdkafka 使用的 pthread 切为 bthread（协程）。</p>
-</li>
+<h2 id="C-Kafka-客户端-librdkafka-线程数优化"><a href="#C-Kafka-客户端-librdkafka-线程数优化" class="headerlink" title="C++ Kafka 客户端 librdkafka 线程数优化"></a>C++ Kafka 客户端 librdkafka 线程数优化</h2><p>2025 Q4 - 2026 Q1 , 独立负责</p>
+<h3 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h3><ul>
+<li>【背景】：搜索离线建库新架构模式下，流式实时更新的数据会写到 Kafka 中，倒排索引服务会订阅 Kafka 来完成数据生效。AIAPI 业务使用的 Kafka 规模较大，最大集群的 broker 数为 433 。</li>
+<li>【问题】：Kafka 上下游服务均使用 C++ 实现，使用 librdkafka 库和 Kafka 集群进行交互，在接入 AIAPI 业务时，出现了线程数异常上涨的问题。假设 Kafka broker 数为 n 。对于写服务，每新增一个 Topic ，线程数稳定上涨 n 左右。对于读服务，线程数稳定上涨 4n 左右。服务均为云原生部署，超过了容器线程的上限，导致服务异常，影响 AIAPI 业务接入。</li>
+<li>【分析】：librdkafka 的内部实现中，对于每一个客户端，会为每一个 broker 都创建一个线程。对于写服务，每新增一个 Topic 都会新建一个 librdkafka 客户端，所以每次线程数都会上涨 n 个左右。对于读服务，内部采用双 buffer ，每个 buffer 会新建两个 librdkafka 客户端，所以每次会上涨 4n 左右。</li>
+<li>【方案】<ul>
+<li>【线程懒加载 - 特定场景】读服务的问题是最先暴露的。读服务的特点为，每个服务实例只会读 Kafka 两个 Topic 的特定单个分片，也即整体只会读 2 个分片的数据，对应 2 个 broker。针对此特性，对 librdkafka 代码进行改造，仅在需要请求指定 broker 时，对应 broker 线程才会创建。</li>
+<li>【线程切协程 - 彻底解决】写服务的问题随着 Topic 接入的增加，晚了一个 Q 暴露。写服务的特点为，会向 Topic 的所有分片写数据，所以线程懒加载不适用。针对此特性，考虑到此为 IO 密集型场景，将 librdkafka 使用的 pthread 切为 bthread（协程）。</li>
 </ul>
 </li>
-<li><p>【收益】</p>
-<ul>
-<li><p>解决了 AIAPI 业务接入阻塞的问题</p>
-</li>
-<li><p>读服务维护方反馈使用的线程数明显下降，线上单实例整体线程数从近 2000 下降至 300 以下。</p>
-</li>
-<li><p>写服务维护方反馈使用的线程数明显下降，线上单实例线程数 4006 -&gt; 82 。</p>
-</li>
-<li><p>线程懒加载机制的实现思路被隔壁部门参考，帮助他们解决了类似场景的问题。</p>
-</li>
-<li><p>由于当前使用的 librdkafka 版本较为老旧，所以暂时没有考虑将此方案提供给开源社区。后续预期内部使用的 librdkafka 也不做升级。</p>
-</li>
+<li>【收益】<ul>
+<li>解决了 AIAPI 业务接入阻塞的问题</li>
+<li>读服务维护方反馈使用的线程数明显下降，线上单实例整体线程数从近 2000 下降至 300 以下。</li>
+<li>写服务维护方反馈使用的线程数明显下降，线上单实例线程数 4006 -&gt; 82 。</li>
+<li>线程懒加载机制的实现思路被隔壁部门参考，帮助他们解决了类似场景的问题。</li>
+<li>由于当前使用的 librdkafka 版本较为老旧，所以暂时没有考虑将此方案提供给开源社区。后续预期内部使用的 librdkafka 也不做升级。</li>
 </ul>
 </li>
 </ul>
-<h2 id="线程懒加载"><a href="#线程懒加载" class="headerlink" title="线程懒加载"></a>线程懒加载</h2><h3 id="问题分析及方案选型"><a href="#问题分析及方案选型" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h3><p>读服务的问题暴露的比较早，因为在打通 AIAPI 通路时，仅使用了两个 Topic ，读服务会建四个 librdkafka 客户端，所以线程数涨的比较快。读服务的特点为，对于一个实例，仅会读取两个 Topic 中各一个分片的数据，也即整体只会读两个分片。当前 topic 为三副本，也即预期最多只会和六个 broker 进行交互。读服务维护方拒绝对使用 librdkafka 的方式进行改造，也即从四个客户端调整为一个，所以只能对 librdkafka 本身进行改造。</p>
+<h3 id="线程懒加载"><a href="#线程懒加载" class="headerlink" title="线程懒加载"></a>线程懒加载</h3><h4 id="问题分析及方案选型"><a href="#问题分析及方案选型" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h4><p>读服务的问题暴露的比较早，因为在打通 AIAPI 通路时，仅使用了两个 Topic ，读服务会建四个 librdkafka 客户端，所以线程数涨的比较快。读服务的特点为，对于一个实例，仅会读取两个 Topic 中各一个分片的数据，也即整体只会读两个分片。当前 topic 为三副本，也即预期最多只会和六个 broker 进行交互。读服务维护方拒绝对使用 librdkafka 的方式进行改造，也即从四个客户端调整为一个，所以只能对 librdkafka 本身进行改造。</p>
 <p>经过分析，librdkafka 会为每一个 broker 都创建一个线程，而读服务仅需要和少数几个 broker 交互，想到的改造思路有二：</p>
 <ul>
-<li><p>修改 librdkafka 整体的实现，让多个 broker 复用一个线程。</p>
-</li>
-<li><p>保持 librdkafka 整体的实现不变，对线程的创建方式进行调整，仅在需要的时候才创建。</p>
-</li>
+<li>修改 librdkafka 整体的实现，让多个 broker 复用一个线程。</li>
+<li>保持 librdkafka 整体的实现不变，对线程的创建方式进行调整，仅在需要的时候才创建。</li>
 </ul>
 <p>鉴于 librdkafka 使用 C 实现，代码较为复杂，直接修改 librdkafka 整体实现近似于重新实现一版 librdkafka ，再加上业务侧上线排期的压力，为了保证可以在短时间内对代码进行改造且保证改造后的服务稳定性，最终决定采用第二种思路，仅对线程创建部分的逻辑进行调整，保证改动最小化。</p>
-<h3 id="实现思路及难点"><a href="#实现思路及难点" class="headerlink" title="实现思路及难点"></a>实现思路及难点</h3><h4 id="首次借助-AI-处理复杂问题"><a href="#首次借助-AI-处理复杂问题" class="headerlink" title="首次借助 AI 处理复杂问题"></a>首次借助 AI 处理复杂问题</h4><p>在 2025 年年末，AI Coding 的相关技术已经非常成熟了，所以本次改造在 AI 的辅助下完成，我主要负责给出解决问题的思路，而 AI 负责具体的方案实施，模型为 Claude Opus 4.5（注：此时公司内部未接入海外模型，鉴于国内模型效果及公司 Agent 能力的问题，没有使用）</p>
+<h4 id="实现思路及难点"><a href="#实现思路及难点" class="headerlink" title="实现思路及难点"></a>实现思路及难点</h4><h5 id="首次借助-AI-处理复杂问题"><a href="#首次借助-AI-处理复杂问题" class="headerlink" title="首次借助 AI 处理复杂问题"></a>首次借助 AI 处理复杂问题</h5><p>在 2025 年年末，AI Coding 的相关技术已经非常成熟了，所以本次改造在 AI 的辅助下完成，我主要负责给出解决问题的思路，而 AI 负责具体的方案实施，模型为 Claude Opus 4.5（注：此时公司内部未接入海外模型，鉴于国内模型效果及公司 Agent 能力的问题，没有使用）</p>
 <p>鉴于这是一项难度极高的任务，所以我先让 AI 对 librdkafka 的线程模型进行了详细的梳理和分析，重点限制为 broker 线程的创建时机和 broker 线程和外部线程交互的方式。了解创建时机，是为了在改造时将相关逻辑移除；了解交互方式，是为了将线程创建的逻辑移动到交互发生前的时刻。</p>
 <p>在 2025 年 Q3 时尝试借助 AI 来学习 Kafka 源码时，积累了一个源码分析的 system prompt ，核心为要求 AI 在解读源码时，按照如下流程对问题进行拆解：</p>
 <ul>
-<li><p>是什么（What）：概念的定义和本质，及其在源码中的具体表现形式（类、函数、模块）</p>
-</li>
-<li><p>为什么（Why）：需要解决的核心问题、这样设计的动机和具体应用场景</p>
-</li>
-<li><p>怎么样（How）：源码中实现的细节，包括核心数据结构定义和关键业务逻辑实现</p>
-</li>
+<li>是什么（What）：概念的定义和本质，及其在源码中的具体表现形式（类、函数、模块）</li>
+<li>为什么（Why）：需要解决的核心问题、这样设计的动机和具体应用场景</li>
+<li>怎么样（How）：源码中实现的细节，包括核心数据结构定义和关键业务逻辑实现</li>
 </ul>
 <p>在 AI 完成对源码核心逻辑的梳理，并将结果 dump 到一份 markdown 文档后，我再让 AI 基于这个报告，评估对 broker 线程创建时机改造的成本，并输出一份技术方案到 markdown 文档中。最后，让 AI 基于源码分析文档和技术方案文档，采用 spec 模式，进行最复杂的源码改造工作。在验证环节，除了让 AI 跑 librdkafka 自带的 100 多个单元测试中必要的测试外，还让它编写了 client 连接 Kafka 集群验证线程数是否符合预期。</p>
-<h4 id="broker-thread-创建时机"><a href="#broker-thread-创建时机" class="headerlink" title="broker thread 创建时机"></a>broker thread 创建时机</h4><p>librdkafka 使用一个单独的 struct 来描述 broker ，它负责维护线程以及一套状态机。在执行 <code>broker_add()</code> 时，变为 <code>INIT</code>  状态创建线程，后续的状态不再赘述。为了实现线程的懒加载，在 <code>INIT</code> 状态前又加了一个 <code>DORMANT</code> 状态，表示的是 broker struct 创建完毕，但是线程还未创建。</p>
+<h5 id="broker-thread-创建时机"><a href="#broker-thread-创建时机" class="headerlink" title="broker thread 创建时机"></a>broker thread 创建时机</h5><p>librdkafka 使用一个单独的 struct 来描述 broker ，它负责维护线程以及一套状态机。在执行 <code>broker_add()</code> 时，变为 <code>INIT</code>  状态创建线程，后续的状态不再赘述。为了实现线程的懒加载，在 <code>INIT</code> 状态前又加了一个 <code>DORMANT</code> 状态，表示的是 broker struct 创建完毕，但是线程还未创建。</p>
 <p>broker 线程和外部线程通过队列来进行信息交互，在线程懒加载的场景下，我的改造思路是，新增一个 <code>wakeup_thread</code> 的方式，在外部线程向 queue 中写入数据后，调用这个方法来创建 broker 线程。初步梳理的触发和 broker thread 交互的主要场景如下：</p>
 <ul>
-<li><p>producer 场景：produce message 的时候会执行 partition leader lookup ，此时需要唤醒作为 leader 的 broker 线程</p>
-</li>
-<li><p>consumer 场景：</p>
-<ul>
-<li><p>subscribe / assign : 和 producer 同理，也会执行 partition leader lookup ，需要唤醒作为 leader 的 broker 线程</p>
-</li>
-<li><p>join group : 在 consumer 添加到 group 中时，需要执行 coordinator lookup ，需要唤醒作为协调者的 broker 线程</p>
-</li>
+<li>producer 场景：produce message 的时候会执行 partition leader lookup ，此时需要唤醒作为 leader 的 broker 线程</li>
+<li>consumer 场景：<ul>
+<li>subscribe / assign : 和 producer 同理，也会执行 partition leader lookup ，需要唤醒作为 leader 的 broker 线程</li>
+<li>join group : 在 consumer 添加到 group 中时，需要执行 coordinator lookup ，需要唤醒作为协调者的 broker 线程</li>
 </ul>
 </li>
-<li><p>通用场景</p>
-<ul>
-<li><p>metadata refresh : 会随机请求 broker 来获取集群元信息。这里对选取 broker 的逻辑进行了调整，优先选取状态非 <code>DORMANT</code> 的 broker 。</p>
-</li>
-<li><p>admin API : 操作变更 kafka 配置。和本次改造的业务场景无关，相关代码没有动。</p>
-</li>
+<li>通用场景<ul>
+<li>metadata refresh : 会随机请求 broker 来获取集群元信息。这里对选取 broker 的逻辑进行了调整，优先选取状态非 <code>DORMANT</code> 的 broker 。</li>
+<li>admin API : 操作变更 kafka 配置。和本次改造的业务场景无关，相关代码没有动。</li>
 </ul>
 </li>
 </ul>
-<h4 id="第一次改造不生效"><a href="#第一次改造不生效" class="headerlink" title="第一次改造不生效"></a>第一次改造不生效</h4><p>在完成初版改造后，本地编写的 client 在连接到 broker 规模为 433 的集群后，线程数小于 10 ，并且 librdkafka 自带的必要的单元测试都跑过了。交付读服务维护方进行线上验证时，发现线程数没有明显好转，改造不起效。</p>
+<h5 id="第一次改造不生效"><a href="#第一次改造不生效" class="headerlink" title="第一次改造不生效"></a>第一次改造不生效</h5><p>在完成初版改造后，本地编写的 client 在连接到 broker 规模为 433 的集群后，线程数小于 10 ，并且 librdkafka 自带的必要的单元测试都跑过了。交付读服务维护方进行线上验证时，发现线程数没有明显好转，改造不起效。</p>
 <p>为了复现问题，我建了一个和线上 topic 相同分片的测试 topic ，再使用 client 连接，发现线程数涨到了 400 多，和 broker 数基本一致了。原先测试的时候，使用的测试 topic 只有 3 个分片。</p>
 <p>让 AI 再次梳理了代码，发现在 metadata refresh 完成后，librdkafka 还会与所有 topic 分片的 leader 所在的 broker 进行交互，此时会调用 <code>wakeup_thread</code> 创建对应的 broker 线程。由于线上 topic 分片数量是 1000 + ，所以每一个 broker 上必然会有几个分片的 leader ，从实际的效果上看，还是会为所有的 broker 都创建线程。</p>
 <p>上面提到，这个读服务，单个实例仅消费两个分片的数据。另外还有一个特性，读服务需要消费的目标分片的分配任务，是由其它服务来完成的，和 Kafka 无关。在读服务实例启动前，它需要消费的目标分片就已经被分配好了，在启动后，是通过显示调用 <code>assign</code> 的方式，来人工指定需要消费的分片的。</p>
 <p>综上，改造的方式就很明确了。首先新增了一个 librdkafka client 粒度的 topic &amp; partition 白名单，然后在 <code>assign</code> 的时候，向白名单中添加 topic &amp; partition 的信息，这样在完成 metadata refresh 后，请求各个 partition leader 时，就可以更新白名单来进行过滤，跳过没有 assign 的 partition leader 所在的 broker 。第二版改造交付给读服务维护方后，验证符合预期。</p>
-<h3 id="收益与反思"><a href="#收益与反思" class="headerlink" title="收益与反思"></a>收益与反思</h3><p>相关改造上线后，线上单实例整体线程数从近 2000 下降至 300 以下，彻底解决了服务部署的阻塞点。读服务无需进行额外的改造，只需将依赖配置至改造后的 librdkafka 分支重新编译即可，无额外的代码层面的改造成本。</p>
+<h4 id="收益与反思"><a href="#收益与反思" class="headerlink" title="收益与反思"></a>收益与反思</h4><p>相关改造上线后，线上单实例整体线程数从近 2000 下降至 300 以下，彻底解决了服务部署的阻塞点。读服务无需进行额外的改造，只需将依赖配置至改造后的 librdkafka 分支重新编译即可，无额外的代码层面的改造成本。</p>
 <p>作为 AIAPI 业务推进过程中临时发现的一个严重阻塞项，我借助 AI 的能力，在收到问题反馈后的一周左右的时间内，在完全没研究过 librdkafka 的源码的前提下，独立完成了从问题定位 -&gt; 方案调研 -&gt; 代码改造 -&gt; 效果测试的整套流程。</p>
 <p>在完成改造后，我总结了本次改造的流程思路及相关 prompt 输出至内部文档，隔壁团队参考本次改造的实现思路，也对他们使用的 librdkafka 进行了改造，解决了相同场景下的线程数问题。（由于使用的 librdkafka 版本不一样，需要进行额外的改造）</p>
 <p>不过对于大集群大分片的场景，本次改造仅对消费者消费其中特定的少量分片的情况有效，不适用于消费者随机消费分片，或者生成者的场景，这也为后续写服务遇到问题的解决引入了额外的改造工作量。</p>
-<h2 id="线程切协程"><a href="#线程切协程" class="headerlink" title="线程切协程"></a>线程切协程</h2><h3 id="问题分析及方案选型-1"><a href="#问题分析及方案选型-1" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h3><p>在完成第一版 librdkafka 改造后，AIAPI 业务顺利上线。但是后续随着这个业务下新数据的接入，Topic 的数据持续增加，然后写服务端线程数过多的问题就暴露出来了。对于写服务，每新增一个 Topic 的写入，它就会新建一个 librdkafka 客户端。在问题出现后，我有和写服务的维护方沟通过能否全局使用一个 librdkafka 客户端，但是他们反馈说改造成本太高（实际上就是不想干），让我这边优化 librdkafka 库。</p>
+<h3 id="线程切协程"><a href="#线程切协程" class="headerlink" title="线程切协程"></a>线程切协程</h3><h4 id="问题分析及方案选型-1"><a href="#问题分析及方案选型-1" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h4><p>在完成第一版 librdkafka 改造后，AIAPI 业务顺利上线。但是后续随着这个业务下新数据的接入，Topic 的数据持续增加，然后写服务端线程数过多的问题就暴露出来了。对于写服务，每新增一个 Topic 的写入，它就会新建一个 librdkafka 客户端。在问题出现后，我有和写服务的维护方沟通过能否全局使用一个 librdkafka 客户端，但是他们反馈说改造成本太高（实际上就是不想干），让我这边优化 librdkafka 库。</p>
 <p>对于写服务，它是会往一个 Topic 下全量的分片写数据的，所以上一版的改造不适配。一开始的想法是参考按照上一节提到的第一个思路，也即修改 librdkafka 的实现，由一个线程专门管理各个 broker 的状态，然后用另一组线程来管理网络通信（epoll 模式）。按照这个思路让 AI 设计了一版方案，并尝试修改了代码。改的地方非常多，且跑单元测试的时候发现问题不少，我评估了一下觉得这个方案大概率行不通。</p>
 <p>花了一两天的时间想破脑袋也没思路，最后突然有一个念头，如果实在没法解决，就用别的语言的 Kafka 库编译成一个 so 然后让 C++ 来调用，比如 Golang ，但是了解了一个 Golang 常用的 高性能 Kafka 库的实现，居然还是封装的 C++ librdkafka ，那肯定是不行的。 不过想到 Golang 倒是提醒我了：为什么我会想着用 Golang ？是因为它有协程，可以在 IO 密集的场景下，复用少量的线程。librdkafka 之所以要为每一个 broker 都建一个线程，就是因为在和 broker 进行网络通信时，会因为 poll 而阻塞，那我干脆把线程，也即 pthread ，换成协程不就可以在改动最少的情况下，完美解决线程数过多的问题吗？</p>
 <p>对于 C++ 的线程库，公司内部 baidu-rpc 附带的 bthread 正好可以用上，而且正好写服务本身就是一个基于 baidu-rpc 实现的服务，有现成的 bthread 可以用。至此，大体的方案就明确了，将 librdkafka 中所有的 pthread 都换成 bthread 。</p>
-<h3 id="实现思路及难点-1"><a href="#实现思路及难点-1" class="headerlink" title="实现思路及难点"></a>实现思路及难点</h3><h4 id="pthread-切-bthread-涉及的内容"><a href="#pthread-切-bthread-涉及的内容" class="headerlink" title="pthread 切 bthread 涉及的内容"></a>pthread 切 bthread 涉及的内容</h4><p>在切协程时，不单单是把创建和销毁 pthread 的函数改成 bthread 的就完事了，还有其它的一些点也需要进行切换。我结合着之前学习的 Golang 协程实现的细节，在 AI 的辅助下把改造点都列了一遍，并且 check 了好几遍大致如下：</p>
+<h4 id="实现思路及难点-1"><a href="#实现思路及难点-1" class="headerlink" title="实现思路及难点"></a>实现思路及难点</h4><h5 id="pthread-切-bthread-涉及的内容"><a href="#pthread-切-bthread-涉及的内容" class="headerlink" title="pthread 切 bthread 涉及的内容"></a>pthread 切 bthread 涉及的内容</h5><p>在切协程时，不单单是把创建和销毁 pthread 的函数改成 bthread 的就完事了，还有其它的一些点也需要进行切换。我结合着之前学习的 Golang 协程实现的细节，在 AI 的辅助下把改造点都列了一遍，并且 check 了好几遍大致如下：</p>
 <ul>
-<li><p>TLS 语义：原先保存在 thread local storage 中的值，需要迁到 bthread 对应的协程粒度的 storage 中</p>
-</li>
-<li><p>IO 阻塞：原先的 poll / sleep 需要切为 bthread 的 fd_wait 和 sleep ，否则会导致协程锁死底层的线程。对于 Golang 协程的实现，我印象最深的就是它底层 hook 了各种 IO 相关的接口，比如文件 IO / 网络 IO ，在等待 IO 的时候，会自动释放当前协程占用的线程。</p>
-</li>
-<li><p>同步原语：和上面类似，像是 mutex / cond 之类的原语，也需要切换到 bthread 等价的实现</p>
-</li>
-<li><p>还有其他的一些，比如 wake-up 机制（interrupt）、信号等</p>
-</li>
+<li>TLS 语义：原先保存在 thread local storage 中的值，需要迁到 bthread 对应的协程粒度的 storage 中</li>
+<li>IO 阻塞：原先的 poll / sleep 需要切为 bthread 的 fd_wait 和 sleep ，否则会导致协程锁死底层的线程。对于 Golang 协程的实现，我印象最深的就是它底层 hook 了各种 IO 相关的接口，比如文件 IO / 网络 IO ，在等待 IO 的时候，会自动释放当前协程占用的线程。</li>
+<li>同步原语：和上面类似，像是 mutex / cond 之类的原语，也需要切换到 bthread 等价的实现</li>
+<li>还有其他的一些，比如 wake-up 机制（interrupt）、信号等</li>
 </ul>
 <p>在 AI 对代码进行修改时，要求 AI 必须严格按照上面的列表进行改造和自查。</p>
-<h3 id="收益和反思"><a href="#收益和反思" class="headerlink" title="收益和反思"></a>收益和反思</h3><p>在完成改造后，使用方仅需要添加宏 <code>RD_KAFKA_USE_BTHREAD</code> 即可启用 bthread 模式。相关改造上线后，写服务维护方反馈使用的线程数明显下降，线上单实例线程数 4006 -&gt; 82 ，使用的内存下降了 8% ，CPU 和服务的耗时基本不变。</p>
+<h4 id="收益和反思"><a href="#收益和反思" class="headerlink" title="收益和反思"></a>收益和反思</h4><p>在完成改造后，使用方仅需要添加宏 <code>RD_KAFKA_USE_BTHREAD</code> 即可启用 bthread 模式。相关改造上线后，写服务维护方反馈使用的线程数明显下降，线上单实例线程数 4006 -&gt; 82 ，使用的内存下降了 8% ，CPU 和服务的耗时基本不变。</p>
 <p>有一个待完善的项是，本次变更仅跑过了 librdkafka 自带的测试以及写模块的测试，并没有对明确对于 pthread 切 bthread 时，是否有地方遗漏进行验证。</p>
 <p>这算是我个人感觉做的最漂亮的工作之一，用到了之前学习的协程概念和原理，对原代码仅进行了极少量的修改，就完美地解决了问题，在跑本地单元测试的时候遇到的问题也比第一版改造要少的多，相关写服务上线后至今也没有出现因为本次改造而产生的问题。但这里并不是说第一版改造是毫无意义的，这一版改造是基于具体的业务场景做的定向优化，就结果而言，它最终也是解决了问题。对于这种只读取两三个特定分片的场景，确实没有必要和所有的 Kafka broker 都进行通信。这个读服务的部署规模比写服务大了好几个量级（10w+ &gt;&gt; 1k-），如果采用第二版的改造方案，可能会给集群带来大量不必须的网络请求负载。</p>
-<h1 id="Kafka-KRaft-机制改造"><a href="#Kafka-KRaft-机制改造" class="headerlink" title="Kafka KRaft 机制改造"></a>Kafka KRaft 机制改造</h1><p>2025 Q3 - 2025 Q4 , 独立负责</p>
-<h2 id="概览-1"><a href="#概览-1" class="headerlink" title="概览"></a>概览</h2><ul>
-<li><p>【背景】：为了承接新的业务，需要部署新的 Kafka 集群。原集群使用的基于 ZK 的模式，实例多的时候可能会有性能问题。新版的 Kafka 引入了 KRaft 机制，移除了 ZK ，所以准备使用新版的 Kafka 来部署，选用的是 3.x.x 当时最新的版本 3.9.1 。</p>
-</li>
-<li><p>【问题】：在实际部署后，遇到了两个和 KRaft 机制相关的问题：</p>
-<ul>
-<li><p>当出现丢主且无法选主后，没有机制可以进行强制干预，只能删除所有 broker 的 metadata 数据，这个对于上线服务来说是不可接受的，因为这会导致全量 topic &amp; broker 信息丢失</p>
-</li>
-<li><p>当 kraft voter 成员列表有更新时，普通节点无法动态感知到变化，当 voter 都迁移了一遍后，普通节点会因为连不上 voter 而挂掉。目前只能依赖重启来进行更新，这对于云原生部署的服务也是不可接受的</p>
-</li>
+<h2 id="Kafka-KRaft-机制改造"><a href="#Kafka-KRaft-机制改造" class="headerlink" title="Kafka KRaft 机制改造"></a>Kafka KRaft 机制改造</h2><p>2025 Q3 - 2025 Q4 , 独立负责</p>
+<h3 id="概览-1"><a href="#概览-1" class="headerlink" title="概览"></a>概览</h3><ul>
+<li>【背景】：为了承接新的业务，需要部署新的 Kafka 集群。原集群使用的基于 ZK 的模式，实例多的时候可能会有性能问题。新版的 Kafka 引入了 KRaft 机制，移除了 ZK ，所以准备使用新版的 Kafka 来部署，选用的是 3.x.x 当时最新的版本 3.9.1 。</li>
+<li>【问题】：在实际部署后，遇到了两个和 KRaft 机制相关的问题：<ul>
+<li>当出现丢主且无法选主后，没有机制可以进行强制干预，只能删除所有 broker 的 metadata 数据，这个对于上线服务来说是不可接受的，因为这会导致全量 topic &amp; broker 信息丢失</li>
+<li>当 kraft voter 成员列表有更新时，普通节点无法动态感知到变化，当 voter 都迁移了一遍后，普通节点会因为连不上 voter 而挂掉。目前只能依赖重启来进行更新，这对于云原生部署的服务也是不可接受的</li>
 </ul>
 </li>
-<li><p>【方案】：均借助 AI 对 Kafka 源码进行改造，来解决上述的问题：</p>
-<ul>
-<li><p>【强制干预 voter 成员】新增干预配置 <code>controller.quorum.voters.override</code> ，当出现无法选主后，找到最后一个 leader 对应的 broker（防止丢数据），配置这个参数，成员只有它一个，然后重启。启动后强制修改 raft 状态机的 voter 成员，然后进行选主，因为只有它一个，所以它就成为了 leader ，然后走原有机制更新 raft log 中的 voter 信息。</p>
-</li>
-<li><p>【voter 成员变更自动感知】新增配置 <code>controller.quorum.dynamic.bootstrap.servers.enable</code> ，支持在 RaftClient 检测到有 voter 变更的 log 时，修改内存中保存的 raft 的 bootstrap server 信息。</p>
-</li>
+<li>【方案】：均借助 AI 对 Kafka 源码进行改造，来解决上述的问题：<ul>
+<li>【强制干预 voter 成员】新增干预配置 <code>controller.quorum.voters.override</code> ，当出现无法选主后，找到最后一个 leader 对应的 broker（防止丢数据），配置这个参数，成员只有它一个，然后重启。启动后强制修改 raft 状态机的 voter 成员，然后进行选主，因为只有它一个，所以它就成为了 leader ，然后走原有机制更新 raft log 中的 voter 信息。</li>
+<li>【voter 成员变更自动感知】新增配置 <code>controller.quorum.dynamic.bootstrap.servers.enable</code> ，支持在 RaftClient 检测到有 voter 变更的 log 时，修改内存中保存的 raft 的 bootstrap server 信息。</li>
 </ul>
 </li>
-<li><p>【收益】- 主要为机制建设，预防故障或者为故障提供止损手段</p>
-<ul>
-<li><p>在集群出现丢主时，有人工强制干预的手段，强制修改 raft voter 列表，类似于 MongoDB 副本集的 <code>rs.reconfig(cfg, {force:true})</code> </p>
-</li>
-<li><p>在 raft voter broker 进行自动迁移时，普通的 broker 可以感知到变化，无需人工重启，保证集群稳定性</p>
-</li>
-<li><p>隔壁部门的 kafka 集群因为 oom 都挂掉后，采用我预留的强制选主能力对集群进行了恢复</p>
-</li>
-<li><p>相关机制准备在线上运行一段时间后（预期至少一年），确认没问题再尝试给开源社区提交。后续预期内部使用的 Kafka 也不做升级。</p>
-</li>
+<li>【收益】- 主要为机制建设，预防故障或者为故障提供止损手段<ul>
+<li>在集群出现丢主时，有人工强制干预的手段，强制修改 raft voter 列表，类似于 MongoDB 副本集的 <code>rs.reconfig(cfg, {force:true})</code> </li>
+<li>在 raft voter broker 进行自动迁移时，普通的 broker 可以感知到变化，无需人工重启，保证集群稳定性</li>
+<li>隔壁部门的 kafka 集群因为 oom 都挂掉后，采用我预留的强制选主能力对集群进行了恢复</li>
+<li>相关机制准备在线上运行一段时间后（预期至少一年），确认没问题再尝试给开源社区提交。后续预期内部使用的 Kafka 也不做升级。</li>
 </ul>
 </li>
 </ul>
-<h2 id="强制干预-voter-成员"><a href="#强制干预-voter-成员" class="headerlink" title="强制干预 voter 成员"></a>强制干预 voter 成员</h2><h3 id="问题分析及方案选型-2"><a href="#问题分析及方案选型-2" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h3><p>由于是首次部署新版 Kafka 集群，运维经验不足，少配置了和 raft 相关的监控项，例如 raft voter 的数量，导致 voter 成员缺失时未及时发现。由于 Kafka 是云原生部署的，在 voter broker 进行迁移时，通过 Kafka 提供的脚本自动化地进行 <code>remove-controller</code> 和 <code>add-controller</code> 操作，以移除旧的 voter 信息并添加新的 voter 信息。不过在进行编码实现时，当上述两个操作执行失败时，未及时暴露出来，导致 raft log 中维护的 voter 信息更新失败，也即包含了一些旧的 voter 信息。当这部分信息的数量超过半数时，就会导致无法选主了。</p>
+<h3 id="强制干预-voter-成员"><a href="#强制干预-voter-成员" class="headerlink" title="强制干预 voter 成员"></a>强制干预 voter 成员</h3><h4 id="问题分析及方案选型-2"><a href="#问题分析及方案选型-2" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h4><p>由于是首次部署新版 Kafka 集群，运维经验不足，少配置了和 raft 相关的监控项，例如 raft voter 的数量，导致 voter 成员缺失时未及时发现。由于 Kafka 是云原生部署的，在 voter broker 进行迁移时，通过 Kafka 提供的脚本自动化地进行 <code>remove-controller</code> 和 <code>add-controller</code> 操作，以移除旧的 voter 信息并添加新的 voter 信息。不过在进行编码实现时，当上述两个操作执行失败时，未及时暴露出来，导致 raft log 中维护的 voter 信息更新失败，也即包含了一些旧的 voter 信息。当这部分信息的数量超过半数时，就会导致无法选主了。</p>
 <p>比较幸运的是，当故障发生时，相关 Kafka 集群未投入正式使用。在网上（尤其是 Kafka 的 issue 里）搜了一下相关的问题，了解到目前的止损手段只能将集群中各个成员的 metadata (raft log) 都删了，然后重建集群，这对于生产环境的集群是不可接受的，因为这意味着所有 Topic 的元信息都丢了。</p>
 <p>在 3.9.1 版本的实现中，当一个 voter 启动后，它会基于本地 raft log 中存储的 voter 信息来连接所有的 voter ，问题的核心就是假如 raft log 中的 voter 信息错了，我们需要有一种方式可以对其进行强制修改。</p>
 <p>一开始的想法是能否用一个外部的 cli 工具，仿照 raft log 写入时使用的协议，直接更新 log 的内容。让 AI 调研之后，给出的结论是，可以，但是需要将集群的全量实例都停掉，然后依次修改所有实例的 raft log 。可以看到，假如一个集群的规模为上百个节点，在止损的时候需要依次操作更新每一个实例的 raft log ，成本太高了。</p>
 <p>另一个想法是，仅对 voter 来进行干预，在 voter 启动时，强制覆盖 raft log 中存储的错误的 voter 信息。让 AI 调研之后，给出的结论也是可行的，并且整个流程简单了不少。整体的思路是，选取一个 voter ，在它启动的时候，强制更新 voter 信息，仅包含它一个成员，然后触发选举，此时它成为了 leader ，随后依次重启剩余的 voter 实例，执行 <code>add-controller</code> 将它们重新加入 voter 集合中即可，剩余的非 voter 的成员无需做额外的操作，等选出 leader 后即可自动感知并恢复。不过这有一个前提是它们至少可以连上其中一个正确的 voter 实例，否则还是需要重启。</p>
-<h3 id="实现思路及难点-2"><a href="#实现思路及难点-2" class="headerlink" title="实现思路及难点"></a>实现思路及难点</h3><p>整体的实现思路为，新增一个配置项 <code>controller.quorum.voters.override</code> 支持启动此机制，强制覆盖 raft log 中 voter 列表的信息。随后在服务启动时，<code>RaftManager</code> 会调用 <code>KafkaRaftClient</code> 来回放本地 log 中的信息，以初始化状态机 <code>KRaftControlRecordStateMachine</code> ，在这个时刻，强制覆盖状态机中的 voter 列表信息，并触发自选举。当成为 leader 后，就可以走后续的流程，向 log 中更新 voter 的相关信息了。</p>
+<h4 id="实现思路及难点-2"><a href="#实现思路及难点-2" class="headerlink" title="实现思路及难点"></a>实现思路及难点</h4><p>整体的实现思路为，新增一个配置项 <code>controller.quorum.voters.override</code> 支持启动此机制，强制覆盖 raft log 中 voter 列表的信息。随后在服务启动时，<code>RaftManager</code> 会调用 <code>KafkaRaftClient</code> 来回放本地 log 中的信息，以初始化状态机 <code>KRaftControlRecordStateMachine</code> ，在这个时刻，强制覆盖状态机中的 voter 列表信息，并触发自选举。当成为 leader 后，就可以走后续的流程，向 log 中更新 voter 的相关信息了。</p>
 <p>由于当前集群已经丢主，需要尽快恢复集群，优先选取最后一个 leader 所在的节点来进行操作，这样可以保障在丢主前集群的元信息不丢失。</p>
-<h3 id="收益与反思-1"><a href="#收益与反思-1" class="headerlink" title="收益与反思"></a>收益与反思</h3><p>此机制为集群丢主的场景提供了一种人工强制干预选主的手段，无需清除 raft log 重建集群即可进行止损。隔壁部门的 kafka 集群因为 oom 都挂掉后，采用我预留的强制选主能力对集群进行了恢复，验证是可行的。</p>
-<h2 id="voter-成员变更自动感知"><a href="#voter-成员变更自动感知" class="headerlink" title="voter 成员变更自动感知"></a>voter 成员变更自动感知</h2><h3 id="问题分析及方案选型-3"><a href="#问题分析及方案选型-3" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h3><p>在新版 Kafka 集群中，普通的 broker（非 voter 成员）需要连接 leader ，从 leader 的 meta topic 拉取 log 以获取集群最新的信息。在我之前的预期中，这些信息应该是需要包括 voter 列表的。只要可以连上任意一个 voter ，就可以通过这个 voter 来发现 leader 。但是有次排查别的问题，在看 broker 的日志时，发现当前 broker 在尝试连一个已经被迁移走的 voter 地址，并且这个 voter 的信息已经从 raft log 中维护的 voter 集合里移除了。这就意味着，假如存量的 voter 都进行了迁移，那么这个 broker 最终将因无法连上任意一个 voter 导致连不上 leader 而挂掉，这个是一个非常严重的问题。当 voter 进行迁移时，重启集群中全量的实例是不现实的，需要有一种自动更新 broker 中存储的 voter 列表的机制。</p>
+<h4 id="收益与反思-1"><a href="#收益与反思-1" class="headerlink" title="收益与反思"></a>收益与反思</h4><p>此机制为集群丢主的场景提供了一种人工强制干预选主的手段，无需清除 raft log 重建集群即可进行止损。隔壁部门的 kafka 集群因为 oom 都挂掉后，采用我预留的强制选主能力对集群进行了恢复，验证是可行的。</p>
+<h3 id="voter-成员变更自动感知"><a href="#voter-成员变更自动感知" class="headerlink" title="voter 成员变更自动感知"></a>voter 成员变更自动感知</h3><h4 id="问题分析及方案选型-3"><a href="#问题分析及方案选型-3" class="headerlink" title="问题分析及方案选型"></a>问题分析及方案选型</h4><p>在新版 Kafka 集群中，普通的 broker（非 voter 成员）需要连接 leader ，从 leader 的 meta topic 拉取 log 以获取集群最新的信息。在我之前的预期中，这些信息应该是需要包括 voter 列表的。只要可以连上任意一个 voter ，就可以通过这个 voter 来发现 leader 。但是有次排查别的问题，在看 broker 的日志时，发现当前 broker 在尝试连一个已经被迁移走的 voter 地址，并且这个 voter 的信息已经从 raft log 中维护的 voter 集合里移除了。这就意味着，假如存量的 voter 都进行了迁移，那么这个 broker 最终将因无法连上任意一个 voter 导致连不上 leader 而挂掉，这个是一个非常严重的问题。当 voter 进行迁移时，重启集群中全量的实例是不现实的，需要有一种自动更新 broker 中存储的 voter 列表的机制。</p>
 <p>让 AI 分析了一下涉及到 voter 列表获取和维护的代码逻辑，发现当一个 broker 启动后，它仅会使用在配置中静态配置的 <code>controller.quorum.voters</code>  ，将其存到变量 <code>bootstrapServers</code> 中，后续就再也不更新了，即便是它的 raft log 中可以实时获取 voter 信息。那么此时修复方案已经很明确了，当 raft log 中有包含 voter 变更的信息时，更新它在内存中维护的 <code>bootstrapServers</code> 列表信息。</p>
-<h3 id="实现思路和难点"><a href="#实现思路和难点" class="headerlink" title="实现思路和难点"></a>实现思路和难点</h3><p>voter 的地址维护在 <code>raft/RequestManager.java</code> 中的变量 <code>bootstrapServers</code> 中，将其类型从 <code>private final</code> 改成 <code>private volatile</code> ，方便进行修改。然后在 <code>raft/KafkaRaftClient.java</code> 中，当 <code>appendAsFollower</code> （follower 追加日志）/ <code>appendAsLeader</code> （leader 追加日志）/ <code>handleFetchSnapshotResponse</code> （从 leader 下载 snapshot）执行时，从状态机中获取 voter 的信息，并更新 <code>bootstrapServers</code> 。</p>
+<h4 id="实现思路和难点"><a href="#实现思路和难点" class="headerlink" title="实现思路和难点"></a>实现思路和难点</h4><p>voter 的地址维护在 <code>raft/RequestManager.java</code> 中的变量 <code>bootstrapServers</code> 中，将其类型从 <code>private final</code> 改成 <code>private volatile</code> ，方便进行修改。然后在 <code>raft/KafkaRaftClient.java</code> 中，当 <code>appendAsFollower</code> （follower 追加日志）/ <code>appendAsLeader</code> （leader 追加日志）/ <code>handleFetchSnapshotResponse</code> （从 leader 下载 snapshot）执行时，从状态机中获取 voter 的信息，并更新 <code>bootstrapServers</code> 。</p>
 <p>这里需要注意的是，普通 broker 和 voter ，可能存在于一个实例中，因为新版本的 Kafka 支持一个实例既是普通的 broker 也是 voter 成员。</p>
-<h3 id="收益与反思-2"><a href="#收益与反思-2" class="headerlink" title="收益与反思"></a>收益与反思</h3><p>在 raft voter broker 进行自动迁移时，普通的 broker 可以感知到变化，无需人工重启，保证集群稳定性。</p>
+<h4 id="收益与反思-2"><a href="#收益与反思-2" class="headerlink" title="收益与反思"></a>收益与反思</h4><p>在 raft voter broker 进行自动迁移时，普通的 broker 可以感知到变化，无需人工重启，保证集群稳定性。</p>
 <p>另外为了提前发现异常的 voter ，额外编写了一个 prometheus exporter ，请求 <code>DescribeCluster</code> 和 <code>DescribeQuorum</code> 获取集群 broker 的元信息和 voter 的状态信息。尤其是对于后者，会对其发起 <code>DescribeQuorum</code> ，校验其响应是否超时 / cluster id 是否正确 / 响应是否正常。</p>
-<h1 id="离线建库系统监控报警建设"><a href="#离线建库系统监控报警建设" class="headerlink" title="离线建库系统监控报警建设"></a>离线建库系统监控报警建设</h1><p>2025 Q2 - 2025 Q3 , 独立负责</p>
-<h2 id="概览-2"><a href="#概览-2" class="headerlink" title="概览"></a>概览</h2><ul>
-<li><p>【背景】：离线建库迁新架构后，缺少好用的监控报警机制</p>
-</li>
-<li><p>【问题】：监控报警还延续过去的人工配置模式，由模块负责人或者业务接口人来进行配置，容易遗漏且维护成本高。新业务接入后，需要人工配置 prometheus 采集 / grafana 看板及报警 / 报警发生时无分析</p>
-</li>
-<li><p>【方案】：建库配置发布后：</p>
-<ul>
-<li><p>基于 prometheus exporter 自动化接入监控采集</p>
-</li>
-<li><p>基于 grafana api 自动生成 grafana 看板及配置默认报警项</p>
-</li>
-<li><p>联动多个监控项生成报警分析，并随报警信息一并推送至群消息</p>
-</li>
-<li><p>支持多个报警等级（群组/电话/工作日）、重要监控项提供预测能力、长时间未恢复的低优报警升级机制</p>
-</li>
+<h2 id="离线建库系统监控报警建设"><a href="#离线建库系统监控报警建设" class="headerlink" title="离线建库系统监控报警建设"></a>离线建库系统监控报警建设</h2><p>2025 Q2 - 2025 Q3 , 独立负责</p>
+<h3 id="概览-2"><a href="#概览-2" class="headerlink" title="概览"></a>概览</h3><ul>
+<li>【背景】：离线建库迁新架构后，缺少好用的监控报警机制</li>
+<li>【问题】：监控报警还延续过去的人工配置模式，由模块负责人或者业务接口人来进行配置，容易遗漏且维护成本高。新业务接入后，需要人工配置 prometheus 采集 / grafana 看板及报警 / 报警发生时无分析</li>
+<li>【方案】：建库配置发布后：<ul>
+<li>基于 prometheus exporter 自动化接入监控采集</li>
+<li>基于 grafana api 自动生成 grafana 看板及配置默认报警项</li>
+<li>联动多个监控项生成报警分析，并随报警信息一并推送至群消息</li>
+<li>支持多个报警等级（群组/电话/工作日）、重要监控项提供预测能力、长时间未恢复的低优报警升级机制</li>
 </ul>
 </li>
-<li><p>【收益】</p>
-<ul>
-<li><p>重要模块监控数据采集全自动化接入 / 重要监控指标可视化展现 / 异常指标报警自动化添加 / 支持对于异常指标进行自动化分析</p>
-</li>
-<li><p>接入建库 30 + 业务，监控报警覆盖率 100% ，自动分析覆盖率 80% </p>
-</li>
-<li><p>新业务接入监控从 0.2 人天的人工配置降到近似 0（可能需要对部分阈值进行调整）</p>
-</li>
+<li>【收益】<ul>
+<li>重要模块监控数据采集全自动化接入 / 重要监控指标可视化展现 / 异常指标报警自动化添加 / 支持对于异常指标进行自动化分析</li>
+<li>接入建库 30 + 业务，监控报警覆盖率 100% ，自动分析覆盖率 80% </li>
+<li>新业务接入监控从 0.2 人天的人工配置降到近似 0（可能需要对部分阈值进行调整）</li>
 </ul>
 </li>
 </ul>
 <p>接下来按照如下顺序进行介绍：1）离线建库新架构背景；2）监控数据自动化采集；3）grafana 看板及报警自动化配置；4）报警问题自动化分析；</p>
-<h2 id="离线建库新架构背景"><a href="#离线建库新架构背景" class="headerlink" title="离线建库新架构背景"></a>离线建库新架构背景</h2><p>2024 年 ~ 2025 年，离线建库迁到了新架构下，在新架构中，将重要模块拆分为：</p>
+<h3 id="离线建库新架构背景"><a href="#离线建库新架构背景" class="headerlink" title="离线建库新架构背景"></a>离线建库新架构背景</h3><p>2024 年 ~ 2025 年，离线建库迁到了新架构下，在新架构中，将重要模块拆分为：</p>
 <ul>
-<li><p>importer : 建库链路的最上游，负责原始数据接入（消息队列/RPC 等），并将其转为建库的标准格式。importer 模块按照数据源（source）粒度对数据进行处理，一个业务包含至少一个 source 。</p>
-</li>
-<li><p>buildserver : 负责接收 importer 的请求，执行架构的一些数据处理逻辑，并请求 parser 模块对数据执行业务自定义加工逻辑后，将产出数据写到各个生效容器中（字典/消息队列/其他存储）</p>
-</li>
-<li><p>parser : 负责接收 buildserver 的请求，执行业务自定义的加工逻辑</p>
-</li>
+<li>importer : 建库链路的最上游，负责原始数据接入（消息队列/RPC 等），并将其转为建库的标准格式。importer 模块按照数据源（source）粒度对数据进行处理，一个业务包含至少一个 source 。</li>
+<li>buildserver : 负责接收 importer 的请求，执行架构的一些数据处理逻辑，并请求 parser 模块对数据执行业务自定义加工逻辑后，将产出数据写到各个生效容器中（字典/消息队列/其他存储）</li>
+<li>parser : 负责接收 buildserver 的请求，执行业务自定义的加工逻辑</li>
 </ul>
 <p>每一个业务的数据都会经过上述的处理流程进行建库，除 parser 中自定义的业务逻辑外，其它的配置均托管于 confcenter 代码库（后续简称 cc）。cc 中的原始配置是业务粒度的，业务在 cc 中对数据处理的需求进行描述，最终编译产出的配置包含业务粒度完整的配置以及各个模块的配置。可以认为，编译产出的业务粒度的 cc 配置是 source of truth ，各个模块的配置均是基于业务配置通过脚本生成的衍生配置。</p>
 <p>此时就可以发现，监控报警的一部分基础配置，也是可以基于 cc 产出的业务配置来生成，重点包括业务的列表 / 业务接入的方式 / 业务使用的各模块的信息及配置。所以在最终实现中，在 cc 代码库的发布流水线中，新增了一个环节，会将产出的业务配置信息推送至内部维护的 MongoDB 集群中，供监控系统的各个模块来读取。</p>
-<h2 id="监控数据自动化采集"><a href="#监控数据自动化采集" class="headerlink" title="监控数据自动化采集"></a>监控数据自动化采集</h2><h3 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h3><p>在建设前，importer 模块的监控采集配置是写死在 prometheus 中的，包括采集目标 app 的信息以及监控项解析规则，每次新增一个 app 都需要人工修改 prometheus 的配置；buildserver 模块的监控采集已经通过 prometheus exporter 来完成了，采集目标的 app 的信息是配置在 MongoDB 中的，且这个信息是人工维护的；parser 模块则是接入了公司集团云默认的监控采集服务，仅采集原始的监控项，筛选规则不好配置。从现状可以看出，此时的监控采集配置缺少自动化机制，以及额外的业务粒度的信息输入（方便对监控项进行检索）</p>
-<h3 id="实现思路"><a href="#实现思路" class="headerlink" title="实现思路"></a>实现思路</h3><p>在进行监控数据采集时，采用 prometheus exporter 来实现，因为它可以在监控采集的过程中，自定义采集目标的选取逻辑，以及对采集到的原始监控数据进行一个加工（比如向 label 中注入一些自定义的信息）。</p>
+<h3 id="监控数据自动化采集"><a href="#监控数据自动化采集" class="headerlink" title="监控数据自动化采集"></a>监控数据自动化采集</h3><h4 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h4><p>在建设前，importer 模块的监控采集配置是写死在 prometheus 中的，包括采集目标 app 的信息以及监控项解析规则，每次新增一个 app 都需要人工修改 prometheus 的配置；buildserver 模块的监控采集已经通过 prometheus exporter 来完成了，采集目标的 app 的信息是配置在 MongoDB 中的，且这个信息是人工维护的；parser 模块则是接入了公司集团云默认的监控采集服务，仅采集原始的监控项，筛选规则不好配置。从现状可以看出，此时的监控采集配置缺少自动化机制，以及额外的业务粒度的信息输入（方便对监控项进行检索）</p>
+<h4 id="实现思路"><a href="#实现思路" class="headerlink" title="实现思路"></a>实现思路</h4><p>在进行监控数据采集时，采用 prometheus exporter 来实现，因为它可以在监控采集的过程中，自定义采集目标的选取逻辑，以及对采集到的原始监控数据进行一个加工（比如向 label 中注入一些自定义的信息）。</p>
 <p>对于监控数据的采集，实现方式为：</p>
 <ul>
-<li><p>目标服务配置：完全自动化加载，也即在每次采集时，都会实时读取 cc 写入到 MongoDB 中的配置信息，以获取采集目标</p>
-</li>
-<li><p>监控项配置：codeless 配置，在 exporter 配置文件中配置需要采集的监控项，并支持进行 regex 匹配替换和简单的聚合操作</p>
-</li>
+<li>目标服务配置：完全自动化加载，也即在每次采集时，都会实时读取 cc 写入到 MongoDB 中的配置信息，以获取采集目标</li>
+<li>监控项配置：codeless 配置，在 exporter 配置文件中配置需要采集的监控项，并支持进行 regex 匹配替换和简单的聚合操作</li>
 </ul>
-<h3 id="难点"><a href="#难点" class="headerlink" title="难点"></a>难点</h3><h4 id="监控采集分片"><a href="#监控采集分片" class="headerlink" title="监控采集分片"></a>监控采集分片</h4><p>负责存储监控数据的 prometheus ，原先是裸布在物理机上的，在出过几次 oom 的问题后，迁移至公司提供的集团云的 prometheus 。新的 prometheus 有单次监控数据量采集的上限，超过这个上限会导致监控数据采集失败。由于离线服务的实例数有 1w + ，且单实例的监控项较多，超过了这个上限，所以对 exporter 进行了额外改造，支持按照分片进行采集。具体来说，一个模块的 exporter 支持设置多分片采集，每一个分片暴露一个端口，这样从 prometheus 的视角来看，它是从多个实例采集监控数据。exporter 在进行采集时，对全量实例进行了分片，目前采用的是比较粗暴的做法，也即将所有实例放到一个数组中排序，然后将其切为 n 份，每个分片从中取属于自己的一份来进行采集。当时做了评估，即使实例数达到了 10w ，这部分分片操作预期会额外占用 110 MB 左右的内存。由于 exporter 是部署在物理机上的，内存用量基本可以接受，所以就没有想更为复杂的方案。</p>
-<h4 id="职责拆分"><a href="#职责拆分" class="headerlink" title="职责拆分"></a>职责拆分</h4><p>在设计 prometheus exporter 整体结构时，我参考了 cc 的设计，将阶段拆分为1）配置获取；2）原始数据采集（对应 importer）；3）原始数据处理（对应 parser）；4）监控数据生成 （对应 buildserver），这四个阶段，每个阶段完全解耦，之间通过 channel 进行通信。正是由于这种设计，在进行「监控采集分片」改造时，我仅需要变动「原始数据采集」部分的逻辑即可，下游无需感知原始数据是怎么采集的。</p>
-<h2 id="grafana-看板及报警自动化配置"><a href="#grafana-看板及报警自动化配置" class="headerlink" title="grafana 看板及报警自动化配置"></a>grafana 看板及报警自动化配置</h2><h3 id="问题分析-1"><a href="#问题分析-1" class="headerlink" title="问题分析"></a>问题分析</h3><p>在建设前，importer 模块是将所有业务 app 的监控项都配到了一个 grafana 的 dashboard 下，而且每新增一个 importer app ，都需要人工再配一遍；buildserver 和 parser 模块用的是 grafana template ，这样在变量中配一个 buildserver app 的名称，就可以查看对应的监控，但问题是 template 不支持配报警，所以还是需要人工在额外的 dashboard 上配。</p>
+<h4 id="难点"><a href="#难点" class="headerlink" title="难点"></a>难点</h4><h5 id="监控采集分片"><a href="#监控采集分片" class="headerlink" title="监控采集分片"></a>监控采集分片</h5><p>负责存储监控数据的 prometheus ，原先是裸布在物理机上的，在出过几次 oom 的问题后，迁移至公司提供的集团云的 prometheus 。新的 prometheus 有单次监控数据量采集的上限，超过这个上限会导致监控数据采集失败。由于离线服务的实例数有 1w + ，且单实例的监控项较多，超过了这个上限，所以对 exporter 进行了额外改造，支持按照分片进行采集。具体来说，一个模块的 exporter 支持设置多分片采集，每一个分片暴露一个端口，这样从 prometheus 的视角来看，它是从多个实例采集监控数据。exporter 在进行采集时，对全量实例进行了分片，目前采用的是比较粗暴的做法，也即将所有实例放到一个数组中排序，然后将其切为 n 份，每个分片从中取属于自己的一份来进行采集。当时做了评估，即使实例数达到了 10w ，这部分分片操作预期会额外占用 110 MB 左右的内存。由于 exporter 是部署在物理机上的，内存用量基本可以接受，所以就没有想更为复杂的方案。</p>
+<h5 id="职责拆分"><a href="#职责拆分" class="headerlink" title="职责拆分"></a>职责拆分</h5><p>在设计 prometheus exporter 整体结构时，我参考了 cc 的设计，将阶段拆分为1）配置获取；2）原始数据采集（对应 importer）；3）原始数据处理（对应 parser）；4）监控数据生成 （对应 buildserver），这四个阶段，每个阶段完全解耦，之间通过 channel 进行通信。正是由于这种设计，在进行「监控采集分片」改造时，我仅需要变动「原始数据采集」部分的逻辑即可，下游无需感知原始数据是怎么采集的。</p>
+<h3 id="grafana-看板及报警自动化配置"><a href="#grafana-看板及报警自动化配置" class="headerlink" title="grafana 看板及报警自动化配置"></a>grafana 看板及报警自动化配置</h3><h4 id="问题分析-1"><a href="#问题分析-1" class="headerlink" title="问题分析"></a>问题分析</h4><p>在建设前，importer 模块是将所有业务 app 的监控项都配到了一个 grafana 的 dashboard 下，而且每新增一个 importer app ，都需要人工再配一遍；buildserver 和 parser 模块用的是 grafana template ，这样在变量中配一个 buildserver app 的名称，就可以查看对应的监控，但问题是 template 不支持配报警，所以还是需要人工在额外的 dashboard 上配。</p>
 <p>在理想态下，最好是将一个业务关联的所有模块的监控报警项都放到一个独立的 dashboard 中，这样可以一目了然所有和这个业务关联的监控报警，按照原先的方式配置有几个问题：</p>
 <ul>
-<li><p>按照 template 模式配置，一则无法在看板上配对应的报警，二则每个业务的报警项基于业务现状会有差别（例如有的需要有消息队列堆积的监控，有的需要有 rpc 接入请求延时的监控）</p>
-</li>
-<li><p>按照人工配置，一个最大的问题是，新增 app 或者监控项名称有变更时，均需要人工进行配置。当前建库有 30+ 的业务，成本非常高</p>
-</li>
+<li>按照 template 模式配置，一则无法在看板上配对应的报警，二则每个业务的报警项基于业务现状会有差别（例如有的需要有消息队列堆积的监控，有的需要有 rpc 接入请求延时的监控）</li>
+<li>按照人工配置，一个最大的问题是，新增 app 或者监控项名称有变更时，均需要人工进行配置。当前建库有 30+ 的业务，成本非常高</li>
 </ul>
-<h3 id="实现思路-1"><a href="#实现思路-1" class="headerlink" title="实现思路"></a>实现思路</h3><p>针对上述的问题和痛点，我调研了新版的 grafana （v12），发现它提供了相关的 HTTP API 来对 Dashboard （看板）和 Alert（报警）来进行 CRUD 操作，参考 cc 的设计思路，整体的方案立刻就明确了：</p>
+<h4 id="实现思路-1"><a href="#实现思路-1" class="headerlink" title="实现思路"></a>实现思路</h4><p>针对上述的问题和痛点，我调研了新版的 grafana （v12），发现它提供了相关的 HTTP API 来对 Dashboard （看板）和 Alert（报警）来进行 CRUD 操作，参考 cc 的设计思路，整体的方案立刻就明确了：</p>
 <ol>
 <li><p>各个模块的负责人在 grafana 上独立配置模块粒度的 grafana template 看板及报警规则</p>
 </li>
@@ -359,168 +301,126 @@
 </li>
 </ol>
 <p>对于业务粒度的报警阈值及是否禁用，这部分信息会存储在 MongoDB 中，在定时自动更新业务 dashboard 的时候，基于这个信息对 dashboard 进行更新操作。</p>
-<h3 id="难点-1"><a href="#难点-1" class="headerlink" title="难点"></a>难点</h3><h4 id="template-拆分"><a href="#template-拆分" class="headerlink" title="template 拆分"></a>template 拆分</h4><p>目前按照数据的接入及生效方式和模块的拆分，配置了如下 template</p>
+<h4 id="难点-1"><a href="#难点-1" class="headerlink" title="难点"></a>难点</h4><h5 id="template-拆分"><a href="#template-拆分" class="headerlink" title="template 拆分"></a>template 拆分</h5><p>目前按照数据的接入及生效方式和模块的拆分，配置了如下 template</p>
 <ul>
-<li><p>基础信息，包括各 app 的 id 信息</p>
-</li>
-<li><p>各模块的 CPU / 内存用量的基础信息</p>
-</li>
-<li><p>importer 模块 source 粒度的 qps / 整体延时 / 成功率 / 分阶段延时等</p>
-</li>
-<li><p>importer 模块上游消息队列接入的堆积</p>
-</li>
-<li><p>importer 模块上游 rpc 接入的 延时 / qps 等</p>
-</li>
-<li><p>importer 模块访问存储的延时 / 成功率</p>
-</li>
-<li><p>buildserver 模块</p>
-</li>
-<li><p>parser 模块</p>
-</li>
-<li><p>消息队列 kafka 生效场景写入的 qps 及 topic 用量</p>
-</li>
-<li><p>实时业务数据生效延时信息（整体 / 分机房 等）</p>
-</li>
-<li><p>预测 importer source 粒度 qps / 延时</p>
-</li>
+<li>基础信息，包括各 app 的 id 信息</li>
+<li>各模块的 CPU / 内存用量的基础信息</li>
+<li>importer 模块 source 粒度的 qps / 整体延时 / 成功率 / 分阶段延时等</li>
+<li>importer 模块上游消息队列接入的堆积</li>
+<li>importer 模块上游 rpc 接入的 延时 / qps 等</li>
+<li>importer 模块访问存储的延时 / 成功率</li>
+<li>buildserver 模块</li>
+<li>parser 模块</li>
+<li>消息队列 kafka 生效场景写入的 qps 及 topic 用量</li>
+<li>实时业务数据生效延时信息（整体 / 分机房 等）</li>
+<li>预测 importer source 粒度 qps / 延时</li>
 </ul>
-<h4 id="如何基于-template-来生成新的看板"><a href="#如何基于-template-来生成新的看板" class="headerlink" title="如何基于 template 来生成新的看板"></a>如何基于 template 来生成新的看板</h4><p>通过 grafana api ，可以拿到一个 grafana dashboard 的 json 格式的定义，在生成新的看板时，也可以用 json 来创建，所以就直接用 template 的 json 定义，替换其中的 prometheus 表达式里的 template 变量占位符为实际的值，再改一些元信息（例如 title）就可以了。</p>
-<h4 id="alert-rule-gt-panel-的映射信息"><a href="#alert-rule-gt-panel-的映射信息" class="headerlink" title="alert-rule -&gt; panel 的映射信息"></a>alert-rule -&gt; panel 的映射信息</h4><p>在新版的 grafana 中，alert rule 的配置是和 dashboard &amp; panel 解耦的，需要有一个地方来存储它们的映射关系，这样方便自动更新 alert rule 中的阈值等信息。为了不依赖其它的存储，我直接复用了 dashboard 中的 tag 配置，在 tag 中存储了 <code>dashboard id</code> 、 <code>panel id</code> 、 <code>alert rule id</code> 的映射信息。</p>
-<h4 id="报警机制"><a href="#报警机制" class="headerlink" title="报警机制"></a>报警机制</h4><p>对于普通的群报警，直接使用的是 grafana 的 webhook 机制，额外部署了一个 Alert Manager server 来接收报警信息，然后根据配置推送至指定的群组。对于高优的电话报警，实现的方式为将这部分报警信息存到 MongoDB 中，然后另部署一个 prometheus exporter 采集这个数据，最后在公司的 prometheus 中配置采集任务并在异常时触发电话报警。</p>
+<h5 id="如何基于-template-来生成新的看板"><a href="#如何基于-template-来生成新的看板" class="headerlink" title="如何基于 template 来生成新的看板"></a>如何基于 template 来生成新的看板</h5><p>通过 grafana api ，可以拿到一个 grafana dashboard 的 json 格式的定义，在生成新的看板时，也可以用 json 来创建，所以就直接用 template 的 json 定义，替换其中的 prometheus 表达式里的 template 变量占位符为实际的值，再改一些元信息（例如 title）就可以了。</p>
+<h5 id="alert-rule-gt-panel-的映射信息"><a href="#alert-rule-gt-panel-的映射信息" class="headerlink" title="alert-rule -&gt; panel 的映射信息"></a>alert-rule -&gt; panel 的映射信息</h5><p>在新版的 grafana 中，alert rule 的配置是和 dashboard &amp; panel 解耦的，需要有一个地方来存储它们的映射关系，这样方便自动更新 alert rule 中的阈值等信息。为了不依赖其它的存储，我直接复用了 dashboard 中的 tag 配置，在 tag 中存储了 <code>dashboard id</code> 、 <code>panel id</code> 、 <code>alert rule id</code> 的映射信息。</p>
+<h5 id="报警机制"><a href="#报警机制" class="headerlink" title="报警机制"></a>报警机制</h5><p>对于普通的群报警，直接使用的是 grafana 的 webhook 机制，额外部署了一个 Alert Manager server 来接收报警信息，然后根据配置推送至指定的群组。对于高优的电话报警，实现的方式为将这部分报警信息存到 MongoDB 中，然后另部署一个 prometheus exporter 采集这个数据，最后在公司的 prometheus 中配置采集任务并在异常时触发电话报警。</p>
 <p>这个 Alert Manager 还负责检测长时间未恢复的低优群组报警/非工作时间发生且未恢复的工作日报警，提升其报警等级为电话报警，以及请求报警分析服务获取报警分析。</p>
-<h4 id="prometheus-proxy"><a href="#prometheus-proxy" class="headerlink" title="prometheus proxy"></a>prometheus proxy</h4><p>在将 prometheus 迁移至集团云后，在访问时需要走一套非常复杂的鉴权逻辑，而原先物理机部署的 prometheus ，访问时只需要在 http 请求的 header 中加一个 auth token 即可。为了适配这种场景，让相关需要访问 prometheus 的服务（重点为 grafana 和报警分析脚本）改造成本最小，实现了一个 prometheus proxy ，接口完全跟 prometheus 打平，并直接沿用原有的基于 auth token 的鉴权方式，内部通过实现 Golang 的 <code>http.RoundTripper</code> 接口，来完成集团云 prometheus 的鉴权及请求转发。</p>
-<h4 id="监控系统状态监控"><a href="#监控系统状态监控" class="headerlink" title="监控系统状态监控"></a>监控系统状态监控</h4><p>历史上出现过因为监控报警系统本身挂了，而导致线上问题没法及时感知的情况，所以在部署这一版监控系统时，额外部署了一个 exporter 来采集各个监控报警系统模块的状态，并在集团云的 prometheus 上配置相应的电话报警，覆盖：</p>
+<h5 id="prometheus-proxy"><a href="#prometheus-proxy" class="headerlink" title="prometheus proxy"></a>prometheus proxy</h5><p>在将 prometheus 迁移至集团云后，在访问时需要走一套非常复杂的鉴权逻辑，而原先物理机部署的 prometheus ，访问时只需要在 http 请求的 header 中加一个 auth token 即可。为了适配这种场景，让相关需要访问 prometheus 的服务（重点为 grafana 和报警分析脚本）改造成本最小，实现了一个 prometheus proxy ，接口完全跟 prometheus 打平，并直接沿用原有的基于 auth token 的鉴权方式，内部通过实现 Golang 的 <code>http.RoundTripper</code> 接口，来完成集团云 prometheus 的鉴权及请求转发。</p>
+<h5 id="监控系统状态监控"><a href="#监控系统状态监控" class="headerlink" title="监控系统状态监控"></a>监控系统状态监控</h5><p>历史上出现过因为监控报警系统本身挂了，而导致线上问题没法及时感知的情况，所以在部署这一版监控系统时，额外部署了一个 exporter 来采集各个监控报警系统模块的状态，并在集团云的 prometheus 上配置相应的电话报警，覆盖：</p>
 <ul>
-<li><p>MongoDB : 检测状态</p>
-</li>
-<li><p>Grafana / Alert Manager / Prometheus Proxy : 检测 http 服务的状态</p>
-</li>
+<li>MongoDB : 检测状态</li>
+<li>Grafana / Alert Manager / Prometheus Proxy : 检测 http 服务的状态</li>
 </ul>
 <p>各 exporter 的状态及采集的数据量直接在集团云的 prometheus  上配置报警规则即可</p>
-<h2 id="报警问题自动化分析"><a href="#报警问题自动化分析" class="headerlink" title="报警问题自动化分析"></a>报警问题自动化分析</h2><h3 id="问题分析-2"><a href="#问题分析-2" class="headerlink" title="问题分析"></a>问题分析</h3><p>在触发报警时，主要会推送报警项的当前的值以及阈值信息，缺少一些额外的分析机制。并且，当前建库的整体流程中，从 importer -&gt; buildserver -&gt; parser 整条链路均为 rpc 请求，下游模块处理异常经常会触发上游模块的报警，但是上游模块的报警信息中缺少对报警出现原因的分析</p>
-<h3 id="实现思路-2"><a href="#实现思路-2" class="headerlink" title="实现思路"></a>实现思路</h3><p>在上一节介绍的报警触发流程中，Grafana 会通过 webhook 将原始报警信息发送给 Alert Manager ，Alert Manager 在推送报警消息前，可以请求额外的报警分析服务，拿到分析结果后，将这个结果附带报警消息中推送至报警群组。</p>
+<h3 id="报警问题自动化分析"><a href="#报警问题自动化分析" class="headerlink" title="报警问题自动化分析"></a>报警问题自动化分析</h3><h4 id="问题分析-2"><a href="#问题分析-2" class="headerlink" title="问题分析"></a>问题分析</h4><p>在触发报警时，主要会推送报警项的当前的值以及阈值信息，缺少一些额外的分析机制。并且，当前建库的整体流程中，从 importer -&gt; buildserver -&gt; parser 整条链路均为 rpc 请求，下游模块处理异常经常会触发上游模块的报警，但是上游模块的报警信息中缺少对报警出现原因的分析</p>
+<h4 id="实现思路-2"><a href="#实现思路-2" class="headerlink" title="实现思路"></a>实现思路</h4><p>在上一节介绍的报警触发流程中，Grafana 会通过 webhook 将原始报警信息发送给 Alert Manager ，Alert Manager 在推送报警消息前，可以请求额外的报警分析服务，拿到分析结果后，将这个结果附带报警消息中推送至报警群组。</p>
 <p>各个模块的负责人根据问题排查经验，在报警分析服务中编码问题分析流程，他可以拿到报警项的 id ，从而分析出它所属的业务，然后基于 cc 的配置，拿到整个链路中所有模块的信息。同时还可以调用其它模块的分析策略，结合它们的链路的关系来对问题进行分析。</p>
 <p>在第一版的实现中，有尝试基于大模型的能力来分析，但是发现，一则大模型分析的速度较慢，将分析设计成异步输出改造成本高；二则天级的报警量较大，大模型调用成本高。当前大部分问题的分析流程基本都可以固化为配置及代码，所以最终的实现采用的是硬编码实现分析的方式。</p>
-<h1 id="收益和反思-1"><a href="#收益和反思-1" class="headerlink" title="收益和反思"></a>收益和反思</h1><p>重要模块监控数据采集全自动化接入 / 重要监控指标可视化展现 / 异常指标报警自动化添加 / 支持对于异常指标进行自动化分析。当前接入建库 30 + 业务，监控报警覆盖率 100% ，自动分析覆盖率 80% 。新业务接入监控从 0.2 人天的人工配置降到近似 0（可能需要对部分阈值进行调整）。</p>
+<h2 id="收益和反思-1"><a href="#收益和反思-1" class="headerlink" title="收益和反思"></a>收益和反思</h2><p>重要模块监控数据采集全自动化接入 / 重要监控指标可视化展现 / 异常指标报警自动化添加 / 支持对于异常指标进行自动化分析。当前接入建库 30 + 业务，监控报警覆盖率 100% ，自动分析覆盖率 80% 。新业务接入监控从 0.2 人天的人工配置降到近似 0（可能需要对部分阈值进行调整）。</p>
 <p>离线建库系统监控报警建设这项工作也是我个人感觉做的最满意的工作之一 。首要的是利用 Grafana 的机制，较为完美地实现了监控看板的自动生成和报警项的自动配置。如果监控项有新增/删除/更新，只需要修改对应模块的 template 配置，然后系统就会自动将变更全量生效到 30 多个业务的看板上。</p>
 <p>其次，通过编程来配置看板及报警的方式，提供了非常多的可能性，例如后续需要给实时监控的业务的一些监控项自动配置电话报警，而非普通的群组报警，那么就可以通过编码，基于 cc 中业务配置的信息，来对报警等级进行自动化地调整，完全没有人工配置报警时的心智负担。</p>
 <p>第三，基于 cc 配置来生成监控报警信息，可以实现业务 -&gt; 具体监控报警项的自动化关联，也即只要提供 cc 中的业务 id ，就可以基于已有的自动化配置生成链路中的关联关系，获取到业务所有的监控报警信息。这大大简化了一系列映射关系的维护，cc 业务配置及 MongoDB 的补充配置作为 source of truth ，其它的信息均可以自动化地衍生出来。</p>
 <p>最后，这算是我第一次负责较为复杂的项目，我基于之前作为架构业务接口人，在使用系统时遇到的痛点，在对系统进行拆解后，对问题逐个进行了解决，至少目前这套系统，我自己用的是很爽的。另外由于这套系统主要的编码工作是在 2025 年 Q2 完成的，当时还不会 AI Coding ，所以整套系统均为纯手工编码完成，算是我第一个也是最后一个古法编程的大型项目吧。</p>
-<h1 id="分布式中间件运维及疑难问题排查"><a href="#分布式中间件运维及疑难问题排查" class="headerlink" title="分布式中间件运维及疑难问题排查"></a>分布式中间件运维及疑难问题排查</h1><p>2022 Q3 - 至今</p>
-<h2 id="概览-3"><a href="#概览-3" class="headerlink" title="概览"></a>概览</h2><ul>
-<li><p>集群规模：</p>
-<ul>
-<li><p>【Kafka】：老版集群共 12 个，所有集群 broker 总数为 674 ，整体存储 2.32 PB，写吞吐 1.47 GB/s，读吞吐 9.62 GB/s ；新版集群共 9 个，所有集群 broker 总数为 1273 ，整体存储 357 TB ，写吞吐 940 MB/s , 读吞吐 6 GB/s</p>
-</li>
-<li><p>【MongoDB】: 集群共 3 个，分片总数 32 ，整体存储 21 TB ，写 QPS 1.8w  ，读 QPS 12.1 w </p>
-</li>
+<h2 id="分布式中间件运维及疑难问题排查"><a href="#分布式中间件运维及疑难问题排查" class="headerlink" title="分布式中间件运维及疑难问题排查"></a>分布式中间件运维及疑难问题排查</h2><p>2022 Q3 - 至今</p>
+<h3 id="概览-3"><a href="#概览-3" class="headerlink" title="概览"></a>概览</h3><ul>
+<li>集群规模：<ul>
+<li>【Kafka】：老版集群共 12 个，所有集群 broker 总数为 674 ，整体存储 2.32 PB，写吞吐 1.47 GB/s，读吞吐 9.62 GB/s ；新版集群共 9 个，所有集群 broker 总数为 1273 ，整体存储 357 TB ，写吞吐 940 MB/s , 读吞吐 6 GB/s</li>
+<li>【MongoDB】: 集群共 3 个，分片总数 32 ，整体存储 21 TB ，写 QPS 1.8w  ，读 QPS 12.1 w </li>
 </ul>
 </li>
-<li><p>主要工作：新集群部署 / 基建完善 / 线上问题排解及故障止损。24 年之前在 mentor 指导下进行，24 年之后独立负责</p>
-</li>
+<li>主要工作：新集群部署 / 基建完善 / 线上问题排解及故障止损。24 年之前在 mentor 指导下进行，24 年之后独立负责</li>
 </ul>
 <p>想了几个典型的案例，复杂度从高到低排序，还有其它不少的案例，这里就不列了</p>
-<h2 id="Kafka-单实例-CPU-用量飙升及-GC-时间过长问题排查"><a href="#Kafka-单实例-CPU-用量飙升及-GC-时间过长问题排查" class="headerlink" title="Kafka 单实例 CPU 用量飙升及 GC 时间过长问题排查"></a>Kafka 单实例 CPU 用量飙升及 GC 时间过长问题排查</h2><h3 id="概览-4"><a href="#概览-4" class="headerlink" title="概览"></a>概览</h3><p>现学 Java 工具 + 利用计算机网络知识，基于表象一步步分析与定位问题诱因</p>
-<h3 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h3><p>2024/08/12 开始陆续出现 kafka build 集群监控采集超时的问题。kafka build 集群是离线阿拉丁流式建库主通路使用的消息中间件。这个问题并没有引起通路断流，因为针对重要业务，例如天气，的时效性报警没有被触发，所以在把手头高优的事情收尾之后， 16 日开始着手排查这个问题。</p>
+<h3 id="Kafka-单实例-CPU-用量飙升及-GC-时间过长问题排查"><a href="#Kafka-单实例-CPU-用量飙升及-GC-时间过长问题排查" class="headerlink" title="Kafka 单实例 CPU 用量飙升及 GC 时间过长问题排查"></a>Kafka 单实例 CPU 用量飙升及 GC 时间过长问题排查</h3><h4 id="概览-4"><a href="#概览-4" class="headerlink" title="概览"></a>概览</h4><p>现学 Java 工具 + 利用计算机网络知识，基于表象一步步分析与定位问题诱因</p>
+<h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>2024/08/12 开始陆续出现 kafka build 集群监控采集超时的问题。kafka build 集群是离线阿拉丁流式建库主通路使用的消息中间件。这个问题并没有引起通路断流，因为针对重要业务，例如天气，的时效性报警没有被触发，所以在把手头高优的事情收尾之后， 16 日开始着手排查这个问题。</p>
 <p>从 kafka 监控上可以看出，和其他实例相比，有一个实例的 CPU 使用量很高（12 核 vs 4 核），并且 GC 的时间特别长（25% vs 2%）。一开始怀疑是单实例所在的机器有问题，但是把问题实例 A 做了迁移后，实例 B 又接着出了问题，每次一个实例，非常诡异。</p>
-<h3 id="JVM-排查"><a href="#JVM-排查" class="headerlink" title="JVM 排查"></a>JVM 排查</h3><p>以上面提到的 CPU 和 GC 异常为切入点，进行问题排查。kafka 是由 jvm 系语言（java + scala）编写的。在网上搜了一下 jvm gc 时间长 &amp; CPU 占用严重的问题思路排查，主要是使用 jstack 和 jstat 。前者主要是配合 ps 命令查看哪个调用栈占用的 CPU 资源比较多，后者是用来看 JVM gc 的指标。分别在异常和正常的实例上执行上述命令并进行分析，发现异常实例的 kafka-request-handler-x 的 CPU 使用量相较于两个正常实例是较高的，这里说明可能存在异常的外部请求，且异常实例的 O 区相较其它两个实例一直都很小，但是 E 区相对较高。</p>
+<h4 id="JVM-排查"><a href="#JVM-排查" class="headerlink" title="JVM 排查"></a>JVM 排查</h4><p>以上面提到的 CPU 和 GC 异常为切入点，进行问题排查。kafka 是由 jvm 系语言（java + scala）编写的。在网上搜了一下 jvm gc 时间长 &amp; CPU 占用严重的问题思路排查，主要是使用 jstack 和 jstat 。前者主要是配合 ps 命令查看哪个调用栈占用的 CPU 资源比较多，后者是用来看 JVM gc 的指标。分别在异常和正常的实例上执行上述命令并进行分析，发现异常实例的 kafka-request-handler-x 的 CPU 使用量相较于两个正常实例是较高的，这里说明可能存在异常的外部请求，且异常实例的 O 区相较其它两个实例一直都很小，但是 E 区相对较高。</p>
 <p>在 JVM 中，新创建的对象首先被分配到 E 区。当 E 区满时，会触发 Minor GC，清理掉那些已经死亡的对象，而那些仍然存活的对象会被移动到 Survivor 区（S0或S1）。如果一个对象在 Survivor 区存活了足够长的时间（或者 Survivor 区满了），那么这个对象就会被移动到 O 区。而异常实例的 E 区的使用率高，O 区的使用率低，那么可能的情况是应用在创建大量的对象，但这些对象很快就不再被引用，所以在 Minor GC 时就被清理掉了，没有机会被晋升到 O 区。对于那些处理大量短暂任务（例如 HTTP 请求）的应用，这可能是一个正常的现象。此时就开始怀疑，存在异常服务在频繁地请求 kafka ，并且每次请求的时候都请求到了服务发现列表中的第一个实例。</p>
-<h3 id="网络连接排查"><a href="#网络连接排查" class="headerlink" title="网络连接排查"></a>网络连接排查</h3><p>可以通过 netstat -anp 获取机器上当前全量的网络连接信息。基于实例所在机器的 ip 和监听的端口，可以捞出所有和这个端口建立连接的 TCP 信息。kafka client 和 server 之间的交互，是基于 TCP 连接的。如果客户端和 kafka 建立的是稳定的长连接的话，不应该有很多的 ip 输出，因为一个 TCP 连接由源 IP/Port 和目标 IP/Port 唯一确定，在正常的 kafka 实例所在的机器上执行确实如此，但是在异常的 kafka 实例所在的机器上执行时，发现有部分 IP 的连接数特别多，且 95% 都处于 TIME_WAIT 状态，表示可能存在频繁的 TCP 的 create 和 close。</p>
+<h4 id="网络连接排查"><a href="#网络连接排查" class="headerlink" title="网络连接排查"></a>网络连接排查</h4><p>可以通过 netstat -anp 获取机器上当前全量的网络连接信息。基于实例所在机器的 ip 和监听的端口，可以捞出所有和这个端口建立连接的 TCP 信息。kafka client 和 server 之间的交互，是基于 TCP 连接的。如果客户端和 kafka 建立的是稳定的长连接的话，不应该有很多的 ip 输出，因为一个 TCP 连接由源 IP/Port 和目标 IP/Port 唯一确定，在正常的 kafka 实例所在的机器上执行确实如此，但是在异常的 kafka 实例所在的机器上执行时，发现有部分 IP 的连接数特别多，且 95% 都处于 TIME_WAIT 状态，表示可能存在频繁的 TCP 的 create 和 close。</p>
 <p>在异常 ip 上定位异常进程号的方式比较简单，先执行一遍 netstat 命令，记好每个进程通信使用的端口，过 5s 再执行一次，看下这个端口是否是 TIME_WAIT 状态，如果是的话，那么这个进程就是有问题的。Linux 中 TIME_WAIT 为 60s，如果有 TCP 连接在短时间内被 create 和 close，那么 5s 后，一次连接的 TIME_WAIT 阶段并不会终止。</p>
 <p>按照这个思路分别在上述几个 ip 上找了一下，定位到了一个 app 下的一批实例。这里怀疑是 app 的代码写的有问题，为了先让 kafka 恢复正常，联系了对应的业务，了解到这个是新上的任务，可以临时停流，所以就将这个服务的实例全部 stop 了。但是 kafka 监控不见好转。当时有点汗流浃背了，难道还有其他的问题？抱着试试看的心理，按照之前的思路又找了一下 TIME_WAIT 的实例，发现了另一个 app 下的实例也有问题，这个 app 和之前的 app 使用的是同一个开发框架，此时怀疑是否是框架的代码有问题。</p>
 <p>这两个 app 都是最近上线/接流的，和故障发生的时间点比较吻合。问相关同事要到了对应的代码库，研究了一下代码，果然发现了问题。业务框架在将处理结果写 kafka 时，每写一条数据就创建一个 producer （可以理解为就是 create 一个 TCP Client），写完之后就 close 掉，符合线上观察到的 TCP 频繁 create 和 close 现象。联系了负责另一个 app 的业务方，下线了写 kafka 的逻辑，之后异常实例就基本恢复正常了，估计是其他使用这个框架的 app 流量较小，对 kafka 的影响不大。最后把问题报给了业务框架的维护方。</p>
-<h2 id="MongoDB-异常分片定位流程提速"><a href="#MongoDB-异常分片定位流程提速" class="headerlink" title="MongoDB 异常分片定位流程提速"></a>MongoDB 异常分片定位流程提速</h2><h3 id="概览-5"><a href="#概览-5" class="headerlink" title="概览"></a>概览</h3><p>基于 MongoDB 部署现状和引发的连锁故障，一步步完善工具及监控基建，提升故障修复速度</p>
+<h3 id="MongoDB-异常分片定位流程提速"><a href="#MongoDB-异常分片定位流程提速" class="headerlink" title="MongoDB 异常分片定位流程提速"></a>MongoDB 异常分片定位流程提速</h3><h4 id="概览-5"><a href="#概览-5" class="headerlink" title="概览"></a>概览</h4><p>基于 MongoDB 部署现状和引发的连锁故障，一步步完善工具及监控基建，提升故障修复速度</p>
 <p>工具 + exporter 改造 + 监控完善 + 迁移切主机制</p>
-<h3 id="问题描述-1"><a href="#问题描述-1" class="headerlink" title="问题描述"></a>问题描述</h3><p>MongoDB 集群当前是以分片模式进行部署的，线上不时地会出现单分片故障（主要表现为处理请求超时 &amp; 内存暴涨）导致集群整体时延上涨的问题。集群处理请求超时连带着会使得 MongoDB Exporter 监控采集超时，导致 Grafana 相关监控无数据，触发 no_data 报警。</p>
+<h4 id="问题描述-1"><a href="#问题描述-1" class="headerlink" title="问题描述"></a>问题描述</h4><p>MongoDB 集群当前是以分片模式进行部署的，线上不时地会出现单分片故障（主要表现为处理请求超时 &amp; 内存暴涨）导致集群整体时延上涨的问题。集群处理请求超时连带着会使得 MongoDB Exporter 监控采集超时，导致 Grafana 相关监控无数据，触发 no_data 报警。</p>
 <p>mentor 跟我说的方式比较粗暴：遍历所有的分片，给所有分片的 leader 发 <code>rs.stepDown()</code> 命令进行切主。不过同时操作线上所有分片先后进行切主可能对线上稳定性有影响，并且有时候切主可能也无法缓解这个问题，最差的情况下需要人工临时调整实例使用的内存，这就需要知道哪个分片存在问题，此时就需要用到另一个方法，人工登录分片 primary 看日志，如果日志中刷了大量的慢查询，那么这个分片就是异常的。但是这又有一个问题是，最大的集群有 18 个分片，人工依次排查的成本太高了。</p>
-<h3 id="扫日志工具"><a href="#扫日志工具" class="headerlink" title="扫日志工具"></a>扫日志工具</h3><p>我在想，能否自动化地分析 mongo 的日志呢？可以编写代码，模拟人通过跳板机 ssh 登录实例然后查看日志整个流程，这个是比较好实现的。主要的流程为先请求 mongos 拿到各个分片中副本集里各个实例的 ip 信息，然后通过模拟 tty 先登录跳板机，然后直接 ssh 命令 grep 历史日志，分析慢查询的数量，基于这些信息，就可以知道哪个分片有异常日志了。借助这种方式，问题分片的定位耗时从 1h 左右降低到了 3 分钟以内。</p>
-<h3 id="exporter-改造"><a href="#exporter-改造" class="headerlink" title="exporter 改造"></a>exporter 改造</h3><p>单分片请求超时导致整个集群的监控项都不可用是不可接受的。我看了一下 exporter 的代码，应该是直接从一个开源实现 copy 过来的。它在请求各个分片拉取数据时，是串行进行，且未设置超时时间。我对 exporter 进行修改，首先对于各个 shard 的监控信息采集改为了 goroutine 并发执行，然后设置了 <code>context.WithTimeout</code> 超时时间，最后又新增了一个监控项，记录一个分片中各个实例的类型（primary / secondary）。添加的这个监控项的作用是，可以配置一个报警，当一个分片中的 primary 和 secondary 数量小于 2 ，那么就代表只有一个节点有数据了，此时必须触发最高优的电话报警。</p>
+<h4 id="扫日志工具"><a href="#扫日志工具" class="headerlink" title="扫日志工具"></a>扫日志工具</h4><p>我在想，能否自动化地分析 mongo 的日志呢？可以编写代码，模拟人通过跳板机 ssh 登录实例然后查看日志整个流程，这个是比较好实现的。主要的流程为先请求 mongos 拿到各个分片中副本集里各个实例的 ip 信息，然后通过模拟 tty 先登录跳板机，然后直接 ssh 命令 grep 历史日志，分析慢查询的数量，基于这些信息，就可以知道哪个分片有异常日志了。借助这种方式，问题分片的定位耗时从 1h 左右降低到了 3 分钟以内。</p>
+<h4 id="exporter-改造"><a href="#exporter-改造" class="headerlink" title="exporter 改造"></a>exporter 改造</h4><p>单分片请求超时导致整个集群的监控项都不可用是不可接受的。我看了一下 exporter 的代码，应该是直接从一个开源实现 copy 过来的。它在请求各个分片拉取数据时，是串行进行，且未设置超时时间。我对 exporter 进行修改，首先对于各个 shard 的监控信息采集改为了 goroutine 并发执行，然后设置了 <code>context.WithTimeout</code> 超时时间，最后又新增了一个监控项，记录一个分片中各个实例的类型（primary / secondary）。添加的这个监控项的作用是，可以配置一个报警，当一个分片中的 primary 和 secondary 数量小于 2 ，那么就代表只有一个节点有数据了，此时必须触发最高优的电话报警。</p>
 <p>另外在梳理代码的时候还有额外的收获，exporter 采集了各个分片中各项操作（比如 insert / update 等）的耗时，但是当前监控看板上没有配置。我设想是否可以配置一个分片粒度的整体耗时的看板，这样就可以一目了然有问题的分片了。在配置了这个看板后，后续集群异常时，果然有一个分片的耗时指标从常态下的 500 微秒暴增至 50ms 以上，甚至指标直接丢失了。借助这种方式，问题分片的定位耗时从 3 分钟降到了 5s 以内。</p>
-<h3 id="常见诱因根治"><a href="#常见诱因根治" class="headerlink" title="常见诱因根治"></a>常见诱因根治</h3><p>虽然可以快速定位问题分片，但是如果故障出现的频次不降低，还是比较麻烦的（比如半夜的电话报警）。之前 mentor 跟我说的原因是 mongo 本身的 bug 导致的，不好解决。处理这种问题的次数多了，我发现在大部分情况下，都是在有实例迁移的时候出现的。MongoDB 当前是云原生部署的，一个分片中的单个实例如果需要迁移，一般是先扩出一个新实例，等新实例完成数据同步后，再将老实例删除。</p>
+<h4 id="常见诱因根治"><a href="#常见诱因根治" class="headerlink" title="常见诱因根治"></a>常见诱因根治</h4><p>虽然可以快速定位问题分片，但是如果故障出现的频次不降低，还是比较麻烦的（比如半夜的电话报警）。之前 mentor 跟我说的原因是 mongo 本身的 bug 导致的，不好解决。处理这种问题的次数多了，我发现在大部分情况下，都是在有实例迁移的时候出现的。MongoDB 当前是云原生部署的，一个分片中的单个实例如果需要迁移，一般是先扩出一个新实例，等新实例完成数据同步后，再将老实例删除。</p>
 <p>我开发的扫日志工具，除了支持扫日志外，还会将整个 MongoDB 集群的信息都列出来，包括所有的分片，以及每个分片中的成员类型和 ip &amp; port 信息，也包括处于 startup2 状态的实例同步的源目标。</p>
 <p>我发现出故障时，常常那个新扩出来的 startup2 实例都是从 primary 节点同步数据的。数据库的一个基本常识是，在处理数据读写请求时，一般都要将磁盘上的数据装到内存里，然后基于内存里的数据来进行操作。那么假如 primary 节点本身就处于高负载下处理外部的读写请求，此时又额外新增了一个需要读全量数据的请求，那么应该会污染宝贵的内存资源，导致 primary 节点性能大幅下降。</p>
 <p>在发现了这个问题后，我部署了一个定时任务，每隔 1 分钟，检测所有集群的各个分片中是否同时存在 startup2 和 secondary 的实例，如果存在且 startup2 实例的同步源是 primary 实例，那么就会调用 <code>replSetSyncFrom</code> 命令重置同步源为 secondary 实例。在整个定时任务上线后，线上异常分片出现的频率从周级一次降低到季度级一次甚至更少。</p>
-<h2 id="Kafka-ConsumerGroup-异常消费者定位"><a href="#Kafka-ConsumerGroup-异常消费者定位" class="headerlink" title="Kafka ConsumerGroup 异常消费者定位"></a>Kafka ConsumerGroup 异常消费者定位</h2><h3 id="概览-6"><a href="#概览-6" class="headerlink" title="概览"></a>概览</h3><p>借助 Kafka ConsumerGroup 实现原理来排查线上问题</p>
-<h3 id="问题描述-2"><a href="#问题描述-2" class="headerlink" title="问题描述"></a>问题描述</h3><p>线上的一个架构模块消费 Kafka 的堆积监控出现频繁的 no_data 报警，这种一般是有消费者实例频繁地加入和退出消费者组，触发其 rebalance 导致的。由于架构模块实例在加入消费者组时，使用的 id 是 uuid 字符串，不包含 host 信息，所以无法从 Kafka Server 端的日志定位问题实例所在的机器。尝试使用 Kafka 命令行工具多次拉取 consumergroup 的信息，但是发现基本都是处于 rebalance 的状态，看不到实例列表。根据经验，有可能是部分实例处理数据异常后 coredump ，然后被 supervisor 反复拉起，但是扫了线上实例所在机器的 core 文件目录，也没发现异常。</p>
-<h3 id="Kafka-Manager"><a href="#Kafka-Manager" class="headerlink" title="Kafka Manager"></a>Kafka Manager</h3><p>在接手 Kafka 时，前人搭建了一个 Kafka Manager服务，用于管理集群的 Topic ，它还可以展示出消费一个 Topic 的所有 ConsumerGroup 信息。抱着试试看的心理，我查了一下有问题的 ConsumerGroup ，发现它居然不受 rebalance 的影响，可以展示出最近一次完成 rebalance 后的 ConsumerGroup 信息。我很快就注意到了一个明显是开发机的异常 IP ，找了相关同事，得知是他在线下启动了一个这个服务的实例，用于测试验证，但是相关的配置忘记改了，连到了线上集群。由于开发机 CPU 资源较少，且和线上集群所处不同机房，就导致它一加入 ConsumerGroup 开始处理数据 CPU 、内存就打满，然后挂掉，接着又被 supervisor 拉起。这种行为就会导致 ConsumerGroup 反复 rebalance 。</p>
+<h3 id="Kafka-ConsumerGroup-异常消费者定位"><a href="#Kafka-ConsumerGroup-异常消费者定位" class="headerlink" title="Kafka ConsumerGroup 异常消费者定位"></a>Kafka ConsumerGroup 异常消费者定位</h3><h4 id="概览-6"><a href="#概览-6" class="headerlink" title="概览"></a>概览</h4><p>借助 Kafka ConsumerGroup 实现原理来排查线上问题</p>
+<h4 id="问题描述-2"><a href="#问题描述-2" class="headerlink" title="问题描述"></a>问题描述</h4><p>线上的一个架构模块消费 Kafka 的堆积监控出现频繁的 no_data 报警，这种一般是有消费者实例频繁地加入和退出消费者组，触发其 rebalance 导致的。由于架构模块实例在加入消费者组时，使用的 id 是 uuid 字符串，不包含 host 信息，所以无法从 Kafka Server 端的日志定位问题实例所在的机器。尝试使用 Kafka 命令行工具多次拉取 consumergroup 的信息，但是发现基本都是处于 rebalance 的状态，看不到实例列表。根据经验，有可能是部分实例处理数据异常后 coredump ，然后被 supervisor 反复拉起，但是扫了线上实例所在机器的 core 文件目录，也没发现异常。</p>
+<h4 id="Kafka-Manager"><a href="#Kafka-Manager" class="headerlink" title="Kafka Manager"></a>Kafka Manager</h4><p>在接手 Kafka 时，前人搭建了一个 Kafka Manager服务，用于管理集群的 Topic ，它还可以展示出消费一个 Topic 的所有 ConsumerGroup 信息。抱着试试看的心理，我查了一下有问题的 ConsumerGroup ，发现它居然不受 rebalance 的影响，可以展示出最近一次完成 rebalance 后的 ConsumerGroup 信息。我很快就注意到了一个明显是开发机的异常 IP ，找了相关同事，得知是他在线下启动了一个这个服务的实例，用于测试验证，但是相关的配置忘记改了，连到了线上集群。由于开发机 CPU 资源较少，且和线上集群所处不同机房，就导致它一加入 ConsumerGroup 开始处理数据 CPU 、内存就打满，然后挂掉，接着又被 supervisor 拉起。这种行为就会导致 ConsumerGroup 反复 rebalance 。</p>
 <p>在解决了这个问题后，我非常好奇 Kafka Manager 获取 ConsumerGroup 信息的原理，这明显不是基于 Kafka 自带的 cli 工具做的。在学习了源码后，我了解到它是直接订阅内部 topic <code>__consumer_offsets</code> ，并将各个 ConsumerGroup 最新的 rebalance 后的状态记录在内存中。Kafka 会将 ConsumerGroup 的信息存储在内部 topic <code>__consumer_offsets</code>中，包括 cg 的元信息以及各个 member 的消费进度。相关信息是增量写入并定期 compact 。正因如此，Kafka Manager 才可以在 ConsumerGroup 反复 rebalance 的时候，依然可以展示最近一次 rebalance 完毕的 ConsumerGroup 信息。 </p>
-<h3 id="通用-CLI-工具"><a href="#通用-CLI-工具" class="headerlink" title="通用 CLI 工具"></a>通用 CLI 工具</h3><p>在 25 年的时候，陆续部署了基于 KRaft 的新版 Kafka 集群。之前的 Kafka Manager 由于不适配新版集群，所以我就找了另一个开源的 Kafka Web UI kafbat 来替代老版的 Kafka Manager。</p>
+<h4 id="通用-CLI-工具"><a href="#通用-CLI-工具" class="headerlink" title="通用 CLI 工具"></a>通用 CLI 工具</h4><p>在 25 年的时候，陆续部署了基于 KRaft 的新版 Kafka 集群。之前的 Kafka Manager 由于不适配新版集群，所以我就找了另一个开源的 Kafka Web UI kafbat 来替代老版的 Kafka Manager。</p>
 <p>非常不幸，新版 Kafka 集群的一个 ConsumerGroup 也出现了类似的反复 rebalance 的问题，雪上加霜的是，kafbat 获取 ConsumerGroup 的方式和 Kafka cli 一致，也即是请求 Kafka 接口来获取的信息，那么假如处于 rebalance 状态，则无法获取到这个信息。</p>
 <p>万幸的是，我之前正好研究过 Kafka Manager 获取 ConsumerGroup 的方式，于是就让 AI 编写了一个 CLI 工具，基于 Kafka 的协议对 <code>__consumer_offsets</code> 中的信息进行了解析，然后按照 host ip 粒度对消费者 id 进行聚合，统计出现的次数。根据工具的输出结果，一下子就定位了一个异常 ip ，它对应的消费者 id （也就是上面提到的 uuid）高达 80 多个。这个异常 ip 的机器估计负载特别高，都无法通过 ssh 登录。在 PAAS 平台上发单删除掉这个实例后，这个 ConsumerGroup 就不再 rebalance 了。</p>
-<h2 id="其它一些案例"><a href="#其它一些案例" class="headerlink" title="其它一些案例"></a>其它一些案例</h2><ul>
-<li><p>Mongos Proxy : </p>
+<h3 id="其它一些案例"><a href="#其它一些案例" class="headerlink" title="其它一些案例"></a>其它一些案例</h3><ul>
+<li>Mongos Proxy : <ul>
+<li>背景：安全部门要求给自建 mongo 集群加访问权限限制，由于历史原因不方便给 mongo 设置密码，所以打算通过配置 iptable 的方式来限制访问</li>
+<li>问题：目前存在用户/程序直连 mongos 的需求。鉴于新增/修改 iptables 审批流程较长，并且存在生效慢/生效失败的问题，不利于经常性修改（用户提直连 mongos 需求时需要修改 iptables 规则）。同时，用户直连集群有一定的风险，例如输错命令误删数据</li>
+<li>方案：新增了一个前置的 mongos proxy ，支持按照 IP 粒度对表的操作进行限制，这个是通过解析 mongo 协议中的 OpCode 来实现的。在进行代理时，对于转发的数据，采用 <code>io.Copy</code> 零拷贝，降低转发时的性能损耗。</li>
+</ul>
+</li>
+<li>Kafka Controller 切换失败排查：<ul>
+<li>背景：旧版 Kafka Controller 会出现卡死的问题，一般是通过删除 ZK 中的 <code>/controller</code> 来进行切换</li>
+<li>问题：某一次切换时发现，新的 Controller 启动失败，报错为 <code>java.io.IOException: Packet len4332163 is out of range</code> ，也即超了 zk client 的 4MB buffer </li>
+<li>排查：<ul>
+<li>首先怀疑是某个 zk 节点存储的数据过大，于是写了一个程序筛了一下，为了将可疑 zk 路径全部找出，程序中 zk client 对于单次数据请求预留的 buffer 设置为了 10MB 。结果发现最大的数据也才不到 8 KB。</li>
+<li>后面意识到，除了 get 外，可能还存在 ls 操作。发现 /kafka/isr_change_notification 下有大量的子文件，用程序 ls 一下，并将 buffer 设置为 4MB，果然挂了。</li>
+<li>isr_change_notification 用于存储 分片 isr 的变更，如果集群不稳定，且 controller 卡死，那么就会在这目录下积压大量的子文件。止损的手段为将 2 天前的子文件都清除掉</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="离线建库模块维护及业务对接工作"><a href="#离线建库模块维护及业务对接工作" class="headerlink" title="离线建库模块维护及业务对接工作"></a>离线建库模块维护及业务对接工作</h2><p>2022 Q3 - 至今</p>
+<h3 id="概览-7"><a href="#概览-7" class="headerlink" title="概览"></a>概览</h3><p>核心工作：</p>
 <ul>
-<li><p>背景：安全部门要求给自建 mongo 集群加访问权限限制，由于历史原因不方便给 mongo 设置密码，所以打算通过配置 iptable 的方式来限制访问</p>
-</li>
-<li><p>问题：目前存在用户/程序直连 mongos 的需求。鉴于新增/修改 iptables 审批流程较长，并且存在生效慢/生效失败的问题，不利于经常性修改（用户提直连 mongos 需求时需要修改 iptables 规则）。同时，用户直连集群有一定的风险，例如输错命令误删数据</p>
-</li>
-<li><p>方案：新增了一个前置的 mongos proxy ，支持按照 IP 粒度对表的操作进行限制，这个是通过解析 mongo 协议中的 OpCode 来实现的。在进行代理时，对于转发的数据，采用 <code>io.Copy</code> 零拷贝，降低转发时的性能损耗。</p>
-</li>
+<li>业务对接：<ul>
+<li>参与大库 se/ext 架构迁移的新老架构数据 diff 工作</li>
+<li>大搜音乐 / 汉语 / bank 混合业务（影视、人物、百科、电商榜单等）离线架构侧接口人</li>
 </ul>
 </li>
-<li><p>Kafka Controller 切换失败排查：</p>
-<ul>
-<li><p>背景：旧版 Kafka Controller 会出现卡死的问题，一般是通过删除 ZK 中的 <code>/controller</code> 来进行切换</p>
-</li>
-<li><p>问题：某一次切换时发现，新的 Controller 启动失败，报错为 <code>java.io.IOException: Packet len4332163 is out of range</code> ，也即超了 zk client 的 4MB buffer </p>
-</li>
-<li><p>排查：</p>
-<ul>
-<li><p>首先怀疑是某个 zk 节点存储的数据过大，于是写了一个程序筛了一下，为了将可疑 zk 路径全部找出，程序中 zk client 对于单次数据请求预留的 buffer 设置为了 10MB 。结果发现最大的数据也才不到 8 KB。</p>
-</li>
-<li><p>后面意识到，除了 get 外，可能还存在 ls 操作。发现 /kafka/isr_change_notification 下有大量的子文件，用程序 ls 一下，并将 buffer 设置为 4MB，果然挂了。</p>
-</li>
-<li><p>isr_change_notification 用于存储 分片 isr 的变更，如果集群不稳定，且 controller 卡死，那么就会在这目录下积压大量的子文件。止损的手段为将 2 天前的子文件都清除掉</p>
-</li>
+<li>功能迭代：<ul>
+<li>基于建库入口模块 dump 的原始数据，部署 MR 任务归类错误信息 + Web 可视化，涵盖 30 + 业务</li>
+<li>包括 PAAS 部署的流式建库数据处理模块和 K8S 部署的定时任务 / Service 任务的维护</li>
 </ul>
 </li>
 </ul>
-</li>
-</ul>
-<h1 id="离线建库模块维护及业务对接工作"><a href="#离线建库模块维护及业务对接工作" class="headerlink" title="离线建库模块维护及业务对接工作"></a>离线建库模块维护及业务对接工作</h1><p>2022 Q3 - 至今</p>
-<h2 id="概览-7"><a href="#概览-7" class="headerlink" title="概览"></a>概览</h2><p>核心工作：</p>
-<ul>
-<li><p>业务对接：</p>
-<ul>
-<li><p>参与大库 se/ext 架构迁移的新老架构数据 diff 工作</p>
-</li>
-<li><p>大搜音乐 / 汉语 / bank 混合业务（影视、人物、百科、电商榜单等）离线架构侧接口人</p>
-</li>
+<h3 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h3><ul>
+<li>对接业务相关工作，重点包括：<ul>
+<li>参与大库 se/ext 架构迁移的新老架构数据 diff 工作</li>
+<li>大搜音乐 / 汉语 / bank 混合业务（影视、人物、百科、电商榜单等）离线架构侧接口人</li>
+<li>支持阿拉丁离线建库业务需求，包括建库原始数据 dump 、天级 sla 报表邮件等</li>
 </ul>
 </li>
-<li><p>功能迭代：</p>
-<ul>
-<li><p>基于建库入口模块 dump 的原始数据，部署 MR 任务归类错误信息 + Web 可视化，涵盖 30 + 业务</p>
-</li>
-<li><p>包括 PAAS 部署的流式建库数据处理模块和 K8S 部署的定时任务 / Service 任务的维护</p>
-</li>
+<li>阿拉丁离线建库各模块功能迭代：<ul>
+<li>基于建库入口模块 dump 的原始数据，部署 MR 任务归类错误信息 + Web 可视化</li>
+<li>包括 PAAS 部署的流式建库数据处理模块和 K8S 部署的定时任务 / Service 任务</li>
+<li>离线建库 Trace 收敛至单一 Web 平台，背后编写 router 对接各个 trace 平台 api</li>
 </ul>
 </li>
 </ul>
-<h2 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h2><ul>
-<li><p>对接业务相关工作，重点包括：</p>
-<ul>
-<li><p>参与大库 se/ext 架构迁移的新老架构数据 diff 工作</p>
-</li>
-<li><p>大搜音乐 / 汉语 / bank 混合业务（影视、人物、百科、电商榜单等）离线架构侧接口人</p>
-</li>
-<li><p>支持阿拉丁离线建库业务需求，包括建库原始数据 dump 、天级 sla 报表邮件等</p>
-</li>
-</ul>
-</li>
-<li><p>阿拉丁离线建库各模块功能迭代：</p>
-<ul>
-<li><p>基于建库入口模块 dump 的原始数据，部署 MR 任务归类错误信息 + Web 可视化</p>
-</li>
-<li><p>包括 PAAS 部署的流式建库数据处理模块和 K8S 部署的定时任务 / Service 任务</p>
-</li>
-<li><p>离线建库 Trace 收敛至单一 Web 平台，背后编写 router 对接各个 trace 平台 api</p>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="想要离职的原因"><a href="#想要离职的原因" class="headerlink" title="想要离职的原因"></a>想要离职的原因</h1><h2 id="官方说法"><a href="#官方说法" class="headerlink" title="官方说法"></a>官方说法</h2><p>在百度主要做离线建库和中间件，近两年我最有成就感的是 Kafka 源码级改造这类有技术深度的工作，以及像是监控系统建设这种需要站在全局视角上来对问题进行拆分并逐个解决的工作。但目前各个架构模块逐渐稳定，做的事越来越多是跟业务对接相关的事情。我想找一个能持续做基础架构/中间件深度建设的环境。</p>
-<h2 id="看个乐就行，全当我在胡扯"><a href="#看个乐就行，全当我在胡扯" class="headerlink" title="看个乐就行，全当我在胡扯"></a>看个乐就行，全当我在胡扯</h2><p>最近一年，部门内走了好几位我内心非常认可的同事（从 T3 到 T9），他们都是主动离职的。有一位同事离职的时候跟我说，“你也好好考虑考虑吧” 。正是因为这次契机，我才开始认真思考了这个问题。在工作中，给我安排的事情我基本上都会很积极地去做，看到职责范围外的问题或痛点，有空的话也都会去想想怎么解决或者搞个工具自动化起来，并且也非常积极地总结文档并分享。但是在生活中，如果遇到一些难办的事情，除非必须解决不可，我都会倾向于回避。</p>
+<h2 id="想要离职的原因"><a href="#想要离职的原因" class="headerlink" title="想要离职的原因"></a>想要离职的原因</h2><h3 id="官方说法"><a href="#官方说法" class="headerlink" title="官方说法"></a>官方说法</h3><p>在百度主要做离线建库和中间件，近两年我最有成就感的是 Kafka 源码级改造这类有技术深度的工作，以及像是监控系统建设这种需要站在全局视角上来对问题进行拆分并逐个解决的工作。但目前各个架构模块逐渐稳定，做的事越来越多是跟业务对接相关的事情。我想找一个能持续做基础架构/中间件深度建设的环境。</p>
+<h3 id="看个乐就行，全当我在胡扯"><a href="#看个乐就行，全当我在胡扯" class="headerlink" title="看个乐就行，全当我在胡扯"></a>看个乐就行，全当我在胡扯</h3><p>最近一年，部门内走了好几位我内心非常认可的同事（从 T3 到 T9），他们都是主动离职的。有一位同事离职的时候跟我说，“你也好好考虑考虑吧” 。正是因为这次契机，我才开始认真思考了这个问题。在工作中，给我安排的事情我基本上都会很积极地去做，看到职责范围外的问题或痛点，有空的话也都会去想想怎么解决或者搞个工具自动化起来，并且也非常积极地总结文档并分享。但是在生活中，如果遇到一些难办的事情，除非必须解决不可，我都会倾向于回避。</p>
 <p>实际上 24 年年初的时候，跟我一个关系比较好的同事，在离职前就跟我说过，让我自己多考虑一下职业发展的问题，目前百度应该不太行了，但我当时选择了回避了这个问题，一来感觉目前做的工作还是挺有意思的，单纯地非常享受编写代码和解决问题的过程，二来当前还没有后来的人员缩编，所以单就部门的维度看还算可以，再加上我当时对于 2 年还没升 T4 也没太多的怨言，并且离职后还需要考虑社保换房子等一堆麻烦事，最后也就没考虑离职。</p>
 <p>但是到 26 年，整体的形势恶化的太明显了，从外部看， T10 离职，再到大量裁员，而就我个人而言，压垮我的最后一根稻草是 26 年 Q3 被安排了电商业务的离线架构迁移，原先接手业务的时候明明已经说好不迭代了，到 Q3 业务又说需要迭代，然而迭代只能迁新架构。23 年 - 24 年连续两次离线架构迁移时，我不是没有被其中的脏活累活恶心到，只是尽力去发现可以从中学到的东西，然后来安慰自己说也是有一定的收获的。现在 26 年了还让我去干这种活？并且电商业务要的支持我基本都给了（虽然可能没有拿出 120% 的积极性，但是 90% 还是有的），到了 Q3 末因为迁移难度太大进展不符合预期，居然还被业务投诉了，当时看到消息的时候，脑子嗡了一下，可能是之前也积累了一定的怨气，到此刻彻底爆发了。“也快 30 了，认真准备一下接下来的面试，换工作吧”，我对自己说。</p>
 <p>接下来的方向，我想着或多或少最好可以跟 AI 大模型沾点边，不过我也深知我自己对于大模型仅了解个皮毛，所以不沾边的话我也可以接受，但是最好可以从事偏架构方向的工作，以及最好可以在工作日能有空运动。base 的话最好是在上海，但是如果其它城市（仅限江浙沪）有非常好的机会，我也是会考虑的，具体的企业和岗位后面会认真了解一番。</p>
@@ -529,7 +429,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.schwarzeni.com/2026/11/10/繁历-2026-版/" data-id="cmwax3nfr00ndl2svblh13tzo" class="article-share-link">Share</a>
+      <a data-url="http://blog.schwarzeni.com/2026/11/10/繁历-2026-版/" data-id="cmwaxwp5m00j93nsv5ma1z42h" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/总结/">总结</a></li></ul>
